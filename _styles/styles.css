@@ -2,6 +2,7 @@
     --main-color: white;
   --accent-color: #FFCC66;
 }
+
 html {
     margin: 0;
     padding: 0;
@@ -12,6 +13,14 @@ body {
     margin: 0 auto;
     background-color: var(--main-color);
     font-family: arial, sans-serif;
+}
+
+h1 {
+    margin-left: 1em; 
+}
+
+ul {
+    line-height: 1.6;
 }
 
 /*NAVIGATION BAR*/
@@ -70,3 +79,44 @@ nav ul li ul li a {
 nav ul li ul li a:hover {
     background-color: var(--accent-color);
 }
+
+img {
+  width: 100%;
+  height: auto;
+}
+
+/*Main Screen Image*/
+
+
+.image_textblock {
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    width:70%;
+    margin-left: 0em;
+    
+    color: white;
+    font-size: 1.5em;
+    text-align: center;
+    list-style: none;
+}
+
+.image_textblock h1{
+   font-size: 4em;
+   margin-left: 0em;
+
+}
+
+.about_me li {
+    list-style: none;
+    line-height: 1.6;
+}
+
+.normal_p {
+    padding: 0em 0em 0em 1em;
+}
+
+
+
+
+
