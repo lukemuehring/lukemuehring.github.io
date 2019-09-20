@@ -1,3 +1,242 @@
+/* Color Palette
+Primary 1
+#ffcc66
+
+Primary 2a
+#FFA000 - Vivid Orange Peel 
+
+Primary 2b
+#FF8F00 - Dark Orange  
+
+Secondary 1a
+#81D4FA - Pale Cyan 
+
+Secondary 1b
+#80DEEA - Medium Sky Blue 
+
+Secondary 1c, in image
+#66fdff
+
+"White"
+#FFF6DB
+*/
+
+
+/*Global Styles
+------------------------------------*/
+body {
+    margin: 0;
+    font-family: 'Open Sans', Arial, sans-serif;
+}
+
+h1 {
+    font-size: 4em;
+    margin: 0;
+}
+
+h2 {
+    font-size: 2.5em;
+    margin: 0;
+}
+
+a {
+    color: #81D4FA;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.content-wrap {
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 50px;
+}
+
+
+/*Header and Footer
+------------------------------------*/
+header, footer {
+    font-family: Helvetica, sans-serif;
+    background: #ffcc66;
+    padding:0;
+    margin:0;
+}
+
+/* header */
+header {
+    
+}
+
+/* "Luke Muehring" at top left of the page */
+#name {
+    float: left;
+    padding: 0px 1em;
+    margin: 0;
+    line-height: 50px;
+}
+
+/*NAV BAR
+Bugs: 
+when zooming in, the nav bar changes size. How to make it fixed?
+
+Can't highlight each little button for the whole nav bar section. 
+
+Not on the same horizontal line as the name
+
+want to make the padding larger (so links are more clickable) but cant get sizing to fit?
+
+hovering over links in the dropdown don't fill the whole menu part
+
+------------------------------------*/
+nav {
+    width: 100%;
+    height: 50px;
+    background-color: white;
+    z-index:  999; /*sticky*/
+    position: fixed;    
+}
+
+nav ul {
+    float: left;
+}
+
+nav ul li {
+    float: left;
+    list-style: none;
+    position: relative;
+    width: 180px;
+}
+
+nav ul li:hover ul {
+    display: block;
+}
+
+nav ul ul {
+    display: none;
+    position: absolute;
+    background-color: white;
+    padding: 0px 10px 10px 10px;  
+    border-radius: 0px 0px 4px 4px;
+}
+
+
+
+/*Links in the nav bar*/
+nav a {
+    display: block;
+    font-size: 1em;
+/*    line-height: 50px;*/
+    margin: 0;
+    padding: 7px 1em;
+    text-decoration: none;
+    color: #222;
+/*    background-color:aqua;*/
+}
+
+.nav-dropdown {
+    padding: 14px 14px;
+}
+
+.nav-dropdown:hover {
+    background-color: #f3f3f3;
+}
+
+/* footer */
+footer {
+    text-align: center;
+}
+
+.contact-info a {
+    display: inline-block;
+    padding: 10px;
+    margin: 10px;
+}
+
+/*Banner Images and Text (images that span the whole page)
+-------             -----------------------------*/
+.banner-img {   
+    float: left;
+    width: 350px;
+    border-radius:50%;
+    margin-right: 30px;
+    max-height: 700px;
+    
+/*    background-color: blue;*/
+}
+
+.banner-text { 
+    margin-top: 3em;
+/*    color: red;*/
+}
+
+/*Intro section
+------------------------------------*/
+.intro-container {
+    overflow: auto;
+    max-width: 950px;
+    padding: 50px;
+    margin: 0 auto;
+}
+
+.intro {
+    padding: 50px;
+    background-color: #ffcc66;
+}
+
+
+/*Timeline section
+------------------------------------*/
+.timeline {
+/*    clear: both;*/
+    background-color: #FFF6DB;    
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*OLD
 :root {
     --main-color: white;
   --accent-color: #FFCC66;
@@ -24,6 +263,7 @@ ul {
 }
 
 /*NAVIGATION BAR*/
+/*
 nav {
     width: 100%;
     height: 1 em;
@@ -31,6 +271,8 @@ nav {
 }
 
 /*Logo or Name element in top left corner*/
+
+/*
 nav p {
     color: black;
     font-size: 1em;
@@ -46,11 +288,13 @@ nav ul {
 
 nav ul li {
     float: left;
-    list-style: none; /* this is so that there are no bullet points in the NavBar links */
+    list-style: none; /* this is so that there are no bullet points in the NavBar links */ /*
     position: relative; /* ??? needed to activate position: absolute later? */
 }
 
 /*Anchor tags inside the nav bar*/
+
+/*
 nav ul li a {
     display: block;
     color: #222;
@@ -60,6 +304,8 @@ nav ul li a {
 }
 
 /*Drop-down menu*/
+
+/*
 nav ul li ul {
     display: none;
     position: absolute;
@@ -87,7 +333,7 @@ img {
 
 /*Main Screen Image*/
 
-
+/*
 .image_textblock {
     position: absolute;
     top: 25%;
@@ -117,6 +363,5 @@ img {
 }
 
 
-
-
+*/
 
