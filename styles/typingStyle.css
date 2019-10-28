@@ -167,22 +167,39 @@ body {
 
 .meta {
     margin-top: 1em;
+/*
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
+*/
+    align-content: center;
 }
 
+.buttons {
+    margin: 1em;
+    align-content: center;
+}
 
-#convert {
+.buttons button{
     padding: .5em 1em;
     font-size: 1.2em;
     font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+    
     color: #E95D0F;
     background: white ;
     border: 10px solid #E95D0F;
+    border-radius: 15px;
+    box-shadow: 0 9px #999;
 }
 
-#convert:hover {
+.buttons button:hover {
     color: white;
     background-color: #E95D0F;
+}
+
+.buttons button:active {
+    transform: translateY(4px);
 }
