@@ -141,27 +141,26 @@ body {
     padding: 0 2em;
 }
 
-.test-wrapper {
+.input-wrapper {
     border: 10px solid grey;
     border-radius: 10px;
 }
 
 #output-text {
     margin: 1em 0;
-    padding: 1em 1em 0;
+    padding: 1em 1em 1em 1em;
     background-color: #ededed;
 }
 
-#output-text p {
+#output-text pre {
     margin: 0;
-    padding-bottom: 1em;
 }
 
-.test-wrapper {
+.input-wrapper {
     display: flex;
 }
 
-.test-wrapper textarea {
+.input-wrapper textarea {
     flex: 1;
 }
 
