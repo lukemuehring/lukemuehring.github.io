@@ -11,7 +11,6 @@ var imageArray = new Array(
     "./images/player/walk1_1.png",
     "./images/player/walk1_2.png",
     "./images/player/walk1_3.png",
-    "./images/tiles.png"
 );
 
 function preloadImages(e) {
@@ -73,6 +72,11 @@ player.image.src = "./images/player/stand1_0.png";
 
 var tiles = new Image();
 tiles.src = "./images/tiles.png";
+
+var backgroundImage0 = new Image();
+backgroundImage0.src = "./images/bg_0.png"
+var backgroundImage1 = new Image();
+backgroundImage1.src = "./images/bg_1.png"
 
 var map = {
     cols: 24,
@@ -159,8 +163,9 @@ const loop = function() {
     }
 
     //**********Background Fill**********
-    c.fillStyle = "pink";
-    c.fillRect(0,0, canvas_width, canvas_height);
+    c.drawImage(backgroundImage0, 0, 0);
+    c.drawImage(backgroundImage1, 0, 0);
+
 
     //**********Player Draw********** 
     // console.log("natural height height" + player.image.naturalHeight);
@@ -249,6 +254,14 @@ function drawFlippedImage(context, image, x, y) {
     context.drawImage(image, x, y);
     context.restore();
 };
+
+function worldToScreen(x, y) {
+    return { x: x - camera.x, y: y - camera.y };
+}
+  
+function screenToWorld(x, y) {
+    return { x: x + camera.x, y: y + camera.y };
+}
 
 window.addEventListener("keydown", controller.keyListener)
 window.addEventListener("keyup", controller.keyListener);
