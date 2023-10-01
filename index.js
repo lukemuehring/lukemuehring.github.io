@@ -10,7 +10,8 @@ var imageArray = new Array(
     "./images/player/walk1_0.png",
     "./images/player/walk1_1.png",
     "./images/player/walk1_2.png",
-    "./images/player/walk1_3.png"
+    "./images/player/walk1_3.png",
+    "./images/tiles.png"
 );
 
 function preloadImages(e) {
@@ -54,8 +55,8 @@ const STATES = {
 var frame_count = 0;
 
 const player = {
-    height: 32,
-    width: 32,
+    height: 160,
+    width: 94,
     image: new Image(),
     state: STATES.Jumping,
     idle_sprite_frame: 0,
@@ -69,6 +70,25 @@ const player = {
 };
 
 player.image.src = "./images/player/stand1_0.png";
+
+var tiles = new Image();
+tiles.src = "./images/tiles.png";
+
+var map = {
+    cols: 24,
+    rows: 5,
+    tsize: 64,
+    tiles: [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    ],
+    getTile: function (col, row) {
+        return this.tiles[row * map.cols + col];
+    }
+}
 
 const floor = {
     height: canvas_height - 100,
@@ -99,7 +119,7 @@ const controller = {
 
 const loop = function() {
 
-    // Controller Input
+    //**********Controller Input**********
     if (controller.up && !player.state == STATES.Jumping) {
         player.y_velocity -= JUMP_HEIGHT;
         player.state = STATES.Jumping;
@@ -113,7 +133,7 @@ const loop = function() {
         player.x_velocity += .5;
     }
 
-    // Gravity and Friction
+    //**********Gravity and Friction**********
     player.y_velocity += GRAVITY;
     player.x += player.x_velocity;
     player.y += player.y_velocity;
@@ -126,23 +146,23 @@ const loop = function() {
     }
     player.y_velocity += .9;
 
-    // Collision with floor and Walking + Idle animations
-    if (player.y > floor.height - player.height - JUMP_HEIGHT) {
+    //**********Collision with floor and Walking + Idle animations**********
+    if (player.y > floor.height) {
         if ((controller.left || controller.right) && !controller.up) {
             player.state = STATES.Walking;
             player.is_going_to_the_right = controller.right;
         } else {
             player.state = STATES.Idle;
         }
-        player.y = floor.height - player.height - JUMP_HEIGHT;
+        player.y = floor.height;
         player.y_velocity = 0;
     }
 
-    // Background Fill
+    //**********Background Fill**********
     c.fillStyle = "pink";
     c.fillRect(0,0, canvas_width, canvas_height);
 
-    // Player Draw
+    //**********Player Draw********** 
     // console.log("natural height height" + player.image.naturalHeight);
     switch(player.state) {
         case STATES.Jumping:
@@ -152,7 +172,7 @@ const loop = function() {
         case STATES.Walking:
             if (frame_count % (ANIMATION_TIME_BUFFER / 5) == 0) {
                 player.walk_sprite_frame = (player.walk_sprite_frame + 1) % 4;
-                console.log("walking animation frame change to: " + player.walk_sprite_frame);
+                // console.log("walking animation frame change to: " + player.walk_sprite_frame);
             }
             player.image.src = "./images/player/walk1_" + player.walk_sprite_frame + ".png";
 
@@ -160,7 +180,7 @@ const loop = function() {
             break;
         case STATES.Idle:
             // idle
-            console.log(player.x_velocity);
+            // console.log(player.x_velocity);
             if (frame_count % ANIMATION_TIME_BUFFER == 0 && player.x_velocity == 0) {
                 if (player.idle_sprite_frame == 2)
                 {
@@ -185,26 +205,41 @@ const loop = function() {
         c.drawImage(player.image, player.x, player.y - player.image.naturalHeight);
     }
 
-    // To be deprecated
-    c.fillStyle = "blue";
-    c.beginPath();
-    c.rect(player.x, player.y, player.width, player.height);
-    c.fill();
-
     // Floor Fill
-    c.strokeStyle = floor.color;
-    c.lineWidth = 30;
-    c.beginPath();
-    c.moveTo(0, floor.height);
-    c.lineTo(canvas_width, floor.height);
-    c.stroke();
+    // c.strokeStyle = floor.color;
+    // c.lineWidth = 30;
+    // c.beginPath();
+    // c.moveTo(0, floor.height);
+    // c.lineTo(canvas_width, floor.height);
+    // c.stroke();
+
+    for (let column = 0; column < map.cols; column++) {
+        for (let row = 0; row < map.rows; row++) {
+            const tile = map.getTile(column, row);
+            const x = column * map.tileSize;
+            const y = row * map.tileSize;
+            c.drawImage(
+                tiles, // image
+                tile * map.tsize, // source x
+                0, // source y
+                map.tsize, // source width
+                map.tsize, // source height
+                column * map.tsize,  // target x
+                row * map.tsize + floor.height, // target y
+                map.tsize, // target width
+                map.tsize // target height
+            );
+        }
+    }
 
     // Animation
     window.requestAnimationFrame(loop);
     frame_count++;
 
-    console.log("player state:" + player.state);
+    // console.log("player state:" + player.state);
 };
+
+
 
 function drawFlippedImage(context, image, x, y) {
     context.save();
@@ -218,3 +253,8 @@ function drawFlippedImage(context, image, x, y) {
 window.addEventListener("keydown", controller.keyListener)
 window.addEventListener("keyup", controller.keyListener);
 // window.requestAnimationFrame(loop);
+
+/** CREDITS **
+ * Free - Adventure Pack - Grassland by Anokolisa
+ * 
+ */
