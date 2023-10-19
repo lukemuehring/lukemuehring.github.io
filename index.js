@@ -65,7 +65,7 @@ const player = {
     x: 0,
     x_velocity: 0,
     y: 0,
-    y_velocity: 0
+    y_velocity: 0,
 };
 
 player.image.src = "./images/player/stand1_0.png";
@@ -79,15 +79,15 @@ var backgroundImage1 = new Image();
 backgroundImage1.src = "./images/bg_1.png"
 
 var map = {
-    cols: 24,
+    cols: 48,
     rows: 5,
     tsize: 64,
     tiles: [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     ],
     getTile: function (col, row) {
         return this.tiles[row * map.cols + col];
@@ -98,6 +98,36 @@ const floor = {
     height: canvas_height - 100,
     color: "white"
 }
+
+function Camera(map, width, height) {
+    this.x = 0;
+    this.y = 0;
+    this.width = width;
+    this.height = height;
+    this.minX = 0;
+    this.maxX = map.cols * map.tsize - width;
+}
+
+Camera.prototype.follow = function(sprite) {
+    this.following = sprite;
+    sprite.screenX = 0;
+}
+
+Camera.prototype.update = function() {
+    this.following.screenX = this.width / 2;
+    this.x = this.following.x - this.width / 2;
+
+    this.x = Math.max(this.minX, Math.min(this.x, this.maxX));
+
+    if (this.following.x < this.width / 2 ||
+    this.following.x > this.maxX + this.width / 2) {
+        this.following.screenX = this.following.x - this.x;
+    }
+}
+
+this.camera = new Camera(map, canvas_width, canvas_height);
+player.x = this.camera.width / 2;
+this.camera.follow(player);
 
 const controller = {
     left: false,
@@ -120,6 +150,7 @@ const controller = {
         }
     }
 }
+
 
 const loop = function() {
 
@@ -161,6 +192,11 @@ const loop = function() {
         player.y = floor.height;
         player.y_velocity = 0;
     }
+
+    player.x = Math.max(0, Math.min(player.x, map.cols * map.tsize - player.width));
+    
+    this.camera.update();
+
 
     //**********Background Fill**********
     c.drawImage(backgroundImage0, 0, 0);
@@ -205,9 +241,9 @@ const loop = function() {
     }
 
     if (player.is_going_to_the_right) {
-        drawFlippedImage(c, player.image, player.x, player.y - player.image.naturalHeight);
+        drawFlippedImage(c, player.image, player.screenX - player.width / 2, player.y - player.image.naturalHeight);
     } else {
-        c.drawImage(player.image, player.x, player.y - player.image.naturalHeight);
+        c.drawImage(player.image, player.screenX - player.width / 2, player.y - player.image.naturalHeight);
     }
 
     // Floor Fill
@@ -218,19 +254,24 @@ const loop = function() {
     // c.lineTo(canvas_width, floor.height);
     // c.stroke();
 
-    for (let column = 0; column < map.cols; column++) {
+    var startCol = Math.floor(this.camera.x / map.tsize);
+    var endCol = startCol + (this.camera.width / map.tsize) + 2;
+    var offsetX = -this.camera.x + startCol * map.tsize;
+
+    for (let column = startCol; column < endCol; column++) {
         for (let row = 0; row < map.rows; row++) {
             const tile = map.getTile(column, row);
-            const x = column * map.tileSize;
-            const y = row * map.tileSize;
+            const x = (column - startCol) * map.tsize + offsetX;
+            const y = row * map.tsize;
+
             c.drawImage(
                 tiles, // image
                 tile * map.tsize, // source x
                 0, // source y
                 map.tsize, // source width
                 map.tsize, // source height
-                column * map.tsize,  // target x
-                row * map.tsize + floor.height, // target y
+                Math.floor(x),  // target x
+                y + floor.height, // target y
                 map.tsize, // target width
                 map.tsize // target height
             );
@@ -254,14 +295,6 @@ function drawFlippedImage(context, image, x, y) {
     context.drawImage(image, x, y);
     context.restore();
 };
-
-function worldToScreen(x, y) {
-    return { x: x - camera.x, y: y - camera.y };
-}
-  
-function screenToWorld(x, y) {
-    return { x: x + camera.x, y: y + camera.y };
-}
 
 window.addEventListener("keydown", controller.keyListener)
 window.addEventListener("keyup", controller.keyListener);
