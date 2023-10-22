@@ -73,17 +73,17 @@ player.image.src = "./images/player/stand1_0.png";
 var tiles = new Image();
 tiles.src = "./images/tiles.png";
 
-var backgroundImage0 = new Image();
-backgroundImage0.src = "./images/bg_0.png"
-var backgroundImage1 = new Image();
-backgroundImage1.src = "./images/bg_1.png"
-
 var map = {
-    cols: 48,
+    cols: 96,
     rows: 5,
     tsize: 64,
     tiles: [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -93,6 +93,32 @@ var map = {
         return this.tiles[row * map.cols + col];
     }
 }
+
+const bg0 = {
+    width: 1984,
+    image: new Image(),
+    locations : [],
+    current_max_location_index : 0,
+    move_rate: 4
+}
+
+const bg1 = {
+    width: 1984,
+    image: new Image(),
+    locations : [],
+    current_max_location_index : 0,
+    move_rate: 3
+}
+
+var map_length = map.cols * map.tsize;
+var num_images = Math.ceil(map_length / bg0.width) + 1;
+bg0.locations = Array.from({length: num_images}, (v, i) => i * bg0.width);
+bg0.current_max_location_index = bg0.locations.length - 1;
+bg0.image.src = "./images/bg_0.png";
+
+bg1.locations = Array.from({length: num_images}, (v, i) => i * bg1.width);
+bg1.current_max_location_index = bg1.locations.length - 1;
+bg1.image.src = "./images/bg_1.png";
 
 const floor = {
     height: canvas_height - 100,
@@ -197,31 +223,23 @@ const loop = function() {
     
     this.camera.update();
 
-
     //**********Background Fill**********
-    c.drawImage(backgroundImage0, 0, 0);
-    c.drawImage(backgroundImage1, 0, 0);
-
+    // Image looping behavior
+    drawBackground(c, bg0);
+    drawBackground(c, bg1);
 
     //**********Player Draw********** 
-    // console.log("natural height height" + player.image.naturalHeight);
     switch(player.state) {
         case STATES.Jumping:
-            //code
             player.image.src = "./images/player/jump_0.png";
             break;
         case STATES.Walking:
             if (frame_count % (ANIMATION_TIME_BUFFER / 5) == 0) {
                 player.walk_sprite_frame = (player.walk_sprite_frame + 1) % 4;
-                // console.log("walking animation frame change to: " + player.walk_sprite_frame);
             }
             player.image.src = "./images/player/walk1_" + player.walk_sprite_frame + ".png";
-
-            //code
             break;
         case STATES.Idle:
-            // idle
-            // console.log(player.x_velocity);
             if (frame_count % ANIMATION_TIME_BUFFER == 0 && player.x_velocity == 0) {
                 if (player.idle_sprite_frame == 2)
                 {
@@ -241,19 +259,20 @@ const loop = function() {
     }
 
     if (player.is_going_to_the_right) {
-        drawFlippedImage(c, player.image, player.screenX - player.width / 2, player.y - player.image.naturalHeight);
+        drawFlippedImage(
+            c, 
+            player.image,
+            player.screenX - player.width / 2,
+            player.y - player.image.naturalHeight
+        );
     } else {
-        c.drawImage(player.image, player.screenX - player.width / 2, player.y - player.image.naturalHeight);
+        c.drawImage(
+            player.image,
+            player.screenX - player.width / 2,
+            player.y - player.image.naturalHeight);
     }
 
-    // Floor Fill
-    // c.strokeStyle = floor.color;
-    // c.lineWidth = 30;
-    // c.beginPath();
-    // c.moveTo(0, floor.height);
-    // c.lineTo(canvas_width, floor.height);
-    // c.stroke();
-
+    // Floor draw
     var startCol = Math.floor(this.camera.x / map.tsize);
     var endCol = startCol + (this.camera.width / map.tsize) + 2;
     var offsetX = -this.camera.x + startCol * map.tsize;
@@ -281,11 +300,20 @@ const loop = function() {
     // Animation
     window.requestAnimationFrame(loop);
     frame_count++;
-
-    // console.log("player state:" + player.state);
 };
 
+function drawBackground(context, background) {
+    for (i = 0; i < background.locations.length; i++) { 
+        if (background.locations[i] + background.width < 0) {
+            background.locations[i] = background.locations[background.current_max_location_index] + background.width;
+            background.current_max_location_index = i;
+        }
 
+        background.locations[i] -= background.move_rate;
+
+        context.drawImage(background.image, background.locations[i], 0);  
+    }
+}
 
 function drawFlippedImage(context, image, x, y) {
     context.save();
@@ -298,7 +326,6 @@ function drawFlippedImage(context, image, x, y) {
 
 window.addEventListener("keydown", controller.keyListener)
 window.addEventListener("keyup", controller.keyListener);
-// window.requestAnimationFrame(loop);
 
 /** CREDITS **
  * Free - Adventure Pack - Grassland by Anokolisa
