@@ -30,6 +30,9 @@ function trackProgress() {
     }
 }
 
+var rightKeyImage = new Image();
+rightKeyImage.src = "./images/rightkey.png";
+
 let canvas = document.querySelector('canvas')
 
 var canvas_width = window.innerWidth;
@@ -39,6 +42,22 @@ const c = canvas.getContext("2d");
 
 c.canvas.width = canvas_width;
 c.canvas.height = canvas_height;
+
+const HandjetFont = new FontFace("Handjet", "url(https://fonts.gstatic.com/s/handjet/v19/oY1n8eXHq7n1OnbQrOY_2FrEwYEMLlcdP1mCtZaLaTutCwcIhGZ0lGU0akFcO3XFHTmaYkImEQ.woff2)");
+document.fonts.add(HandjetFont);
+HandjetFont.load();
+
+function Text(words, x, y, fontSize) {
+    this.words = words;
+    this.x = x;
+    this.y = y;
+    this.fontSize = fontSize;
+    this.isVisible = true;
+}
+
+const welcomeText = new Text("Hey! I'm Luke.", canvas_width / 2, canvas_height / 2, 100);
+const pressRightText = new Text("PRESS RIGHT", welcomeText.x, welcomeText.y + 70, 40);
+pressRightText.isVisible = false;
 
 // Game Variables
 const JUMP_HEIGHT = 20; 
@@ -99,7 +118,7 @@ const bg0 = {
     image: new Image(),
     locations : [],
     current_max_location_index : 0,
-    move_rate: 4
+    move_rate: .3
 }
 
 const bg1 = {
@@ -107,7 +126,7 @@ const bg1 = {
     image: new Image(),
     locations : [],
     current_max_location_index : 0,
-    move_rate: 3
+    move_rate: 1
 }
 
 var map_length = map.cols * map.tsize;
@@ -159,6 +178,7 @@ const controller = {
     left: false,
     right: false,
     up: false,
+    user_input_registered: false,
 
     keyListener: function(event) {
         let key_state = (event.type == "keydown") ? true : false;
@@ -177,22 +197,25 @@ const controller = {
     }
 }
 
-
 const loop = function() {
 
     //**********Controller Input**********
-    if (controller.up && !player.state == STATES.Jumping) {
-        player.y_velocity -= JUMP_HEIGHT;
-        player.state = STATES.Jumping;
-    }
+    if (controller.up || controller.left || controller.right) {
+        controller.user_input_registered = true;
+        if (controller.up && !player.state == STATES.Jumping) {
+            player.y_velocity -= JUMP_HEIGHT;
+            player.state = STATES.Jumping;
+        }
 
-    if (controller.left) {
-        player.x_velocity -= .5;
-    }
+        if (controller.left) {
+            player.x_velocity -= .5;
+        }
 
-    if (controller.right) {
-        player.x_velocity += .5;
+        if (controller.right) {
+            player.x_velocity += .5;
+        }
     }
+        
 
     //**********Gravity and Friction**********
     player.y_velocity += GRAVITY;
@@ -227,6 +250,21 @@ const loop = function() {
     // Image looping behavior
     drawBackground(c, bg0);
     drawBackground(c, bg1);
+
+    drawText(c, welcomeText);
+
+    if (!controller.user_input_registered && frame_count > 100) {
+        if (frame_count % 60 == 0 ) {
+            pressRightText.isVisible = !pressRightText.isVisible;
+        }
+        if (pressRightText.isVisible) {
+            drawText(c, pressRightText);
+            c.drawImage(
+                rightKeyImage,
+                pressRightText.x + 65,
+                pressRightText.y - rightKeyImage.height + 8);
+        }
+    }
 
     //**********Player Draw********** 
     switch(player.state) {
@@ -313,6 +351,11 @@ function drawBackground(context, background) {
 
         context.drawImage(background.image, background.locations[i], 0);  
     }
+}
+
+function drawText(context, text) {
+    context.font = text.fontSize + "px Handjet";
+    context.fillText(text.words, text.x - this.camera.x - context.measureText(text).width / 2, text.y);
 }
 
 function drawFlippedImage(context, image, x, y) {
