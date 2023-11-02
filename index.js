@@ -12,13 +12,16 @@ var imageArray = new Array(
     "./images/player/walk1_2.png",
     "./images/player/walk1_3.png",
 );
+var loadedImageArray = new Array();
 
 function preloadImages(e) {
     for (var i = 0; i < imageArray.length; i++) {
         var tempImage = new Image();
          
         tempImage.addEventListener("load", trackProgress, true);
+
         tempImage.src = imageArray[i];
+        loadedImageArray.push(tempImage);
     }
 }
 
@@ -43,23 +46,9 @@ const c = canvas.getContext("2d");
 c.canvas.width = canvas_width;
 c.canvas.height = canvas_height;
 
-const HandjetFont = new FontFace("Handjet", "url(https://fonts.gstatic.com/s/handjet/v19/oY1n8eXHq7n1OnbQrOY_2FrEwYEMLlcdP1mCtZaLaTutCwcIhGZ0lGU0akFcO3XFHTmaYkImEQ.woff2)");
-document.fonts.add(HandjetFont);
-HandjetFont.load();
-
-function Text(words, x, y, fontSize) {
-    this.words = words;
-    this.x = x;
-    this.y = y;
-    this.fontSize = fontSize;
-    this.isVisible = true;
-}
-
-const welcomeText = new Text("Hey! I'm Luke.", canvas_width / 2, canvas_height / 2, 100);
-const pressRightText = new Text("PRESS RIGHT", welcomeText.x, welcomeText.y + 70, 40);
-pressRightText.isVisible = false;
-
-// Game Variables
+/*
+* Game Variables
+*/
 const JUMP_HEIGHT = 20; 
 const GRAVITY = 1.5;
 const ANIMATION_TIME_BUFFER = 30;
@@ -93,12 +82,22 @@ var tiles = new Image();
 tiles.src = "./images/tiles.png";
 
 var map = {
-    cols: 96,
+    cols: 192,
     rows: 5,
     tsize: 64,
     tiles: [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -144,6 +143,90 @@ const floor = {
     color: "white"
 }
 
+const HandjetFont = new FontFace("Handjet", "url(https://fonts.gstatic.com/s/handjet/v19/oY1n8eXHq7n1OnbQrOY_2FrEwYEMLlcdP1mCtZaLaTutCwcIhGZ0lGU0akFcO3XFHTmaYkImEQ.woff2)");
+document.fonts.add(HandjetFont);
+HandjetFont.load();
+
+/*
+* Text
+*/
+function Text(words, x, y, fontSize) {
+    this.words = words;
+    this.x = x;
+    this.y = y;
+    this.fontSize = fontSize;
+    this.isVisible = true;
+    this.writeFunction = drawText;
+}
+
+function TextBubble(text, x, y) {
+    this.x = x;
+    this.y = y;
+    this.text = text;
+    this.fontSize = 50;
+    this.maxLineWidth = 480;
+    this.leading = 10;
+    this.draw = drawTextBubble;
+}
+
+const topLeftImage = new Image();
+const bottomLeftImage = new Image();
+const leftImage = new Image();
+const topImage = new Image();
+const bottomImage = new Image();
+const triangleImage = new Image();
+
+topLeftImage.src = "./images/DialogTopLeft.png";
+bottomLeftImage.src = "./images/DialogBottomLeft.png";
+leftImage.src = "./images/DialogLeft.png";
+topImage.src = "./images/DialogTop.png";
+bottomImage.src = "./images/DialogBottom.png";
+triangleImage.src = "./images/DialogTriangle.png";
+
+TextBubble.prototype.topLeftImage = topLeftImage;
+TextBubble.prototype.bottomLeftImage = bottomLeftImage;
+TextBubble.prototype.leftImage = leftImage;
+TextBubble.prototype.topImage = topImage;
+TextBubble.prototype.bottomImage = bottomImage;
+TextBubble.prototype.triangleImage = triangleImage;
+
+const problemSolverText = new TextBubble("I find myself always taking on challenging puzzles.", player.x, player.y - 30);
+
+const welcomeText = new Text("Hey! I'm Luke.", canvas_width / 2, canvas_height / 2, 100);
+const pressRightText = new Text("PRESS RIGHT", welcomeText.x, welcomeText.y + 70, 40);
+pressRightText.isVisible = false;
+pressRightText.writeFunction = (c, text) => {
+    if (!controller.user_input_registered && frame_count > 100) {
+        if (frame_count % 60 == 0 ) {
+            pressRightText.isVisible = !pressRightText.isVisible;
+        }
+        if (pressRightText.isVisible) {
+            drawText(c, text);
+            c.drawImage(
+                rightKeyImage,
+                text.x + 65,
+                text.y - rightKeyImage.height + 8);
+        }
+    }
+}
+
+// const problemSolverText = new Text("I find myself always taking on challenging puzzles.", 2000, canvas_height/2, 50);
+// const problemSolverText1 = new Text("I began learning how to solve technical puzzles when I got", 3000, canvas_height/2 - 50 * 3, 50);
+// const problemSolverText2 = new Text("a B.S. in Computational Media from Georgia Tech in 2021.", 3000, canvas_height/2 - 50 * 2, 50);
+// const problemSolverText3 = new Text("If you haven't heard of that major before (it's relatively new),", 3000, canvas_height/2, 50);
+// const problemSolverText4 = new Text("I usually describe it as an artsy CS degree with a focus on human interaction.", 3000, canvas_height/2 + 50, 50);
+
+// const msText0 = new Text("After graduating, I worked at Microsoft for two years", 4500, canvas_height/2, 50);
+// const msText1 = new Text("as a software engineer in the M365 organization.", 4500, canvas_height/2 + 50, 50);
+// problemSolverText, problemSolverText1, problemSolverText2, problemSolverText3, problemSolverText4, msText0, msText1];
+
+
+
+var textArray = [welcomeText, pressRightText];
+
+/*
+* Camera
+*/
 function Camera(map, width, height) {
     this.x = 0;
     this.y = 0;
@@ -170,19 +253,19 @@ Camera.prototype.update = function() {
     }
 }
 
-this.camera = new Camera(map, canvas_width, canvas_height);
-player.x = this.camera.width / 2;
-this.camera.follow(player);
+var camera = new Camera(map, canvas_width, canvas_height);
+player.x = camera.width / 2;
+camera.follow(player);
 
-const controller = {
+var controller = {
     left: false,
     right: false,
     up: false,
+    z: false,
     user_input_registered: false,
 
     keyListener: function(event) {
         let key_state = (event.type == "keydown") ? true : false;
-
         switch (event.keyCode) {
             case 37: // left arrow
                 controller.left = key_state;
@@ -193,13 +276,17 @@ const controller = {
             case 39: // right arrow
                 controller.right = key_state;
                 break;
+            case 90: // z
+                controller.z = key_state;
         }
     }
 }
 
 const loop = function() {
 
-    //**********Controller Input**********
+    /*
+    * Controller Input
+    */
     if (controller.up || controller.left || controller.right) {
         controller.user_input_registered = true;
         if (controller.up && !player.state == STATES.Jumping) {
@@ -209,15 +296,22 @@ const loop = function() {
 
         if (controller.left) {
             player.x_velocity -= .5;
+            if (controller.z) {
+                player.x_velocity -= 5;
+            }
         }
 
         if (controller.right) {
             player.x_velocity += .5;
+            if (controller.z) {
+                player.x_velocity += 5;
+            }
         }
     }
-        
 
-    //**********Gravity and Friction**********
+    /*
+    * Gravity and Friction
+    */
     player.y_velocity += GRAVITY;
     player.x += player.x_velocity;
     player.y += player.y_velocity;
@@ -230,7 +324,9 @@ const loop = function() {
     }
     player.y_velocity += .9;
 
-    //**********Collision with floor and Walking + Idle animations**********
+    /*
+    * Floor Collision and Player state
+    */
     if (player.y > floor.height) {
         if ((controller.left || controller.right) && !controller.up) {
             player.state = STATES.Walking;
@@ -244,29 +340,28 @@ const loop = function() {
 
     player.x = Math.max(0, Math.min(player.x, map.cols * map.tsize - player.width));
     
-    this.camera.update();
+    camera.update();
 
-    //**********Background Fill**********
-    // Image looping behavior
+    /*
+    * Background Draw
+    */
     drawBackground(c, bg0);
     drawBackground(c, bg1);
 
-    drawText(c, welcomeText);
-
-    if (!controller.user_input_registered && frame_count > 100) {
-        if (frame_count % 60 == 0 ) {
-            pressRightText.isVisible = !pressRightText.isVisible;
-        }
-        if (pressRightText.isVisible) {
-            drawText(c, pressRightText);
-            c.drawImage(
-                rightKeyImage,
-                pressRightText.x + 65,
-                pressRightText.y - rightKeyImage.height + 8);
-        }
+    /*
+    * Text Draw
+    */
+    for (let i=0;i<textArray.length;i++) {
+        textArray[i].writeFunction(c,textArray[i]);
     }
 
-    //**********Player Draw********** 
+    problemSolverText.x = player.x;
+    problemSolverText.y = player.y + 30;
+    problemSolverText.draw(c);
+
+    /*
+    * Player Draw
+    */
     switch(player.state) {
         case STATES.Jumping:
             player.image.src = "./images/player/jump_0.png";
@@ -310,10 +405,12 @@ const loop = function() {
             player.y - player.image.naturalHeight);
     }
 
-    // Floor draw
-    var startCol = Math.floor(this.camera.x / map.tsize);
-    var endCol = startCol + (this.camera.width / map.tsize) + 2;
-    var offsetX = -this.camera.x + startCol * map.tsize;
+    /*
+    * Floor Draw
+    */
+    var startCol = Math.floor(camera.x / map.tsize);
+    var endCol = startCol + (camera.width / map.tsize) + 2;
+    var offsetX = -camera.x + startCol * map.tsize;
 
     for (let column = startCol; column < endCol; column++) {
         for (let row = 0; row < map.rows; row++) {
@@ -335,7 +432,9 @@ const loop = function() {
         }
     }
 
-    // Animation
+    /*
+    * Animation
+    */
     window.requestAnimationFrame(loop);
     frame_count++;
 };
@@ -355,7 +454,42 @@ function drawBackground(context, background) {
 
 function drawText(context, text) {
     context.font = text.fontSize + "px Handjet";
-    context.fillText(text.words, text.x - this.camera.x - context.measureText(text).width / 2, text.y);
+    context.fillText(text.words, text.x - camera.x - context.measureText(text.words).width / 2, text.y);
+}
+
+function drawTextBubble(context) {
+    context.font = this.fontSize + "px Handjet";
+
+    let words = this.text.split(" ");
+    let lines = new Array();
+    let i = 0;
+    let currentMaxLineWidth = 0;
+    while (i < words.length) {
+        let currentLine = "";
+        let currentLineWidth = context.measureText(currentLine).width;
+        while (currentLineWidth + context.measureText(words[i]).width < this.maxLineWidth && i < words.length) {
+            currentLine += words[i] + " ";
+            currentLineWidth = context.measureText(currentLine).width;
+            i++;
+            console.log(currentLine + " is this long: " + currentLineWidth);
+        }
+        lines.push(currentLine);
+        if (currentMaxLineWidth < currentLineWidth) {
+            currentMaxLineWidth = currentLineWidth;
+        }
+    }
+    console.log(lines + "\n currentMaxLineWidth is: " + currentMaxLineWidth);
+
+    let whiteBoxHeight = (this.fontSize + this.leading) * lines.length;
+    let whiteBoxWidth = Math.ceil(currentMaxLineWidth);
+    context.fillRect(this.x, this.y, whiteBoxWidth, whiteBoxHeight);
+    console.log("@@@ DRAWING AT: (" + this.x + "," + this.y + ")");
+
+    for (let j = 0; j < lines.length; j++) {
+
+        context.fillText(lines[j],this.x, this.y + j * this.leading);
+
+    }
 }
 
 function drawFlippedImage(context, image, x, y) {
@@ -370,7 +504,7 @@ function drawFlippedImage(context, image, x, y) {
 window.addEventListener("keydown", controller.keyListener)
 window.addEventListener("keyup", controller.keyListener);
 
-/** CREDITS **
+/* CREDITS
  * Free - Adventure Pack - Grassland by Anokolisa
  * 
  */
