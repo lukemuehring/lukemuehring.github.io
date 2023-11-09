@@ -1,4 +1,6 @@
-// Preloading Images
+/* 
+* Preloading Images
+*/
 this.addEventListener("DOMContentLoaded", preloadImages, true);
 
 var loadedImages = 0;
@@ -33,9 +35,9 @@ function trackProgress() {
     }
 }
 
-var rightKeyImage = new Image();
-rightKeyImage.src = "./images/rightkey.png";
-
+/*
+* Game Variables
+*/
 let canvas = document.querySelector('canvas')
 
 var canvas_width = window.innerWidth;
@@ -46,9 +48,6 @@ const c = canvas.getContext("2d");
 c.canvas.width = canvas_width;
 c.canvas.height = canvas_height;
 
-/*
-* Game Variables
-*/
 const JUMP_HEIGHT = 20; 
 const GRAVITY = 1.5;
 const ANIMATION_TIME_BUFFER = 30;
@@ -82,35 +81,18 @@ var tiles = new Image();
 tiles.src = "./images/tiles.png";
 
 var map = {
-    cols: 192,
-    rows: 5,
+    cols: 888,
+    rows: 2,
     tsize: 64,
-    tiles: [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    ],
+    tiles: [],
     getTile: function (col, row) {
         return this.tiles[row * map.cols + col];
     }
 }
+
+map.tiles = new Array(map.cols * map.rows);
+map.tiles.fill(0, 0, map.cols);
+map.tiles.fill(1, map.cols);
 
 const bg0 = {
     width: 1984,
@@ -129,100 +111,22 @@ const bg1 = {
 }
 
 var map_length = map.cols * map.tsize;
-var num_images = Math.ceil(map_length / bg0.width) + 1;
-bg0.locations = Array.from({length: num_images}, (v, i) => i * bg0.width);
+var num_bg_images = Math.ceil(map_length / bg0.width) + 1;
+bg0.locations = Array.from({length: num_bg_images}, (_, index) => index * bg0.width);
 bg0.current_max_location_index = bg0.locations.length - 1;
 bg0.image.src = "./images/bg_0.png";
 
-bg1.locations = Array.from({length: num_images}, (v, i) => i * bg1.width);
+bg1.locations = Array.from({length: num_bg_images}, (_, index) => index * bg1.width);
 bg1.current_max_location_index = bg1.locations.length - 1;
 bg1.image.src = "./images/bg_1.png";
 
 const floor = {
     height: canvas_height - 100,
-    color: "white"
 }
 
 const HandjetFont = new FontFace("Handjet", "url(https://fonts.gstatic.com/s/handjet/v19/oY1n8eXHq7n1OnbQrOY_2FrEwYEMLlcdP1mCtZaLaTutCwcIhGZ0lGU0akFcO3XFHTmaYkImEQ.woff2)");
 document.fonts.add(HandjetFont);
 HandjetFont.load();
-
-/*
-* Text
-*/
-function Text(words, x, y, fontSize) {
-    this.words = words;
-    this.x = x;
-    this.y = y;
-    this.fontSize = fontSize;
-    this.isVisible = true;
-    this.writeFunction = drawText;
-}
-
-function TextBubble(text, x, y) {
-    this.x = x;
-    this.y = y;
-    this.text = text;
-    this.fontSize = 50;
-    this.maxLineWidth = 480;
-    this.leading = 10;
-    this.draw = drawTextBubble;
-}
-
-const topLeftImage = new Image();
-const bottomLeftImage = new Image();
-const leftImage = new Image();
-const topImage = new Image();
-const bottomImage = new Image();
-const triangleImage = new Image();
-
-topLeftImage.src = "./images/DialogTopLeft.png";
-bottomLeftImage.src = "./images/DialogBottomLeft.png";
-leftImage.src = "./images/DialogLeft.png";
-topImage.src = "./images/DialogTop.png";
-bottomImage.src = "./images/DialogBottom.png";
-triangleImage.src = "./images/DialogTriangle.png";
-
-TextBubble.prototype.topLeftImage = topLeftImage;
-TextBubble.prototype.bottomLeftImage = bottomLeftImage;
-TextBubble.prototype.leftImage = leftImage;
-TextBubble.prototype.topImage = topImage;
-TextBubble.prototype.bottomImage = bottomImage;
-TextBubble.prototype.triangleImage = triangleImage;
-
-const problemSolverText = new TextBubble("I find myself always taking on challenging puzzles.", player.x, player.y - 30);
-
-const welcomeText = new Text("Hey! I'm Luke.", canvas_width / 2, canvas_height / 2, 100);
-const pressRightText = new Text("PRESS RIGHT", welcomeText.x, welcomeText.y + 70, 40);
-pressRightText.isVisible = false;
-pressRightText.writeFunction = (c, text) => {
-    if (!controller.user_input_registered && frame_count > 100) {
-        if (frame_count % 60 == 0 ) {
-            pressRightText.isVisible = !pressRightText.isVisible;
-        }
-        if (pressRightText.isVisible) {
-            drawText(c, text);
-            c.drawImage(
-                rightKeyImage,
-                text.x + 65,
-                text.y - rightKeyImage.height + 8);
-        }
-    }
-}
-
-// const problemSolverText = new Text("I find myself always taking on challenging puzzles.", 2000, canvas_height/2, 50);
-// const problemSolverText1 = new Text("I began learning how to solve technical puzzles when I got", 3000, canvas_height/2 - 50 * 3, 50);
-// const problemSolverText2 = new Text("a B.S. in Computational Media from Georgia Tech in 2021.", 3000, canvas_height/2 - 50 * 2, 50);
-// const problemSolverText3 = new Text("If you haven't heard of that major before (it's relatively new),", 3000, canvas_height/2, 50);
-// const problemSolverText4 = new Text("I usually describe it as an artsy CS degree with a focus on human interaction.", 3000, canvas_height/2 + 50, 50);
-
-// const msText0 = new Text("After graduating, I worked at Microsoft for two years", 4500, canvas_height/2, 50);
-// const msText1 = new Text("as a software engineer in the M365 organization.", 4500, canvas_height/2 + 50, 50);
-// problemSolverText, problemSolverText1, problemSolverText2, problemSolverText3, problemSolverText4, msText0, msText1];
-
-
-
-var textArray = [welcomeText, pressRightText];
 
 /*
 * Camera
@@ -238,7 +142,6 @@ function Camera(map, width, height) {
 
 Camera.prototype.follow = function(sprite) {
     this.following = sprite;
-    sprite.screenX = 0;
 }
 
 Camera.prototype.update = function() {
@@ -254,7 +157,7 @@ Camera.prototype.update = function() {
 }
 
 var camera = new Camera(map, canvas_width, canvas_height);
-player.x = camera.width / 2;
+player.x = map.cols * map.tsize / 2;
 camera.follow(player);
 
 var controller = {
@@ -282,8 +185,121 @@ var controller = {
     }
 }
 
-const loop = function() {
+/*
+* Text
+*/
+function Text(words, x, y, fontSize) {
+    this.words = words;
+    this.x = x;
+    this.y = y;
+    this.fontSize = fontSize;
+    this.isVisible = true;
+    this.writeFunction = drawText;
+}
 
+function TextBubble(text, x, y, minX, maxX) {
+    this.x = x;
+    this.y = y;
+    this.text = text;
+    this.fontSize = 30;
+    this.maxLineWidth = 800;
+    this.leading = 10;
+    this.colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
+    this.colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
+    this.minX = minX,
+    this.maxX = maxX,
+    this.draw = drawTextBubble;
+}
+
+const cornerImage = new Image();
+const triangleImage = new Image();
+
+cornerImage.src = "./images/DialogCorners.png"
+triangleImage.src = "./images/DialogTriangle.png";
+
+TextBubble.prototype.cornerImage = cornerImage;
+TextBubble.prototype.triangleImage = triangleImage;
+
+const codingStory = [
+    "Growing up as a Gen Z, I have been immersed in technology since the moment I was born.",
+    "My first coding experiences probably came from playing Halo CE in high school.",
+    "I remember digging into member forums showing how to use the game's command line to include user-created maps and weapons, which were really buggy and really fun at the same time.",
+    "So when it came time to choose a major in college, I figured I would do something related to technology. I was \"good with computers\".",
+    "I changed my major a couple of times, but I ended up graduating with a B.S. in Computational Media from Georgia Tech in 2021.",
+    "It's a relatively new major that I usually describe as an artsy CS degree with a focus on human interaction.",
+    "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
+    "I got a glimpse at what software engineering inside Big Tech is like. It was fascinating to learn how all the different parts worked together like a big engine, and I slowly pieced together the bigger picture of how vast amounts of data enabled highly available customer experiences.",
+    "I was developing the skills to become a better engineer, like monitoring service health telemetry during on call rotations, or tracking code changes through the scheduled cycles of the CI/CD pipeline.",
+    "I wrote production code in C#, NodeJS, React, and TypeScript (among others) using TDD to ensure requirements were satisfied. Equally as important, I was also learning how to work and communicate effectively in an agile team full of really knowledgable people.",
+    "Thanks for getting to know me a little.",
+    "I am currently looking for my next software engineering role, so if you want to reach out, hit the esc button to grab my contact info and learn more."
+];
+
+const textBubbleArray = [];
+let startX = map_length/2 + 500;
+let endX;
+const ReadingSpeedPixelsPerCharacter =  16;
+
+for (let i = 0; i < codingStory.length; i++) {
+    endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
+    textBubbleArray.push(new TextBubble(codingStory[i], player.x, player.y,  startX, endX));
+    startX = endX;
+}
+
+const climbingStory = [
+    "Outside of coding, I like to spend all my time climbing.",
+    "I started climbing in my first year of high school. It was unlike any sport, activity, or THING I had done before and I loved it.",
+    "There's a focus that comes out on the wall where I don't think about anything else except what I'm doing in that moment.",
+    "Probably because I was so gripped from the heights back then. But nowadays, the focus just comes from the experience of moving and listening to my body.",
+    "Eventually, I joined a youth team at the Stone Summit climbing gym and started doing competitions.",
+    "The US youth competition scene was a very good motive for me to keep pursuing mastery in climbing.",
+    "The setting was thought provoking, the competitive experience was challenging yet unique, and I got to know really cool and strong climbers across the states.",
+    "As a result, I climbed more plastic than rock during my formative climbing years. I was definitely what you would call a \"gym rat\".",
+    "That didn't stop me from climbing outside when I could. I slowly realized how fun, interesting, and challenging climbing could be outside of a gym, but in a different way.",
+    "These days, I compete on the open circuit. My best result so far is at the 2022 US Nationals, when I got 3rd in bouldering and 4th in lead.",
+    "I'm actually really proud of that.",
+    "But when I'm not training for competitions, I love getting some fresh air outside and climbing on real rocks.",
+    "Especially sandstone.",
+    "Thanks for getting to know me a little."
+];
+
+startX = map_length / 2 - 500;
+for (let i = 0; i < climbingStory.length; i++) {
+    endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
+    textBubbleArray.push(new TextBubble(climbingStory[i], player.x, player.y,  endX, startX));
+    startX = endX;
+}
+
+const welcomeText = new Text("Hey! I'm Luke.", map.cols * map.tsize / 2, canvas_height / 2, 100);
+const pressArrowKeysText = new Text("USE ARROW KEYS TO MOVE", welcomeText.x, welcomeText.y + 70, 40);
+pressArrowKeysText.isVisible = false;
+pressArrowKeysText.writeFunction = (c, text) => {
+    if (!controller.user_input_registered && frame_count > 100) {
+        if (frame_count % 60 == 0 ) {
+            pressArrowKeysText.isVisible = !pressArrowKeysText.isVisible;
+        }
+        if (pressArrowKeysText.isVisible) {
+            drawText(c, text);
+        }
+    }
+}
+
+var welcomeTextArray = [welcomeText, pressArrowKeysText];
+
+function imageObject(x, y, src) {
+    this.x = x;
+    this.y = y;
+    this.image = new Image();
+    this.image.src = src;
+}
+var rightKeyObject = new imageObject(map.cols * map.tsize / 2, canvas_height / 2, "./images/rightkey.png");
+
+var objectArray = [rightKeyObject];
+
+/*
+* Animation Loop
+*/
+const loop = function() {
     /*
     * Controller Input
     */
@@ -338,8 +354,8 @@ const loop = function() {
         player.y_velocity = 0;
     }
 
-    player.x = Math.max(0, Math.min(player.x, map.cols * map.tsize - player.width));
-    
+    player.x = Math.max(0, Math.min(player.x, map.cols * map.tsize));
+
     camera.update();
 
     /*
@@ -351,13 +367,15 @@ const loop = function() {
     /*
     * Text Draw
     */
-    for (let i=0;i<textArray.length;i++) {
-        textArray[i].writeFunction(c,textArray[i]);
+    for (let i = 0; i < welcomeTextArray.length; i++) {
+        welcomeTextArray[i].writeFunction(c,welcomeTextArray[i]);
     }
 
-    problemSolverText.x = player.x;
-    problemSolverText.y = player.y + 30;
-    problemSolverText.draw(c);
+    for (let i = 0; i < textBubbleArray.length; i++) {
+        if (textBubbleArray[i].minX < player.x && textBubbleArray[i].maxX > player.x) {
+            textBubbleArray[i].draw(c);
+        }
+    }
 
     /*
     * Player Draw
@@ -404,6 +422,13 @@ const loop = function() {
             player.screenX - player.width / 2,
             player.y - player.image.naturalHeight);
     }
+
+    /*
+    * Object Draw
+    */
+    // for (let i = 0; i < objectArray.length; i++) {
+    //     c.drawImage(objectArray[i].image, objectArray[i].x - camera.x, objectArray[i].y);
+    // }
 
     /*
     * Floor Draw
@@ -460,6 +485,7 @@ function drawText(context, text) {
 function drawTextBubble(context) {
     context.font = this.fontSize + "px Handjet";
 
+    // Determining size of white box
     let words = this.text.split(" ");
     let lines = new Array();
     let i = 0;
@@ -471,25 +497,94 @@ function drawTextBubble(context) {
             currentLine += words[i] + " ";
             currentLineWidth = context.measureText(currentLine).width;
             i++;
-            console.log(currentLine + " is this long: " + currentLineWidth);
         }
         lines.push(currentLine);
         if (currentMaxLineWidth < currentLineWidth) {
             currentMaxLineWidth = currentLineWidth;
         }
     }
-    console.log(lines + "\n currentMaxLineWidth is: " + currentMaxLineWidth);
 
     let whiteBoxHeight = (this.fontSize + this.leading) * lines.length;
     let whiteBoxWidth = Math.ceil(currentMaxLineWidth);
-    context.fillRect(this.x, this.y, whiteBoxWidth, whiteBoxHeight);
-    console.log("@@@ DRAWING AT: (" + this.x + "," + this.y + ")");
+    let paddingBetweenDialogAndPlayer = 10;
 
-    for (let j = 0; j < lines.length; j++) {
+    this.x = player.screenX;
+    this.y = player.y - player.image.naturalHeight - whiteBoxHeight - paddingBetweenDialogAndPlayer;
 
-        context.fillText(lines[j],this.x, this.y + j * this.leading);
+    context.fillStyle = "white";
+    context.fillRect(this.x - whiteBoxWidth / 2, this.y, whiteBoxWidth, whiteBoxHeight);
+    context.fillStyle = "black";
 
+    // Drawing the text in the white box
+    for (let i = 0; i < lines.length; i++) {
+        context.fillText(lines[i], Math.round(this.x - whiteBoxWidth / 2), Math.round(this.y + this.fontSize + i * (this.leading + this.fontSize)));
     }
+
+    // Drawing the borders of the white box
+    for (let i = 0; i < this.colors1.length; i++) {
+        context.fillStyle = this.colors1[i];
+        context.fillRect(this.x - whiteBoxWidth / 2, this.y + whiteBoxHeight - i + this.colors1.length - 1, whiteBoxWidth, 1);
+        context.fillRect(this.x - whiteBoxWidth / 2, this.y - this.colors1.length + i, whiteBoxWidth, 1);
+    }
+
+    for (let z = 0; z < this.colors2.length; z++) {
+        context.fillStyle = this.colors2[z];
+        context.fillRect(this.x - whiteBoxWidth / 2 - this.colors2.length + z, this.y, 1, whiteBoxHeight);
+        context.fillRect(this.x + whiteBoxWidth / 2 + this.colors2.length - 1 - z, this.y, 1, whiteBoxHeight);
+    }
+
+    // Drawing the corners
+    c.drawImage(
+        this.cornerImage, // image
+        0, // source x
+        0, // source y
+        4, // source width
+        5, // source height
+        Math.floor(this.x - whiteBoxWidth / 2 - this.colors2.length),  // target x
+        Math.floor(this.y - this.colors1.length), // target y
+        4, // target width
+        5 // target height
+    );
+
+    c.drawImage(
+        this.cornerImage,
+        4,
+        0,
+        4,
+        5,
+        Math.floor(this.x - whiteBoxWidth / 2 - this.colors2.length),
+        Math.floor(this.y + whiteBoxHeight),
+        4,
+        5
+    );
+
+    c.drawImage(
+        this.cornerImage,
+        8,
+        0,
+        4,
+        5,
+        Math.floor(this.x + whiteBoxWidth / 2),
+        Math.floor(this.y - this.colors1.length),
+        4,
+        5
+    );
+
+    c.drawImage(
+        this.cornerImage,
+        12,
+        0,
+        4,
+        5,
+        Math.floor(this.x + whiteBoxWidth / 2),
+        Math.floor(this.y + whiteBoxHeight),
+        4,
+        5
+    );
+
+    context.fillStyle = "black";
+
+    context.drawImage(this.triangleImage, this.x, this.y + whiteBoxHeight);  
 }
 
 function drawFlippedImage(context, image, x, y) {
@@ -508,3 +603,9 @@ window.addEventListener("keyup", controller.keyListener);
  * Free - Adventure Pack - Grassland by Anokolisa
  * 
  */
+
+/*  TODO
+* optimize floor redraw - only redraw when player velocity is not 0
+* optimize background redraw to only move every few frames
+* snap draw calls to whole numbers and round using bitwise OR to 0: https://seblee.me/2011/02/html5-canvas-sprite-optimisation/
+*/
