@@ -1,10 +1,10 @@
 /* 
-* Preloading Images
+* Preloading
 */
 this.addEventListener("DOMContentLoaded", preloadImages, true);
 
 var loadedImages = 0;
-var imageArray = new Array(
+var imagePathArray = new Array(
     "./images/player/jump_0.png",
     "./images/player/stand1_0.png",
     "./images/player/stand1_1.png",
@@ -13,24 +13,25 @@ var imageArray = new Array(
     "./images/player/walk1_1.png",
     "./images/player/walk1_2.png",
     "./images/player/walk1_3.png",
+    "./images/codingSign.png",
+    "./images/climbingSign.png",
+    "./images/grass1.png"
 );
-var loadedImageArray = new Array();
+
+var imageCache = {};
 
 function preloadImages(e) {
-    for (var i = 0; i < imageArray.length; i++) {
+    for (var i = 0; i < imagePathArray.length; i++) {
         var tempImage = new Image();
-         
         tempImage.addEventListener("load", trackProgress, true);
-
-        tempImage.src = imageArray[i];
-        loadedImageArray.push(tempImage);
+        tempImage.src = imagePathArray[i];
+        imageCache[imagePathArray[i]] = tempImage;
     }
 }
 
 function trackProgress() {
     loadedImages++;
-     
-    if (loadedImages == imageArray.length) {
+    if (loadedImages == imagePathArray.length) {
         window.requestAnimationFrame(loop);
     }
 }
@@ -75,13 +76,11 @@ const player = {
     y_velocity: 0,
 };
 
-player.image.src = "./images/player/stand1_0.png";
-
 var tiles = new Image();
 tiles.src = "./images/tiles.png";
 
 var map = {
-    cols: 888,
+    cols: 1000,
     rows: 2,
     tsize: 64,
     tiles: [],
@@ -99,7 +98,8 @@ const bg0 = {
     image: new Image(),
     locations : [],
     current_max_location_index : 0,
-    move_rate: .3
+    move_rate: .3,
+    draw_rate: 5
 }
 
 const bg1 = {
@@ -107,7 +107,8 @@ const bg1 = {
     image: new Image(),
     locations : [],
     current_max_location_index : 0,
-    move_rate: 1
+    move_rate: 1,
+    draw_rate: 10
 }
 
 var map_length = map.cols * map.tsize;
@@ -123,10 +124,6 @@ bg1.image.src = "./images/bg_1.png";
 const floor = {
     height: canvas_height - 100,
 }
-
-const HandjetFont = new FontFace("Handjet", "url(https://fonts.gstatic.com/s/handjet/v19/oY1n8eXHq7n1OnbQrOY_2FrEwYEMLlcdP1mCtZaLaTutCwcIhGZ0lGU0akFcO3XFHTmaYkImEQ.woff2)");
-document.fonts.add(HandjetFont);
-HandjetFont.load();
 
 /*
 * Camera
@@ -164,7 +161,6 @@ var controller = {
     left: false,
     right: false,
     up: false,
-    z: false,
     user_input_registered: false,
 
     keyListener: function(event) {
@@ -179,11 +175,31 @@ var controller = {
             case 39: // right arrow
                 controller.right = key_state;
                 break;
-            case 90: // z
-                controller.z = key_state;
         }
     }
 }
+
+/*
+* Image Objects
+*/
+function imageObject(x, y, img) {
+    this.x = x;
+    this.y = y;
+    this.image = img;
+}
+
+const signWidth = 219;
+const signHeight = 200;
+
+const codingSignImage = new Image();
+codingSignImage.src = "./images/codingSign.png";
+const climbingSignImage = new Image();
+climbingSignImage.src = "./images/climbingSign.png";
+var codingSign = new imageObject(map.cols * map.tsize / 2 + 500 - signWidth, floor.height - signHeight, codingSignImage);
+var climbingSign = new imageObject(map.cols * map.tsize / 2 - 500, floor.height - signHeight, climbingSignImage);
+
+var backgroundObjects = [codingSign, climbingSign];
+var foregroundObjects = [];
 
 /*
 * Text
@@ -202,7 +218,7 @@ function TextBubble(text, x, y, minX, maxX) {
     this.y = y;
     this.text = text;
     this.fontSize = 30;
-    this.maxLineWidth = 800;
+    this.maxLineWidth = 600;
     this.leading = 10;
     this.colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
     this.colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
@@ -221,6 +237,9 @@ TextBubble.prototype.cornerImage = cornerImage;
 TextBubble.prototype.triangleImage = triangleImage;
 
 const codingStory = [
+    "Welcome to my website! I'm a 25-year-old software engineer passionate about using code to bring ideas to life.",
+    "Here are some of my projects. You can hover over them with your mouse to learn more.",
+    "By the way, if I am talking too slow, feel free to fly around with the scroll wheel.",
     "Growing up as a Gen Z, I have been immersed in technology since the moment I was born.",
     "My first coding experiences probably came from playing Halo CE in high school.",
     "I remember digging into member forums showing how to use the game's command line to include user-created maps and weapons, which were really buggy and really fun at the same time.",
@@ -230,36 +249,40 @@ const codingStory = [
     "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
     "I got a glimpse at what software engineering inside Big Tech is like. It was fascinating to learn how all the different parts worked together like a big engine, and I slowly pieced together the bigger picture of how vast amounts of data enabled highly available customer experiences.",
     "I was developing the skills to become a better engineer, like monitoring service health telemetry during on call rotations, or tracking code changes through the scheduled cycles of the CI/CD pipeline.",
-    "I wrote production code in C#, NodeJS, React, and TypeScript (among others) using TDD to ensure requirements were satisfied. Equally as important, I was also learning how to work and communicate effectively in an agile team full of really knowledgable people.",
+    "I wrote production code in C#, NodeJS, React, and TypeScript (among others) while using TDD to ensure requirements were satisfied. Equally as important, I was also learning how to work and communicate effectively in an agile team full of really knowledgable people.",
+    "At the start of 2023, I made the decision to take a hiatus from my software career to focus on being a professional athelete. I also wanted to see the outside world of software companies outside of Big Tech",
+    "So, Hello World! I am actively searching for my next software engineering role.",
     "Thanks for getting to know me a little.",
-    "I am currently looking for my next software engineering role, so if you want to reach out, hit the esc button to grab my contact info and learn more."
 ];
 
 const textBubbleArray = [];
-let startX = map_length/2 + 500;
+let startX = map_length / 2 + 500;
 let endX;
-const ReadingSpeedPixelsPerCharacter =  16;
+const ReadingSpeedPixelsPerCharacter =  7;
+const grass1Image = new Image();
+grass1Image.src = "./images/grass1.png";
 
 for (let i = 0; i < codingStory.length; i++) {
     endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
     textBubbleArray.push(new TextBubble(codingStory[i], player.x, player.y,  startX, endX));
+    foregroundObjects.push(new imageObject(startX, floor.height - 64, grass1Image));
     startX = endX;
 }
 
 const climbingStory = [
-    "Outside of coding, I like to spend all my time climbing.",
-    "I started climbing in my first year of high school. It was unlike any sport, activity, or THING I had done before and I loved it.",
-    "There's a focus that comes out on the wall where I don't think about anything else except what I'm doing in that moment.",
-    "Probably because I was so gripped from the heights back then. But nowadays, the focus just comes from the experience of moving and listening to my body.",
-    "Eventually, I joined a youth team at the Stone Summit climbing gym and started doing competitions.",
-    "The US youth competition scene was a very good motive for me to keep pursuing mastery in climbing.",
-    "The setting was thought provoking, the competitive experience was challenging yet unique, and I got to know really cool and strong climbers across the states.",
+    "👊 I like to spend pretty much all of my free time bouldering, lead climbing, getting outside and training for competitions.",
+    "It's something that teaches me how to think outside of the box, push myself to accomplish epic goals, and find balance in life.",
+    "I started climbing in my first year of high school, and I quickly began to realize that I really liked it.",
+    "My mind could find a focus where I didn't think about anything else except what I was holding on to.",
+    "I would no longer dwell on what happened earlier that day, and I was free from the stress of tomorrow.",
+    "After switching out my punch pass for a membership, I joined a youth team at the Stone Summit climbing gym and started training for competitions.",
+    "The competitions were a very good motive for me to keep pursuing mastery in climbing.",
+    "The route setting was thought provoking, the competitive experience was both challenging and unique, and I got to know really cool and strong climbers across the states.",
     "As a result, I climbed more plastic than rock during my formative climbing years. I was definitely what you would call a \"gym rat\".",
-    "That didn't stop me from climbing outside when I could. I slowly realized how fun, interesting, and challenging climbing could be outside of a gym, but in a different way.",
-    "These days, I compete on the open circuit. My best result so far is at the 2022 US Nationals, when I got 3rd in bouldering and 4th in lead.",
-    "I'm actually really proud of that.",
-    "But when I'm not training for competitions, I love getting some fresh air outside and climbing on real rocks.",
-    "Especially sandstone.",
+    "But that didn't stop me from climbing outside when I could. Through some very humbling experiences, I rediscovered how fun, interesting, and challenging climbing could be outside of a gym.",
+    "Now, I compete on the open circuit. My best result so far is at the 2022 US Nationals, when I got 3rd in bouldering and 4th in lead.",
+    "I'm actually really proud of that!",
+    "But when I'm not training for competitions, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
     "Thanks for getting to know me a little."
 ];
 
@@ -267,6 +290,7 @@ startX = map_length / 2 - 500;
 for (let i = 0; i < climbingStory.length; i++) {
     endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
     textBubbleArray.push(new TextBubble(climbingStory[i], player.x, player.y,  endX, startX));
+    foregroundObjects.push(new imageObject(startX, floor.height - 64, grass1Image));
     startX = endX;
 }
 
@@ -274,7 +298,7 @@ const welcomeText = new Text("Hey! I'm Luke.", map.cols * map.tsize / 2, canvas_
 const pressArrowKeysText = new Text("USE ARROW KEYS TO MOVE", welcomeText.x, welcomeText.y + 70, 40);
 pressArrowKeysText.isVisible = false;
 pressArrowKeysText.writeFunction = (c, text) => {
-    if (!controller.user_input_registered && frame_count > 100) {
+    if (!controller.user_input_registered && frame_count > 10) {
         if (frame_count % 60 == 0 ) {
             pressArrowKeysText.isVisible = !pressArrowKeysText.isVisible;
         }
@@ -286,15 +310,23 @@ pressArrowKeysText.writeFunction = (c, text) => {
 
 var welcomeTextArray = [welcomeText, pressArrowKeysText];
 
-function imageObject(x, y, src) {
-    this.x = x;
-    this.y = y;
-    this.image = new Image();
-    this.image.src = src;
-}
-var rightKeyObject = new imageObject(map.cols * map.tsize / 2, canvas_height / 2, "./images/rightkey.png");
+// Animation to mitigate FOUT and fade in 
+var canShowText = false;
+const fontInterval = setInterval(() => {
+    if (document.fonts.check("12px 'Handjet'")) {
+        canShowText = true;
+        animateText = true;
+        clearInterval(fontInterval);
+    }
+}, 100);
 
-var objectArray = [rightKeyObject];
+const fontTimeout = setTimeout(() => {
+    canShowText = true;
+    animateText = true;
+}, 1000);
+
+var animateText = false;
+var textAlpha = 0;
 
 /*
 * Animation Loop
@@ -365,8 +397,24 @@ const loop = function() {
     drawBackground(c, bg1);
 
     /*
+    * Background Object Draw
+    */
+    for (let i = 0; i < backgroundObjects.length; i++) {
+        c.drawImage(backgroundObjects[i].image, backgroundObjects[i].x - camera.x, backgroundObjects[i].y);
+    }
+
+    /*
     * Text Draw
     */
+    c.save();
+    if (animateText) {
+        c.globalAlpha = 100 * textAlpha ** 3;
+        textAlpha += .01;
+        if (c.globalAlpha >= 1) {
+            animateText = false;
+        }
+    }
+
     for (let i = 0; i < welcomeTextArray.length; i++) {
         welcomeTextArray[i].writeFunction(c,welcomeTextArray[i]);
     }
@@ -376,6 +424,7 @@ const loop = function() {
             textBubbleArray[i].draw(c);
         }
     }
+    c.restore();
 
     /*
     * Player Draw
@@ -424,11 +473,12 @@ const loop = function() {
     }
 
     /*
-    * Object Draw
+    * Foreground Object Draw
     */
-    // for (let i = 0; i < objectArray.length; i++) {
-    //     c.drawImage(objectArray[i].image, objectArray[i].x - camera.x, objectArray[i].y);
-    // }
+        for (let i = 0; i < foregroundObjects.length; i++) {
+            c.drawImage(foregroundObjects[i].image, foregroundObjects[i].x - camera.x, foregroundObjects[i].y);
+        }
+    
 
     /*
     * Floor Draw
@@ -462,7 +512,55 @@ const loop = function() {
     */
     window.requestAnimationFrame(loop);
     frame_count++;
+    if (frame_count >= Number.MAX_SAFE_INTEGER) {
+        frame_count = 0;
+    }
 };
+
+function drawPlayer(context) {
+    switch(player.state) {
+        case STATES.Jumping:
+            player.image.src = "./images/player/jump_0.png";
+            break;
+        case STATES.Walking:
+            if (frame_count % (ANIMATION_TIME_BUFFER / 5) == 0) {
+                player.walk_sprite_frame = (player.walk_sprite_frame + 1) % 4;
+            }
+            player.image.src = "./images/player/walk1_" + player.walk_sprite_frame + ".png";
+            break;
+        case STATES.Idle:
+            if (frame_count % ANIMATION_TIME_BUFFER == 0 && player.x_velocity == 0) {
+                if (player.idle_sprite_frame == 2)
+                {
+                    idle_sprite_frame_is_increasing = false;
+                } else if (player.idle_sprite_frame == 0) {
+                    idle_sprite_frame_is_increasing = true;
+                }
+
+                if (idle_sprite_frame_is_increasing) {
+                    player.idle_sprite_frame = (player.idle_sprite_frame + 1);
+                } else {
+                    player.idle_sprite_frame = (player.idle_sprite_frame - 1);
+                }
+                player.image.src = "./images/player/stand1_" + player.idle_sprite_frame + ".png";
+            }
+            break;
+    }
+
+    if (player.is_going_to_the_right) {
+        drawFlippedImage(
+            c, 
+            player.image,
+            player.screenX - player.width / 2,
+            player.y - player.image.naturalHeight
+        );
+    } else {
+        c.drawImage(
+            player.image,
+            player.screenX - player.width / 2,
+            player.y - player.image.naturalHeight);
+    }
+}
 
 function drawBackground(context, background) {
     for (i = 0; i < background.locations.length; i++) { 
@@ -478,12 +576,18 @@ function drawBackground(context, background) {
 }
 
 function drawText(context, text) {
-    context.font = text.fontSize + "px Handjet";
+    if (!canShowText) {
+        return;
+    }
+    context.font = getFont(text.fontSize);
     context.fillText(text.words, text.x - camera.x - context.measureText(text.words).width / 2, text.y);
 }
 
 function drawTextBubble(context) {
-    context.font = this.fontSize + "px Handjet";
+    if (!canShowText) {
+        return;
+    }
+    context.font = getFont(this.fontSize);
 
     // Determining size of white box
     let words = this.text.split(" ");
@@ -596,8 +700,26 @@ function drawFlippedImage(context, image, x, y) {
     context.restore();
 };
 
+function getFont(fontSize) {
+    if (document.fonts.check("12px 'Handjet'")) {
+        return fontSize + "px 'Handjet'";
+    } else if (document.fonts.check("12px 'Consolas'")){
+        return fontSize + "px 'Consolas'";
+    } else {
+        return fontSize + "px sans-serif";
+    }
+}
+
+function scrollPlayer(event) {
+    event.preventDefault();
+    console.log(event.deltaY);
+    player.x += event.deltaY;
+    player.state = STATES.Walking;
+}
+
 window.addEventListener("keydown", controller.keyListener)
 window.addEventListener("keyup", controller.keyListener);
+document.addEventListener("wheel", scrollPlayer, {passive: false});
 
 /* CREDITS
  * Free - Adventure Pack - Grassland by Anokolisa
@@ -605,6 +727,9 @@ window.addEventListener("keyup", controller.keyListener);
  */
 
 /*  TODO
+* pull out player draw to its own function and integrate animation with scrolling
+* rewrite the climbing section to be less formal and more about climbing
+* rewrite the coding section to be more personable and include more emotion 
 * optimize floor redraw - only redraw when player velocity is not 0
 * optimize background redraw to only move every few frames
 * snap draw calls to whole numbers and round using bitwise OR to 0: https://seblee.me/2011/02/html5-canvas-sprite-optimisation/
