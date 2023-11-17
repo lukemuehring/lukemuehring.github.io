@@ -180,12 +180,19 @@ var controller = {
 }
 
 /*
+* Foreground and Background Objects
+*/
+var backgroundObjects = [];
+var foregroundObjects = [];
+
+/*
 * Image Objects
 */
 function imageObject(x, y, img) {
     this.x = x;
     this.y = y;
     this.image = img;
+    this.draw = (context) => {context.drawImage(this.image, this.x - camera.x, this.y);};
 }
 
 const signWidth = 219;
@@ -195,11 +202,9 @@ const codingSignImage = new Image();
 codingSignImage.src = "./images/codingSign.png";
 const climbingSignImage = new Image();
 climbingSignImage.src = "./images/climbingSign.png";
-var codingSign = new imageObject(map.cols * map.tsize / 2 + 500 - signWidth, floor.height - signHeight, codingSignImage);
-var climbingSign = new imageObject(map.cols * map.tsize / 2 - 500, floor.height - signHeight, climbingSignImage);
-
-var backgroundObjects = [codingSign, climbingSign];
-var foregroundObjects = [];
+let codingSign = new imageObject(map.cols * map.tsize / 2 + 500 - signWidth, floor.height - signHeight, codingSignImage);
+let climbingSign = new imageObject(map.cols * map.tsize / 2 - 500, floor.height - signHeight, climbingSignImage);
+backgroundObjects.push(codingSign, climbingSign);
 
 /*
 * Text
@@ -210,7 +215,7 @@ function Text(words, x, y, fontSize) {
     this.y = y;
     this.fontSize = fontSize;
     this.isVisible = true;
-    this.writeFunction = drawText;
+    this.draw = drawText;
 }
 
 function TextBubble(text, x, y, minX, maxX) {
@@ -239,12 +244,10 @@ TextBubble.prototype.triangleImage = triangleImage;
 const codingStory = [
     "Welcome to my website! I'm a 25-year-old software engineer passionate about using code to bring ideas to life.",
     "Here are some of my projects. You can hover over them with your mouse to learn more.",
-    "By the way, if I am talking too slow, feel free to fly around with the scroll wheel.",
+    "By the way, if I am talking too slowly, feel free to fly around with the scroll wheel.",
     "Growing up as a Gen Z, I have been immersed in technology since the moment I was born.",
-    "My first coding experiences probably came from playing Halo CE in high school.",
-    "I remember digging into member forums showing how to use the game's command line to include user-created maps and weapons, which were really buggy and really fun at the same time.",
-    "So when it came time to choose a major in college, I figured I would do something related to technology. I was \"good with computers\".",
-    "I changed my major a couple of times, but I ended up graduating with a B.S. in Computational Media from Georgia Tech in 2021.",
+    "My first coding experiences probably came from playing Halo CE in high school. I was bored in class, OK? I remember digging into member forums showing how to use the game's command line to include user-created maps and weapons, which were really buggy and really fun at the same time.",
+    "So when it came time to choose a major in college, I figured I would do something related to technology. I changed my major a couple of times, but I ended up graduating with a B.S. in Computational Media from Georgia Tech in 2021.",
     "It's a relatively new major that I usually describe as an artsy CS degree with a focus on human interaction.",
     "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
     "I got a glimpse at what software engineering inside Big Tech is like. It was fascinating to learn how all the different parts worked together like a big engine, and I slowly pieced together the bigger picture of how vast amounts of data enabled highly available customer experiences.",
@@ -270,19 +273,21 @@ for (let i = 0; i < codingStory.length; i++) {
 }
 
 const climbingStory = [
-    "👊 I like to spend pretty much all of my free time bouldering, lead climbing, getting outside and training for competitions.",
-    "It's something that teaches me how to think outside of the box, push myself to accomplish epic goals, and find balance in life.",
-    "I started climbing in my first year of high school, and I quickly began to realize that I really liked it.",
-    "My mind could find a focus where I didn't think about anything else except what I was holding on to.",
-    "I would no longer dwell on what happened earlier that day, and I was free from the stress of tomorrow.",
-    "After switching out my punch pass for a membership, I joined a youth team at the Stone Summit climbing gym and started training for competitions.",
-    "The competitions were a very good motive for me to keep pursuing mastery in climbing.",
-    "The route setting was thought provoking, the competitive experience was both challenging and unique, and I got to know really cool and strong climbers across the states.",
-    "As a result, I climbed more plastic than rock during my formative climbing years. I was definitely what you would call a \"gym rat\".",
-    "But that didn't stop me from climbing outside when I could. Through some very humbling experiences, I rediscovered how fun, interesting, and challenging climbing could be outside of a gym.",
-    "Now, I compete on the open circuit. My best result so far is at the 2022 US Nationals, when I got 3rd in bouldering and 4th in lead.",
-    "I'm actually really proud of that!",
-    "But when I'm not training for competitions, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
+    "👊 what's up! I've been climbing for 11 years and I love it. Right now, I'm mainly training for indoor competitions with a focus on hard single-pitch lead routes, but I also enjoy lowball to highball boulders and dabble in buildering. I've even done some speed climbing on the 15 meter IFSC wall (6.52 seconds).",
+    "Whether it's standing on the podium at Nationals, or standing on top of V12s outside, my climbing achievements always teach me how to think outside of the box, push myself to accomplish the epic, and find balance in life.",
+    "I started climbing in my first year of high school. I was kind of a nerdy kid. OK, not kind of, I was a nerd. I always got all As, but not A girl's phone number, or A solid social life within school. But that would soon change.",
+    "Besides studying, my main hobby was playing Call of Duty. So I wasn't exactly the picture of an athlete back then, although I did acquire my competitiveness from gaming and growing up with two brothers.",
+    "One day in 2012, a friend of my mom's suggested that I should try out climbing, and she also mentioned that her daughter climbed at what was at that time the nation's largest climbing gym, Stone Summit.",
+    "When I was on the wall, and not freaking out about the height, my mind could find a focus where I didn't think about anything else except what I was holding on to. I would no longer dwell on what happened earlier that day, and I was free from the stress of tomorrow.",
+    "After switching out my punch pass for a membership, I joined a youth team at the gym and started training to get better, and eventually for youth competitions.",
+    "It was a fine balance to chase grades both in the climbing gym and in school. My time had to be handled more carefully, and I dropped other activities like gaming.",
+    "The implicit agreement with my parents was that they would keep sending me to the gym as long as I performed at school.",
+    "Little did I know back then that they were setting the framework of how I would approach climbing in college, and in my professional career.",
+    "I made my first open final in Dallas, Texas during the Combined Open Invitational in 2020. It was a challenging competition requiring mastery in three disciplines: speed, lead and bouldering. The winner would go on to take a ticket to send them to the 2020 Olympics.",
+    "Although I didn't win that ticket, I felt like I broke through a barrier in my climbing while also pushing through one of my most challenging years at the Georgia Institute of Technology.",
+    "My best competition result so far is at the 2022 US Open Nationals, when I got 3rd in bouldering and 4th in lead. At the same time, I was also working full-time as a software engineer at Microsoft.",
+    "To me, it seems like my formula for climbing requires balance. So I'm trying to continue my Hannah Montana lifestyle to this day. I moved to Salt Lake City in 2023 to train and I'm actively looking for my next move in my software engineering career.",
+    "But when I'm not training for competitions or grinding LeetCode, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
     "Thanks for getting to know me a little."
 ];
 
@@ -297,7 +302,7 @@ for (let i = 0; i < climbingStory.length; i++) {
 const welcomeText = new Text("Hey! I'm Luke.", map.cols * map.tsize / 2, canvas_height / 2, 100);
 const pressArrowKeysText = new Text("USE ARROW KEYS TO MOVE", welcomeText.x, welcomeText.y + 70, 40);
 pressArrowKeysText.isVisible = false;
-pressArrowKeysText.writeFunction = (c, text) => {
+pressArrowKeysText.draw = (c, text) => {
     if (!controller.user_input_registered && frame_count > 10) {
         if (frame_count % 60 == 0 ) {
             pressArrowKeysText.isVisible = !pressArrowKeysText.isVisible;
@@ -329,6 +334,31 @@ var animateText = false;
 var textAlpha = 0;
 
 /*
+* Project Demos
+*/
+function projectDemo(x, y, img, headerText, text, linkText) {
+    this.x = x;
+    this.y = y;
+    this.width;
+    this.height;
+    this.image = img;
+    this.headerText = headerText;
+    this.text = text;
+    this.linkText = linkText;
+    this.fontSize = 30;
+    this.maxLineWidth = 600;
+    this.leading = 10;
+    this.colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
+    this.colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
+    this.draw = drawProjectDemo;
+}
+
+let websiteProjImage = new Image();
+websiteProjImage.src = "./images/websiteProj.png";
+let exampleDemo = new projectDemo(textBubbleArray[1].maxX - 300, 50, websiteProjImage, "Personal website", "Coded in vanilla JS using the Canvas API.", "link to code"); 
+foregroundObjects.push(exampleDemo);
+
+/*
 * Animation Loop
 */
 const loop = function() {
@@ -337,23 +367,15 @@ const loop = function() {
     */
     if (controller.up || controller.left || controller.right) {
         controller.user_input_registered = true;
-        if (controller.up && !player.state == STATES.Jumping) {
+        if (controller.up && player.state != STATES.Jumping) {
             player.y_velocity -= JUMP_HEIGHT;
-            player.state = STATES.Jumping;
         }
-
         if (controller.left) {
             player.x_velocity -= .5;
-            if (controller.z) {
-                player.x_velocity -= 5;
-            }
         }
-
+    
         if (controller.right) {
             player.x_velocity += .5;
-            if (controller.z) {
-                player.x_velocity += 5;
-            }
         }
     }
 
@@ -373,15 +395,9 @@ const loop = function() {
     player.y_velocity += .9;
 
     /*
-    * Floor Collision and Player state
+    * Floor Collision
     */
     if (player.y > floor.height) {
-        if ((controller.left || controller.right) && !controller.up) {
-            player.state = STATES.Walking;
-            player.is_going_to_the_right = controller.right;
-        } else {
-            player.state = STATES.Idle;
-        }
         player.y = floor.height;
         player.y_velocity = 0;
     }
@@ -416,7 +432,7 @@ const loop = function() {
     }
 
     for (let i = 0; i < welcomeTextArray.length; i++) {
-        welcomeTextArray[i].writeFunction(c,welcomeTextArray[i]);
+        welcomeTextArray[i].draw(c,welcomeTextArray[i]);
     }
 
     for (let i = 0; i < textBubbleArray.length; i++) {
@@ -429,55 +445,14 @@ const loop = function() {
     /*
     * Player Draw
     */
-    switch(player.state) {
-        case STATES.Jumping:
-            player.image.src = "./images/player/jump_0.png";
-            break;
-        case STATES.Walking:
-            if (frame_count % (ANIMATION_TIME_BUFFER / 5) == 0) {
-                player.walk_sprite_frame = (player.walk_sprite_frame + 1) % 4;
-            }
-            player.image.src = "./images/player/walk1_" + player.walk_sprite_frame + ".png";
-            break;
-        case STATES.Idle:
-            if (frame_count % ANIMATION_TIME_BUFFER == 0 && player.x_velocity == 0) {
-                if (player.idle_sprite_frame == 2)
-                {
-                    idle_sprite_frame_is_increasing = false;
-                } else if (player.idle_sprite_frame == 0) {
-                    idle_sprite_frame_is_increasing = true;
-                }
-
-                if (idle_sprite_frame_is_increasing) {
-                    player.idle_sprite_frame = (player.idle_sprite_frame + 1);
-                } else {
-                    player.idle_sprite_frame = (player.idle_sprite_frame - 1);
-                }
-                player.image.src = "./images/player/stand1_" + player.idle_sprite_frame + ".png";
-            }
-            break;
-    }
-
-    if (player.is_going_to_the_right) {
-        drawFlippedImage(
-            c, 
-            player.image,
-            player.screenX - player.width / 2,
-            player.y - player.image.naturalHeight
-        );
-    } else {
-        c.drawImage(
-            player.image,
-            player.screenX - player.width / 2,
-            player.y - player.image.naturalHeight);
-    }
+    drawPlayer(c);
 
     /*
     * Foreground Object Draw
     */
-        for (let i = 0; i < foregroundObjects.length; i++) {
-            c.drawImage(foregroundObjects[i].image, foregroundObjects[i].x - camera.x, foregroundObjects[i].y);
-        }
+    for (let i = 0; i < foregroundObjects.length; i++) {
+        foregroundObjects[i].draw(c);
+    }
     
 
     /*
@@ -518,6 +493,16 @@ const loop = function() {
 };
 
 function drawPlayer(context) {
+    if (player.y < floor.height) {
+        player.state = STATES.Jumping;
+    } else if ((player.x_velocity <= -1 || player.x_velocity) >= 1 && player.y != STATES.Jumping) {
+        player.state = STATES.Walking;
+        player.is_going_to_the_right = player.x_velocity > 0;
+    } else {
+        player.state = STATES.Idle;
+    }
+
+    
     switch(player.state) {
         case STATES.Jumping:
             player.image.src = "./images/player/jump_0.png";
@@ -589,106 +574,173 @@ function drawTextBubble(context) {
     }
     context.font = getFont(this.fontSize);
 
-    // Determining size of white box
-    let words = this.text.split(" ");
-    let lines = new Array();
-    let i = 0;
-    let currentMaxLineWidth = 0;
-    while (i < words.length) {
-        let currentLine = "";
-        let currentLineWidth = context.measureText(currentLine).width;
-        while (currentLineWidth + context.measureText(words[i]).width < this.maxLineWidth && i < words.length) {
-            currentLine += words[i] + " ";
-            currentLineWidth = context.measureText(currentLine).width;
-            i++;
-        }
-        lines.push(currentLine);
-        if (currentMaxLineWidth < currentLineWidth) {
-            currentMaxLineWidth = currentLineWidth;
-        }
-    }
+    const {whiteBoxHeight, whiteBoxWidth, linesOfTextArray} = getLinesOfText(context, this.text, this.fontSize, this.leading, this.maxLineWidth);
+    let lines = {
+        header: null,
+        paragraphText: linesOfTextArray
+    };
 
-    let whiteBoxHeight = (this.fontSize + this.leading) * lines.length;
-    let whiteBoxWidth = Math.ceil(currentMaxLineWidth);
     let paddingBetweenDialogAndPlayer = 10;
 
     this.x = player.screenX;
     this.y = player.y - player.image.naturalHeight - whiteBoxHeight - paddingBetweenDialogAndPlayer;
 
+    drawWhiteBoxWithTextAndImage(context, this.x, this.y, whiteBoxHeight, whiteBoxWidth, lines, null, this.fontSize, this.leading, this.colors1, this.colors2);
+
+    context.drawImage(this.triangleImage, this.x, this.y + whiteBoxHeight);  
+}
+
+function drawProjectDemo(context) {
+    if (!canShowText) {
+        return;
+    }
+    context.font = getFont(this.fontSize);
+
+    const linesOfTextReturn1 = getLinesOfText(context, this.text, this.fontSize, this.leading, this.image.width);
+    const whiteBoxHeight1 = linesOfTextReturn1.whiteBoxHeight
+    const whiteBoxWidth1 = linesOfTextReturn1.whiteBoxWidth
+    const paragraphText = linesOfTextReturn1.linesOfTextArray;
+    const linesOfTextReturn2 = getLinesOfText(context, this.headerText, this.fontSize, this.leading, this.image.width);
+    const whiteBoxHeight2 = linesOfTextReturn2.whiteBoxHeight
+    const whiteBoxWidth2 = linesOfTextReturn2.whiteBoxWidth
+    const header = linesOfTextReturn2.linesOfTextArray;
+    
+    let lines = {
+        header: header,
+        paragraphText: paragraphText
+    };
+
+    drawWhiteBoxWithTextAndImage(context, this.x - camera.x, this.y, whiteBoxHeight1 + whiteBoxHeight2, Math.max(whiteBoxWidth1, whiteBoxWidth2), lines, this.image, this.fontSize, this.leading, this.colors1, this.colors2);
+}
+
+function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
+    let words = text.split(" ");
+    let linesOfTextArray = new Array();
+    let i = 0;
+    let currentMaxLineWidth = 0;
+    while (i < words.length) {
+        let currentLine = "";
+        let currentLineWidth = context.measureText(currentLine).width;
+        while (currentLineWidth + context.measureText(words[i]).width < maxLineWidth && i < words.length) {
+            currentLine += words[i] + " ";
+            currentLineWidth = context.measureText(currentLine).width;
+            i++;
+        }
+        linesOfTextArray.push(currentLine);
+        if (currentMaxLineWidth < currentLineWidth) {
+            currentMaxLineWidth = currentLineWidth;
+        }
+    }
+
+    let whiteBoxHeight = (fontSize + leading) * linesOfTextArray.length;
+    let whiteBoxWidth = Math.ceil(currentMaxLineWidth);
+
+    return {
+        whiteBoxHeight: whiteBoxHeight,
+        whiteBoxWidth: whiteBoxWidth,
+        linesOfTextArray: linesOfTextArray   
+    };
+}
+
+function drawWhiteBoxWithTextAndImage(context, x, y, whiteBoxHeight, whiteBoxWidth, lines, image, fontSize, leading, colors1, colors2) {
+    if (image !== null) {
+        var imagePadding = 10;
+        whiteBoxHeight += image.height + imagePadding * 2;
+        if (whiteBoxWidth < image.width) {
+            whiteBoxWidth = image.width + imagePadding * 2;
+        }
+    }
+
     context.fillStyle = "white";
-    context.fillRect(this.x - whiteBoxWidth / 2, this.y, whiteBoxWidth, whiteBoxHeight);
-    context.fillStyle = "black";
+    context.fillRect(x - whiteBoxWidth / 2, y, whiteBoxWidth, whiteBoxHeight);
+
+    if (lines.header !== null) {
+        context.fillStyle = "black";
+        context.font = "bold " + getFont(fontSize);
+        for (let i = 0; i < lines.header.length; i++) {
+            context.fillText(lines.header[i], Math.round(x + imagePadding - whiteBoxWidth / 2), Math.round(y + fontSize + i * (leading + fontSize)));
+        }
+    }
+
+    if (image !== null) {
+        context.drawImage(image, x - whiteBoxWidth / 2 + imagePadding, y + imagePadding + fontSize);
+    }
 
     // Drawing the text in the white box
-    for (let i = 0; i < lines.length; i++) {
-        context.fillText(lines[i], Math.round(this.x - whiteBoxWidth / 2), Math.round(this.y + this.fontSize + i * (this.leading + this.fontSize)));
+    context.fillStyle = "black";
+    context.font = getFont(fontSize);
+    let linesOfTextArray = lines.paragraphText;
+    for (let i = 0; i < linesOfTextArray.length; i++) {
+        if (image !== null) {
+            context.fillText(linesOfTextArray[i], Math.round(x + imagePadding - whiteBoxWidth / 2), Math.round(image.height + imagePadding + y + fontSize * 2 + i * (leading + fontSize)));
+        } else {
+            context.fillText(linesOfTextArray[i], Math.round(x - whiteBoxWidth / 2), Math.round(y + fontSize + i * (leading + fontSize)));
+        }
     }
 
     // Drawing the borders of the white box
-    for (let i = 0; i < this.colors1.length; i++) {
-        context.fillStyle = this.colors1[i];
-        context.fillRect(this.x - whiteBoxWidth / 2, this.y + whiteBoxHeight - i + this.colors1.length - 1, whiteBoxWidth, 1);
-        context.fillRect(this.x - whiteBoxWidth / 2, this.y - this.colors1.length + i, whiteBoxWidth, 1);
+    for (let i = 0; i < colors1.length; i++) {
+        context.fillStyle = colors1[i];
+        context.fillRect(x - whiteBoxWidth / 2, y + whiteBoxHeight - i + colors1.length - 1, whiteBoxWidth, 1);
+        context.fillRect(x - whiteBoxWidth / 2, y - colors1.length + i, whiteBoxWidth, 1);
     }
 
-    for (let z = 0; z < this.colors2.length; z++) {
-        context.fillStyle = this.colors2[z];
-        context.fillRect(this.x - whiteBoxWidth / 2 - this.colors2.length + z, this.y, 1, whiteBoxHeight);
-        context.fillRect(this.x + whiteBoxWidth / 2 + this.colors2.length - 1 - z, this.y, 1, whiteBoxHeight);
+    for (let i = 0; i < colors2.length; i++) {
+        context.fillStyle = colors2[i];
+        context.fillRect(x - whiteBoxWidth / 2 - colors2.length + i, y, 1, whiteBoxHeight);
+        context.fillRect(x + whiteBoxWidth / 2 + colors2.length - 1 - i, y, 1, whiteBoxHeight);
     }
 
     // Drawing the corners
-    c.drawImage(
-        this.cornerImage, // image
+    context.drawImage(
+        cornerImage, // image
         0, // source x
         0, // source y
         4, // source width
         5, // source height
-        Math.floor(this.x - whiteBoxWidth / 2 - this.colors2.length),  // target x
-        Math.floor(this.y - this.colors1.length), // target y
+        Math.floor(x - whiteBoxWidth / 2 - colors2.length),  // target x
+        Math.floor(y - colors1.length), // target y
         4, // target width
         5 // target height
     );
 
-    c.drawImage(
-        this.cornerImage,
+    context.drawImage(
+        cornerImage,
         4,
         0,
         4,
         5,
-        Math.floor(this.x - whiteBoxWidth / 2 - this.colors2.length),
-        Math.floor(this.y + whiteBoxHeight),
+        Math.floor(x - whiteBoxWidth / 2 - colors2.length),
+        Math.floor(y + whiteBoxHeight),
         4,
         5
     );
 
-    c.drawImage(
-        this.cornerImage,
+    context.drawImage(
+        cornerImage,
         8,
         0,
         4,
         5,
-        Math.floor(this.x + whiteBoxWidth / 2),
-        Math.floor(this.y - this.colors1.length),
+        Math.floor(x + whiteBoxWidth / 2),
+        Math.floor(y - colors1.length),
         4,
         5
     );
 
-    c.drawImage(
-        this.cornerImage,
+    context.drawImage(
+        cornerImage,
         12,
         0,
         4,
         5,
-        Math.floor(this.x + whiteBoxWidth / 2),
-        Math.floor(this.y + whiteBoxHeight),
+        Math.floor(x + whiteBoxWidth / 2),
+        Math.floor(y + whiteBoxHeight),
         4,
         5
     );
 
-    context.fillStyle = "black";
-
-    context.drawImage(this.triangleImage, this.x, this.y + whiteBoxHeight);  
+    context.fillStyle = "black"; 
 }
 
 function drawFlippedImage(context, image, x, y) {
@@ -712,9 +764,7 @@ function getFont(fontSize) {
 
 function scrollPlayer(event) {
     event.preventDefault();
-    console.log(event.deltaY);
-    player.x += event.deltaY;
-    player.state = STATES.Walking;
+    player.x_velocity += event.deltaY * .1;
 }
 
 window.addEventListener("keydown", controller.keyListener)
@@ -727,9 +777,9 @@ document.addEventListener("wheel", scrollPlayer, {passive: false});
  */
 
 /*  TODO
-* pull out player draw to its own function and integrate animation with scrolling
 * rewrite the climbing section to be less formal and more about climbing
 * rewrite the coding section to be more personable and include more emotion 
+* mobile version
 * optimize floor redraw - only redraw when player velocity is not 0
 * optimize background redraw to only move every few frames
 * snap draw calls to whole numbers and round using bitwise OR to 0: https://seblee.me/2011/02/html5-canvas-sprite-optimisation/
