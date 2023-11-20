@@ -80,7 +80,7 @@ var tiles = new Image();
 tiles.src = "./images/tiles.png";
 
 var map = {
-    cols: 700,
+    cols: 888,
     rows: 2,
     tsize: 64,
     tiles: [],
@@ -123,6 +123,8 @@ bg1.image.src = "./images/bg_1.png";
 
 const floor = {
     height: canvas_height - 100,
+    rightX: 0,
+    leftX: 0
 };
 
 /*
@@ -157,6 +159,7 @@ var camera = new Camera(map, canvas_width, canvas_height);
 player.x = map.cols * map.tsize / 2;
 camera.follow(player);
 
+var playerInputIsAllowed = true;
 var controller = {
     left: false,
     right: false,
@@ -263,7 +266,7 @@ const codingStory = [
     "At the start of 2023, I made a big bet on myself: I took a hiatus from my software career to focus on being a professional athelete and try to make the US climbing team.",
     "It turns out that climbing is pretty hard. And I learned that I perform best when there's a balance between my coding and climbing, which I talk about more in the climbing section.",
     "I also wanted to see what the world outside of Big Tech looked like.",
-    "So, \"Hello World!\". If you are hiring, I am actively searching for my next software engineering role.",
+    "So, \"Hello World!\" 😁 If you are hiring, I am actively searching for my next software engineering role.",
     "Thanks for getting to know me a little.",
 ];
 
@@ -275,7 +278,17 @@ const grass1Image = new Image();
 grass1Image.src = "./images/grass1.png";
 
 for (let i = 0; i < codingStory.length; i++) {
-    endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
+    if (i == codingStory.length - 1) {
+        endX = startX + 500 - ((startX + 500) % map.tsize);
+        floor.rightX = startX + 500 - ((startX + 500) % map.tsize);
+        let row = 0;
+        for (let j = Math.floor(endX / map.tsize); j < map.tiles.length; j += map.cols) {
+            row++;
+            map.tiles.fill(2,j, map.cols * row);
+        }
+    } else {
+        endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
+    }
     textBubbleArray.push(new TextBubble(codingStory[i], player.x, player.y,  startX, endX));
     foregroundObjects.push(new imageObject(startX, floor.height - 55, grass1Image));
     startX = endX;
@@ -303,7 +316,16 @@ const climbingStory = [
 
 startX = map_length / 2 - 500;
 for (let i = 0; i < climbingStory.length; i++) {
-    endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
+    if (i == climbingStory.length - 1) {
+        endX = startX - 500 - ((startX - 500) % map.tsize);
+        floor.leftX = startX - 500 - ((startX - 500) % map.tsize);
+        let endTile = Math.floor(endX / map.tsize);
+        for (let j = 0; j < map.rows; j ++) {
+            map.tiles.fill(2, j * map.cols, j * map.cols + endTile);
+        }
+    } else {
+        endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
+    }
     textBubbleArray.push(new TextBubble(climbingStory[i], player.x, player.y,  endX, startX));
     foregroundObjects.push(new imageObject(startX, floor.height - 55, grass1Image));
     startX = endX;
@@ -406,7 +428,18 @@ const loop = function() {
     /*
     * Controller Input
     */
-    if (controller.up || controller.left || controller.right) {
+    if (player.y > floor.height && playerInputIsAllowed) {
+        playerInputIsAllowed = false;
+        setTimeout(() => {
+            player.x = map_length / 2;
+            player.y = 0;
+            player.x_velocity = 0;
+            player.y_velocity = 0;
+            playerInputIsAllowed = true;
+        }, 1000);
+    }
+
+    if ((controller.up || controller.left || controller.right) && playerInputIsAllowed) {
         controller.user_input_registered = true;
         if (controller.up && player.state != STATES.Jumping) {
             player.y_velocity -= JUMP_HEIGHT;
@@ -438,7 +471,7 @@ const loop = function() {
     /*
     * Floor Collision
     */
-    if (player.y > floor.height) {
+    if (player.y > floor.height && player.x < floor.rightX && player.x > floor.leftX) {
         player.y = floor.height;
         player.y_velocity = 0;
     }
@@ -885,7 +918,9 @@ function getFont(fontSize) {
 
 function scrollPlayer(event) {
     event.preventDefault();
-    player.x_velocity += event.deltaY * .1;
+    if (playerInputIsAllowed) {
+        player.x_velocity += event.deltaY * .1;
+    }
 }
 
 function updateMousePosition(event) {
@@ -898,11 +933,7 @@ function updateMousePosition(event) {
 }
 
 function sendToLink(event) {
-    console.log(demos);
-
     for (let i = 0; i < demos.length; i++) {
-        console.log(demos[i]);
-
         if (demos[i].hover) {
             window.open(demos[i].link,"_blank");
             return;
