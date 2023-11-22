@@ -40,97 +40,99 @@ function trackProgress() {
 * Game Variables
 */
 let canvas = document.querySelector('canvas');
-
-var canvas_width = window.innerWidth;
-var canvas_height = window.innerHeight;
-
 const c = canvas.getContext("2d");
 
-c.canvas.width = canvas_width;
-c.canvas.height = canvas_height;
+c.canvas.width = window.innerWidth;
+c.canvas.height = window.innerHeight;
 
-const JUMP_HEIGHT = 20; 
-const GRAVITY = 1.5;
-const ANIMATION_TIME_BUFFER = 30;
+const JumpHeight = 20; 
+const Gravity = 1.5;
+const AnimationTimeBuffer = 30;
 
-const STATES = {
-    Idle: 0,
-    Jumping: 1,
-    Walking: 2
-};
+var FrameCount = 0;
 
-var frame_count = 0;
+/*
+* Map, Background, Floor
+*/
+var tileSheet = new Image();
+tileSheet.src = "./images/tiles.png";
 
-const player = {
-    height: 160,
-    width: 94,
-    image: new Image(),
-    state: STATES.Jumping,
-    idle_sprite_frame: 0,
-    idle_sprite_frame_is_increasing: true,
-    walk_sprite_frame: 0,
-    is_going_to_the_right: true,
-    x: 0,
-    x_velocity: 0,
-    y: 0,
-    y_velocity: 0,
-};
-
-var tiles = new Image();
-tiles.src = "./images/tiles.png";
-
-var map = {
+const Map = {
     cols: 888,
     rows: 2,
     tsize: 64,
     tiles: [],
     getTile: function (col, row) {
-        return this.tiles[row * map.cols + col];
+        return this.tiles[row * Map.cols + col];
     }
 };
 
-map.tiles = new Array(map.cols * map.rows);
-map.tiles.fill(0, 0, map.cols);
-map.tiles.fill(1, map.cols);
+Map.tiles = new Array(Map.cols * Map.rows);
+Map.tiles.fill(0, 0, Map.cols);
+Map.tiles.fill(1, Map.cols);
 
-const bg0 = {
+const Bg0 = {
     width: 1984,
     image: new Image(),
     locations : [],
-    current_max_location_index : 0,
-    move_rate: .3,
-    draw_rate: 5
+    currentMaxLocationIndex : 0,
+    moveRate: .3,
 };
 
-const bg1 = {
+const Bg1 = {
     width: 1984,
     image: new Image(),
     locations : [],
-    current_max_location_index : 0,
-    move_rate: 1,
-    draw_rate: 10
+    currentMaxLocationIndex : 0,
+    moveRate: 1,
 };
 
-var map_length = map.cols * map.tsize;
-var num_bg_images = Math.ceil(map_length / bg0.width) + 1;
-bg0.locations = Array.from({length: num_bg_images}, (_, index) => index * bg0.width);
-bg0.current_max_location_index = bg0.locations.length - 1;
-bg0.image.src = "./images/bg_0.png";
+Map.length = Map.cols * Map.tsize;
 
-bg1.locations = Array.from({length: num_bg_images}, (_, index) => index * bg1.width);
-bg1.current_max_location_index = bg1.locations.length - 1;
-bg1.image.src = "./images/bg_1.png";
+var numBgImages = Math.ceil(Map.length / Bg0.width) + 1;
+Bg0.locations = Array.from({length: numBgImages}, (_, index) => index * Bg0.width);
+Bg0.currentMaxLocationIndex = Bg0.locations.length - 1;
+Bg0.image.src = "./images/bg_0.png";
 
-const floor = {
-    height: canvas_height - 100,
+Bg1.locations = Array.from({length: numBgImages}, (_, index) => index * Bg1.width);
+Bg1.currentMaxLocationIndex = Bg1.locations.length - 1;
+Bg1.image.src = "./images/bg_1.png";
+
+const Floor = {
+    height: c.canvas.height - 100,
     rightX: 0,
     leftX: 0
+};
+
+/*
+* Player
+*/
+const PlayerStates = {
+    Idle: 0,
+    Jumping: 1,
+    Walking: 2
+};
+
+const Player = {
+    x: Map.length / 2,
+    xVelocity: 0,
+    y: 0,
+    yVelocity: 0,
+    height: 160,
+    width: 94,
+    image: new Image(),
+    state: PlayerStates.Jumping,
+    idleSpriteFrame: 0,
+    idleSpriteFrameIsIncreasing: true,
+    walkSpriteFrame: 0,
+    isGoingToTheRight: true
 };
 
 /*
 * Camera
 */
 function Camera(map, width, height) {
+    console.log("making new camera");
     this.x = 0;
     this.y = 0;
     this.width = width;
@@ -139,8 +141,8 @@ function Camera(map, width, height) {
     this.maxX = map.cols * map.tsize - width;
 };
 
-Camera.prototype.follow = function(sprite) {
-    this.following = sprite;
+Camera.prototype.follow = function(player) {
+    this.following = player;
 };
 
 Camera.prototype.update = function() {
@@ -155,28 +157,31 @@ Camera.prototype.update = function() {
     }
 };
 
-var camera = new Camera(map, canvas_width, canvas_height);
-player.x = map.cols * map.tsize / 2;
-camera.follow(player);
+const camera = new Camera(Map, c.canvas.width, c.canvas.height);
+camera.follow(Player);
 
-var playerInputIsAllowed = true;
-var controller = {
+/*
+* Controller
+*/
+let userInputIsAllowed = true;
+
+const Controller = {
     left: false,
     right: false,
     up: false,
-    user_input_registered: false,
+    userInputRegistered: false,
 
     keyListener: function(event) {
-        let key_state = (event.type == "keydown") ? true : false;
+        let keyState = (event.type == "keydown");
         switch (event.keyCode) {
             case 37: // left arrow
-                controller.left = key_state;
+                Controller.left = keyState;
                 break;
             case 38: // up arrow
-                controller.up = key_state;
+                Controller.up = keyState;
                 break;
             case 39: // right arrow
-                controller.right = key_state;
+                Controller.right = keyState;
                 break;
         }
     }
@@ -185,7 +190,7 @@ var controller = {
 /*
 * Mouse
 */
-var mouse = {
+const Mouse = {
     x: 0,
     y: 0
 };
@@ -213,8 +218,8 @@ const codingSignImage = new Image();
 codingSignImage.src = "./images/codingSign.png";
 const climbingSignImage = new Image();
 climbingSignImage.src = "./images/climbingSign.png";
-let codingSign = new imageObject(map.cols * map.tsize / 2 + 500 - signWidth, floor.height - signHeight, codingSignImage);
-let climbingSign = new imageObject(map.cols * map.tsize / 2 - 500, floor.height - signHeight, climbingSignImage);
+let codingSign = new imageObject(Map.cols * Map.tsize / 2 + 500 - signWidth, Floor.height - signHeight, codingSignImage);
+let climbingSign = new imageObject(Map.cols * Map.tsize / 2 - 500, Floor.height - signHeight, climbingSignImage);
 backgroundObjects.push(codingSign, climbingSign);
 
 /*
@@ -271,7 +276,7 @@ const codingStory = [
 ];
 
 const textBubbleArray = [];
-let startX = map_length / 2 + 500;
+let startX = Map.length / 2 + 500;
 let endX;
 const ReadingSpeedPixelsPerCharacter =  7;
 const grass1Image = new Image();
@@ -279,18 +284,18 @@ grass1Image.src = "./images/grass1.png";
 
 for (let i = 0; i < codingStory.length; i++) {
     if (i == codingStory.length - 1) {
-        endX = startX + 500 - ((startX + 500) % map.tsize);
-        floor.rightX = startX + 500 - ((startX + 500) % map.tsize);
+        endX = startX + 500 - ((startX + 500) % Map.tsize);
+        Floor.rightX = startX + 500 - ((startX + 500) % Map.tsize);
         let row = 0;
-        for (let j = Math.floor(endX / map.tsize); j < map.tiles.length; j += map.cols) {
+        for (let j = Math.floor(endX / Map.tsize); j < Map.tiles.length; j += Map.cols) {
             row++;
-            map.tiles.fill(2,j, map.cols * row);
+            Map.tiles.fill(2,j, Map.cols * row);
         }
     } else {
         endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
     }
-    textBubbleArray.push(new TextBubble(codingStory[i], player.x, player.y,  startX, endX));
-    foregroundObjects.push(new imageObject(startX, floor.height - 55, grass1Image));
+    textBubbleArray.push(new TextBubble(codingStory[i], Player.x, Player.y,  startX, endX));
+    foregroundObjects.push(new imageObject(startX, Floor.height - 55, grass1Image));
     startX = endX;
 }
 
@@ -298,7 +303,7 @@ const climbingStory = [
     "👊 what's up! I've been climbing for 11 years and I love it.",
     "Right now, I'm mainly training for indoor competitions with a focus on hard single-pitch lead routes, but I also enjoy lowball to highball boulders and dabble in buildering. I've even done some speed climbing on the 15 meter IFSC wall (6.52 seconds).",
     "Whether it's standing on the podium at Nationals, or standing on top of V12s outside, my climbing achievements always teach me how to think outside of the box, push myself to accomplish the epic, and find balance in life.",
-    "I started climbing in my first year of high school. I was kind of a nerdy kid. OK, not kind of, I was pretty nerdy. I always got all As, but I never really got A girl's phone number",
+    "I started climbing in my first year of high school. I was kind of a nerdy kid. OK, not kind of, I was pretty nerdy.",
     "My main hobby was playing Call of Duty, and I was shy. So I wasn't exactly the picture of a fit, confident athlete back then.",
     "One day in 2012, a friend of my mom's suggested that I should try out climbing, and also mentioned that her daughter climbed at what was at the time the nation's largest climbing gym, Stone Summit. So I went.",
     "When I was on the wall, and not freaking out about the height, my mind could find a focus where I didn't think about anything else except what I was holding on to. I would no longer dwell on what happened earlier that day, and I was free from the stress of tomorrow.",
@@ -314,29 +319,29 @@ const climbingStory = [
     "Thanks for getting to know me a little."
 ];
 
-startX = map_length / 2 - 500;
+startX = Map.length / 2 - 500;
 for (let i = 0; i < climbingStory.length; i++) {
     if (i == climbingStory.length - 1) {
-        endX = startX - 500 - ((startX - 500) % map.tsize);
-        floor.leftX = startX - 500 - ((startX - 500) % map.tsize);
-        let endTile = Math.floor(endX / map.tsize);
-        for (let j = 0; j < map.rows; j ++) {
-            map.tiles.fill(2, j * map.cols, j * map.cols + endTile);
+        endX = startX - 500 - ((startX - 500) % Map.tsize);
+        Floor.leftX = startX - 500 - ((startX - 500) % Map.tsize);
+        let endTile = Math.floor(endX / Map.tsize);
+        for (let j = 0; j < Map.rows; j ++) {
+            Map.tiles.fill(2, j * Map.cols, j * Map.cols + endTile);
         }
     } else {
         endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
     }
-    textBubbleArray.push(new TextBubble(climbingStory[i], player.x, player.y,  endX, startX));
-    foregroundObjects.push(new imageObject(startX, floor.height - 55, grass1Image));
+    textBubbleArray.push(new TextBubble(climbingStory[i], Player.x, Player.y,  endX, startX));
+    foregroundObjects.push(new imageObject(startX, Floor.height - 55, grass1Image));
     startX = endX;
 }
 
-const welcomeText = new Text("Hey! I'm Luke.", map.cols * map.tsize / 2, canvas_height / 2, 100);
+const welcomeText = new Text("Hey! I'm Luke.", Map.cols * Map.tsize / 2, c.canvas.height / 2, 100);
 const pressArrowKeysText = new Text("USE ARROW KEYS TO MOVE", welcomeText.x, welcomeText.y + 70, 40);
 pressArrowKeysText.isVisible = false;
 pressArrowKeysText.draw = (c, text) => {
-    if (!controller.user_input_registered && frame_count > 10) {
-        if (frame_count % 60 == 0 ) {
+    if (!Controller.userInputRegistered && FrameCount > 10) {
+        if (FrameCount % 60 == 0 ) {
             pressArrowKeysText.isVisible = !pressArrowKeysText.isVisible;
         }
         if (pressArrowKeysText.isVisible) {
@@ -379,11 +384,11 @@ backgroundObjects.push(likes, instagram, gt);
 
 const CircleRadius = 100;
 const CircleCenter = {x: (textBubbleArray[7].minX + textBubbleArray[7].maxX) / 2 , y: 300 };
-let microsoftRectangle1 = {x: CircleCenter.x + Math.cos(0) , y: CircleCenter.y + Math.sin(0), angle:0, color:"243 83 37"};
-let microsoftRectangle2 = {x: CircleCenter.x + Math.cos(0) , y: CircleCenter.y + Math.sin(1), angle: Math.PI / 2, color:"129 188 6"};
-let microsoftRectangle3 = {x: CircleCenter.x + Math.cos(-1) , y: CircleCenter.y + Math.sin(0), angle: Math.PI, color:"5 166 240"};
-let microsoftRectangle4 = {x: CircleCenter.x + Math.cos(-1) , y: CircleCenter.y + Math.sin(-1), angle: Math.PI * 3/2, color:"255 186 8"};
-let microsoftRectangles = [microsoftRectangle1, microsoftRectangle2, microsoftRectangle3, microsoftRectangle4];
+let rect1 = {x: CircleCenter.x + Math.cos(0) , y: CircleCenter.y + Math.sin(0), angle:0, color:"243 83 37"};
+let rect2 = {x: CircleCenter.x + Math.cos(0) , y: CircleCenter.y + Math.sin(1), angle: Math.PI / 2, color:"129 188 6"};
+let rect3 = {x: CircleCenter.x + Math.cos(-1) , y: CircleCenter.y + Math.sin(0), angle: Math.PI, color:"5 166 240"};
+let rect4 = {x: CircleCenter.x + Math.cos(-1) , y: CircleCenter.y + Math.sin(-1), angle: Math.PI * 3/2, color:"255 186 8"};
+let microsoftRectangles = [rect1, rect2, rect3, rect4];
 
 /*
 * Project Demos
@@ -428,63 +433,63 @@ const loop = function() {
     /*
     * Controller Input
     */
-    if (player.y > floor.height && playerInputIsAllowed) {
-        playerInputIsAllowed = false;
+    if (Player.y > Floor.height && userInputIsAllowed) {
+        userInputIsAllowed = false;
         setTimeout(() => {
-            player.x = map_length / 2;
-            player.y = 0;
-            player.x_velocity = 0;
-            player.y_velocity = 0;
-            playerInputIsAllowed = true;
+            Player.x = Map.length / 2;
+            Player.y = 0;
+            Player.xVelocity = 0;
+            Player.yVelocity = 0;
+            userInputIsAllowed = true;
         }, 1000);
     }
 
-    if ((controller.up || controller.left || controller.right) && playerInputIsAllowed) {
-        controller.user_input_registered = true;
-        if (controller.up && player.state != STATES.Jumping) {
-            player.y_velocity -= JUMP_HEIGHT;
+    if ((Controller.up || Controller.left || Controller.right) && userInputIsAllowed) {
+        Controller.userInputRegistered = true;
+        if (Controller.up && Player.state != PlayerStates.Jumping) {
+            Player.yVelocity -= JumpHeight;
         }
-        if (controller.left) {
-            player.x_velocity -= .5;
+        if (Controller.left) {
+            Player.xVelocity -= .5;
         }
     
-        if (controller.right) {
-            player.x_velocity += .5;
+        if (Controller.right) {
+            Player.xVelocity += .5;
         }
     }
 
     /*
     * Gravity and Friction
     */
-    player.y_velocity += GRAVITY;
-    player.x += player.x_velocity;
-    player.y += player.y_velocity;
+    Player.yVelocity += Gravity;
+    Player.x += Player.xVelocity;
+    Player.y += Player.yVelocity;
 
-    player.x_velocity *= .9;
+    Player.xVelocity *= .9;
 
     // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
-    if (player.x_velocity <= 0.2 && player.x_velocity >= -0.2) {
-        player.x_velocity = 0;
+    if (Player.xVelocity <= 0.2 && Player.xVelocity >= -0.2) {
+        Player.xVelocity = 0;
     }
-    player.y_velocity += .9;
+    Player.yVelocity += .9;
 
     /*
     * Floor Collision
     */
-    if (player.y > floor.height && player.x < floor.rightX && player.x > floor.leftX) {
-        player.y = floor.height;
-        player.y_velocity = 0;
+    if (Player.y > Floor.height && Player.x < Floor.rightX && Player.x > Floor.leftX) {
+        Player.y = Floor.height;
+        Player.yVelocity = 0;
     }
 
-    player.x = Math.max(0, Math.min(player.x, map.cols * map.tsize));
+    Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
 
     camera.update();
 
     /*
     * Background Draw
     */
-    drawBackground(c, bg0);
-    drawBackground(c, bg1);
+    drawBackground(c, Bg0);
+    drawBackground(c, Bg1);
 
     /*
     * Background Object Draw
@@ -493,13 +498,19 @@ const loop = function() {
         c.drawImage(backgroundObjects[i].image, Math.floor(backgroundObjects[i].x - camera.x), Math.floor(backgroundObjects[i].y));
     }
 
-    // if (frame_count % 10 == 0) {
-        drawRotatingMicrosoftLogo(c, microsoftRectangles);
-    // }
+    drawRotatingMicrosoftLogo(c, microsoftRectangles);
 
     /*
     * Demos Draw
     */
+    c.save();
+    if (animateText) {
+        c.globalAlpha = 100 * textAlpha ** 3;
+        textAlpha += .01;
+        if (c.globalAlpha >= 1) {
+            animateText = false;
+        }
+    }
     for (let i = 0; i < demos.length; i++) {
         demos[i].draw(c);
         if (demos[i].detectMouseHover(demos[i].x, demos[i].y, demos[i].width, demos[i].height)) {
@@ -511,21 +522,12 @@ const loop = function() {
     /*
     * Text Draw
     */
-    c.save();
-    if (animateText) {
-        c.globalAlpha = 100 * textAlpha ** 3;
-        textAlpha += .01;
-        if (c.globalAlpha >= 1) {
-            animateText = false;
-        }
-    }
-
     for (let i = 0; i < welcomeTextArray.length; i++) {
         welcomeTextArray[i].draw(c,welcomeTextArray[i]);
     }
 
     for (let i = 0; i < textBubbleArray.length; i++) {
-        if (textBubbleArray[i].minX < player.x && textBubbleArray[i].maxX > player.x) {
+        if (textBubbleArray[i].minX < Player.x && textBubbleArray[i].maxX > Player.x) {
             textBubbleArray[i].draw(c);
         }
     }
@@ -547,26 +549,26 @@ const loop = function() {
     /*
     * Floor Draw
     */
-    var startCol = Math.floor(camera.x / map.tsize);
-    var endCol = startCol + (camera.width / map.tsize) + 2;
-    var offsetX = -camera.x + startCol * map.tsize;
+    var startCol = Math.floor(camera.x / Map.tsize);
+    var endCol = startCol + (camera.width / Map.tsize) + 2;
+    var offsetX = -camera.x + startCol * Map.tsize;
 
     for (let column = startCol; column < endCol; column++) {
-        for (let row = 0; row < map.rows; row++) {
-            const tile = map.getTile(column, row);
-            const x = (column - startCol) * map.tsize + offsetX;
-            const y = row * map.tsize;
+        for (let row = 0; row < Map.rows; row++) {
+            const tile = Map.getTile(column, row);
+            const x = (column - startCol) * Map.tsize + offsetX;
+            const y = row * Map.tsize;
 
             c.drawImage(
-                tiles, // image
-                tile * map.tsize, // source x
+                tileSheet, // image
+                tile * Map.tsize, // source x
                 0, // source y
-                map.tsize, // source width
-                map.tsize, // source height
+                Map.tsize, // source width
+                Map.tsize, // source height
                 Math.floor(x),  // target x
-                y + floor.height, // target y
-                map.tsize, // target width
-                map.tsize // target height
+                y + Floor.height, // target y
+                Map.tsize, // target width
+                Map.tsize // target height
             );
         }
     }
@@ -575,75 +577,75 @@ const loop = function() {
     * Animation
     */
     window.requestAnimationFrame(loop);
-    frame_count++;
-    if (frame_count >= Number.MAX_SAFE_INTEGER) {
-        frame_count = 0;
+    FrameCount++;
+    if (FrameCount >= Number.MAX_SAFE_INTEGER) {
+        FrameCount = 0;
     }
 };
 
 function drawPlayer(context) {
-    if (player.y < floor.height) {
-        player.state = STATES.Jumping;
-    } else if ((player.x_velocity <= -1 || player.x_velocity) >= 1 && player.y != STATES.Jumping) {
-        player.state = STATES.Walking;
-        player.is_going_to_the_right = player.x_velocity > 0;
+    if (Player.y < Floor.height) {
+        Player.state = PlayerStates.Jumping;
+    } else if ((Player.xVelocity <= -1 || Player.xVelocity) >= 1 && Player.y != PlayerStates.Jumping) {
+        Player.state = PlayerStates.Walking;
+        Player.isGoingToTheRight = Player.xVelocity > 0;
     } else {
-        player.state = STATES.Idle;
+        Player.state = PlayerStates.Idle;
     }
 
     
-    switch(player.state) {
-        case STATES.Jumping:
-            player.image = imageCache["./images/player/jump_0.png"];
+    switch(Player.state) {
+        case PlayerStates.Jumping:
+            Player.image = imageCache["./images/player/jump_0.png"];
             break;
-        case STATES.Walking:
-            if (frame_count % (ANIMATION_TIME_BUFFER / 5) == 0) {
-                player.walk_sprite_frame = (player.walk_sprite_frame + 1) % 4;
+        case PlayerStates.Walking:
+            if (FrameCount % (AnimationTimeBuffer / 5) == 0) {
+                Player.walkSpriteFrame = (Player.walkSpriteFrame + 1) % 4;
             }
-            player.image = imageCache["./images/player/walk1_" + player.walk_sprite_frame + ".png"];
+            Player.image = imageCache["./images/player/walk1_" + Player.walkSpriteFrame + ".png"];
             break;
-        case STATES.Idle:
-            if (frame_count % ANIMATION_TIME_BUFFER == 0 && player.x_velocity == 0) {
-                if (player.idle_sprite_frame == 2)
+        case PlayerStates.Idle:
+            if (FrameCount % AnimationTimeBuffer == 0 && Player.xVelocity == 0) {
+                if (Player.idleSpriteFrame == 2)
                 {
                     idle_sprite_frame_is_increasing = false;
-                } else if (player.idle_sprite_frame == 0) {
+                } else if (Player.idleSpriteFrame == 0) {
                     idle_sprite_frame_is_increasing = true;
                 }
 
                 if (idle_sprite_frame_is_increasing) {
-                    player.idle_sprite_frame = (player.idle_sprite_frame + 1);
+                    Player.idleSpriteFrame = (Player.idleSpriteFrame + 1);
                 } else {
-                    player.idle_sprite_frame = (player.idle_sprite_frame - 1);
+                    Player.idleSpriteFrame = (Player.idleSpriteFrame - 1);
                 }
-                player.image = imageCache["./images/player/stand1_" + player.idle_sprite_frame + ".png"];
+                Player.image = imageCache["./images/player/stand1_" + Player.idleSpriteFrame + ".png"];
             }
             break;
     }
 
-    if (player.is_going_to_the_right) {
+    if (Player.isGoingToTheRight) {
         drawFlippedImage(
             c, 
-            player.image,
-            player.screenX - player.width / 2,
-            player.y - player.image.naturalHeight
+            Player.image,
+            Player.screenX - Player.width / 2,
+            Player.y - Player.image.naturalHeight
         );
     } else {
         c.drawImage(
-            player.image,
-            player.screenX - player.width / 2,
-            player.y - player.image.naturalHeight);
+            Player.image,
+            Player.screenX - Player.width / 2,
+            Player.y - Player.image.naturalHeight);
     }
 }
 
 function drawBackground(context, background) {
     for (i = 0; i < background.locations.length; i++) { 
         if (background.locations[i] + background.width < 0) {
-            background.locations[i] = background.locations[background.current_max_location_index] + background.width;
-            background.current_max_location_index = i;
+            background.locations[i] = background.locations[background.currentMaxLocationIndex] + background.width;
+            background.currentMaxLocationIndex = i;
         }
 
-        background.locations[i] -= background.move_rate;
+        background.locations[i] -= background.moveRate;
 
         context.drawImage(background.image, background.locations[i], 0);  
     }
@@ -681,8 +683,8 @@ function drawTextBubble(context) {
 
     let paddingBetweenDialogAndPlayer = 10;
 
-    this.x = player.screenX;
-    this.y = player.y - player.image.naturalHeight - whiteBoxHeight - paddingBetweenDialogAndPlayer;
+    this.x = Player.screenX;
+    this.y = Player.y - Player.image.naturalHeight - whiteBoxHeight - paddingBetweenDialogAndPlayer;
 
     drawWhiteBoxWithTextAndImage(context, this.x, this.y, whiteBoxHeight, whiteBoxWidth, lines, null, this.fontSize, this.leading, this.colors1, this.colors2);
 
@@ -716,8 +718,8 @@ function drawProjectDemo(context) {
 }
 
 function detectMouseHover(x, y, width, height) {
-    if (mouse.x >= x - width / 2 - camera.x && mouse.x <= x + width / 2 - camera.x) {
-        if (mouse.y >= y && mouse.y < y + height) {
+    if (Mouse.x >= x - width / 2 - camera.x && Mouse.x <= x + width / 2 - camera.x) {
+        if (Mouse.y >= y && Mouse.y < y + height) {
             this.hover = true;
             return true;
         }
@@ -899,9 +901,9 @@ function drawWhiteBoxWithTextAndImage(context, x, y, whiteBoxHeight, whiteBoxWid
 
 function drawFlippedImage(context, image, x, y) {
     context.save();
-    context.translate(x+player.image.width/2,0);
+    context.translate(x+Player.image.width/2,0);
     context.scale(-1,1);
-    context.translate(-(x+player.image.width/2),0);
+    context.translate(-(x+Player.image.width/2),0);
     context.drawImage(image, x, y);
     context.restore();
 };
@@ -910,7 +912,7 @@ function getFont(fontSize) {
     if (document.fonts.check("12px 'Handjet'")) {
         return fontSize + "px 'Handjet'";
     } else if (document.fonts.check("12px 'Consolas'")){
-        return fontSize + "px 'Consolas'";
+        return (fontSize - 8) + "px 'Consolas'";
     } else {
         return fontSize + "px sans-serif";
     }
@@ -918,17 +920,17 @@ function getFont(fontSize) {
 
 function scrollPlayer(event) {
     event.preventDefault();
-    if (playerInputIsAllowed) {
-        player.x_velocity += event.deltaY * .1;
+    if (userInputIsAllowed) {
+        Player.xVelocity += event.deltaY * .1;
     }
 }
 
 function updateMousePosition(event) {
-    if (mouse.x != event.clientX) {
-        mouse.x = event.clientX;
+    if (Mouse.x != event.clientX) {
+        Mouse.x = event.clientX;
     }
-    if (mouse.y != event.clientY) {
-        mouse.y = event.clientY;
+    if (Mouse.y != event.clientY) {
+        Mouse.y = event.clientY;
     }
 }
 
@@ -941,8 +943,8 @@ function sendToLink(event) {
     }
 }
 
-window.addEventListener("keydown", controller.keyListener)
-window.addEventListener("keyup", controller.keyListener);
+window.addEventListener("keydown", Controller.keyListener)
+window.addEventListener("keyup", Controller.keyListener);
 window.addEventListener("wheel", scrollPlayer, {passive: false});
 window.addEventListener("mousemove", updateMousePosition);
 window.addEventListener("click", sendToLink);
@@ -955,10 +957,6 @@ window.addEventListener("click", sendToLink);
  */
 
 /*  TODO
-* fix map size
 * mobile version
-* optimize floor redraw - only redraw when player velocity is not 0
-* optimize background redraw to only move every few frames
-* snap draw calls to whole numbers and round using bitwise OR to 0: https://seblee.me/2011/02/html5-canvas-sprite-optimisation/
 * refactor 🤣
 */
