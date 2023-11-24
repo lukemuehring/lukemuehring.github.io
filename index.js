@@ -52,40 +52,53 @@ const AnimationTimeBuffer = 30;
 var FrameCount = 0;
 
 /*
-* Map, Background, Floor
+*Background, Map, Floor
 */
 var tileSheet = new Image();
 tileSheet.src = "./images/tiles.png";
 
+const Bg0 = {
+    width: 1984,
+    height: 1088,
+    image: new Image(),
+    locations: [],
+    currentMaxLocationIndex: 0,
+    moveRate: .3,
+};
+
+const Bg1 = {
+    width: 1984,
+    height: 1088,
+    image: new Image(),
+    locations: [],
+    currentMaxLocationIndex: 0,
+    moveRate: 1,
+    color: "203 240 255"
+};
+
 const Map = {
+    tsize: 64,
     cols: 888,
     rows: 2,
-    tsize: 64,
     tiles: [],
     getTile: function (col, row) {
         return this.tiles[row * Map.cols + col];
     }
 };
 
+const Floor = {
+    height: c.canvas.height > Bg0.height ? Bg0.height - (2 * Map.tsize) : c.canvas.height - (2 * Map.tsize),
+    rightX: 0,
+    leftX: 0,
+};
+
+if  (c.canvas.height > Bg0.height) {
+    Map.rows = Math.ceil((c.canvas.height - Floor.height) / Map.tsize);
+}
+
 Map.tiles = new Array(Map.cols * Map.rows);
 Map.tiles.fill(0, 0, Map.cols);
 Map.tiles.fill(1, Map.cols);
-
-const Bg0 = {
-    width: 1984,
-    image: new Image(),
-    locations : [],
-    currentMaxLocationIndex : 0,
-    moveRate: .3,
-};
-
-const Bg1 = {
-    width: 1984,
-    image: new Image(),
-    locations : [],
-    currentMaxLocationIndex : 0,
-    moveRate: 1,
-};
 
 Map.length = Map.cols * Map.tsize;
 
@@ -97,12 +110,6 @@ Bg0.image.src = "./images/bg_0.png";
 Bg1.locations = Array.from({length: numBgImages}, (_, index) => index * Bg1.width);
 Bg1.currentMaxLocationIndex = Bg1.locations.length - 1;
 Bg1.image.src = "./images/bg_1.png";
-
-const Floor = {
-    height: c.canvas.height - 100,
-    rightX: 0,
-    leftX: 0
-};
 
 /*
 * Player
@@ -286,11 +293,6 @@ for (let i = 0; i < codingStory.length; i++) {
     if (i == codingStory.length - 1) {
         endX = startX + 500 - ((startX + 500) % Map.tsize);
         Floor.rightX = startX + 500 - ((startX + 500) % Map.tsize);
-        let row = 0;
-        for (let j = Math.floor(endX / Map.tsize); j < Map.tiles.length; j += Map.cols) {
-            row++;
-            Map.tiles.fill(2,j, Map.cols * row);
-        }
     } else {
         endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
     }
@@ -324,10 +326,6 @@ for (let i = 0; i < climbingStory.length; i++) {
     if (i == climbingStory.length - 1) {
         endX = startX - 500 - ((startX - 500) % Map.tsize);
         Floor.leftX = startX - 500 - ((startX - 500) % Map.tsize);
-        let endTile = Math.floor(endX / Map.tsize);
-        for (let j = 0; j < Map.rows; j ++) {
-            Map.tiles.fill(2, j * Map.cols, j * Map.cols + endTile);
-        }
     } else {
         endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
     }
@@ -335,6 +333,8 @@ for (let i = 0; i < climbingStory.length; i++) {
     foregroundObjects.push(new imageObject(startX, Floor.height - 55, grass1Image));
     startX = endX;
 }
+
+cutOffFloorEdgesInMap(c);
 
 const welcomeText = new Text("Hey! I'm Luke.", Map.cols * Map.tsize / 2, c.canvas.height / 2, 100);
 const pressArrowKeysText = new Text("USE ARROW KEYS TO MOVE", welcomeText.x, welcomeText.y + 70, 40);
@@ -373,7 +373,7 @@ var textAlpha = 0;
 const likesImage = new Image();
 likesImage.src = "./images/likes.png";
 const instagramImage = new Image();
-instagramImage.src = "./images/instagram.png";
+instagramImage.src = "./images/ig.png";
 const gtImage = new Image();
 gtImage.src = "./images/gt.png";
 
@@ -430,6 +430,11 @@ demos.push(websiteDemo, emojiTextDemo, lamboChaseDemo);
 * Animation Loop
 */
 const loop = function() {
+    /*
+    * Responsive Scaling
+    */
+    handleCanvasResize(c);
+
     /*
     * Controller Input
     */
@@ -488,6 +493,11 @@ const loop = function() {
     /*
     * Background Draw
     */
+    c.save();
+    c.fillStyle = "rgb(" + Bg1.color + ")";
+    c.fillRect(0,0,c.canvas.width,c.canvas.height);
+    c.restore();
+
     drawBackground(c, Bg0);
     drawBackground(c, Bg1);
 
@@ -582,6 +592,53 @@ const loop = function() {
         FrameCount = 0;
     }
 };
+
+function handleCanvasResize(context) {
+    if (window.innerWidth != context.canvas.width || window.innerHeight != context.canvas.height) {
+        context.canvas.width = window.innerWidth;
+        context.canvas.height = window.innerHeight;
+
+        camera.width = window.innerWidth;
+        camera.height = window.innerHeight;
+
+        resizeMap(context);
+    }
+    
+}
+
+function resizeMap(context) {
+    if (context.canvas.height >= (Floor.height + Map.tsize * 2)) {
+        Map.rows = Math.ceil((context.canvas.height - Floor.height) / Map.tsize);
+    } else {
+        Map.rows = 2;
+    }
+    
+    Map.tiles = new Array(Map.cols * Map.rows);
+    Map.tiles.fill(0, 0, Map.cols);
+    Map.tiles.fill(1, Map.cols);
+    
+    Map.length = Map.cols * Map.tsize;
+
+    cutOffFloorEdgesInMap(context);
+
+}
+
+function cutOffFloorEdgesInMap(context) {
+    let row = 0;
+    let rightEndX = textBubbleArray[codingStory.length - 1].maxX;
+    for (let j = Math.floor(rightEndX / Map.tsize); j < Map.tiles.length; j += Map.cols) {
+        row++;
+        Map.tiles.fill(2,j, Map.cols * row);
+    }
+
+    let leftEndX = textBubbleArray[textBubbleArray.length - 1].minX;
+
+    let endTile = Math.floor(leftEndX / Map.tsize);
+    for (let j = 0; j < Map.rows; j++) {
+        Map.tiles.fill(2, j * Map.cols, j * Map.cols + endTile);
+    }
+}
+
 
 function drawPlayer(context) {
     if (Player.y < Floor.height) {
