@@ -87,7 +87,7 @@ const Map = {
 };
 
 const Floor = {
-    height: c.canvas.height > Bg0.height ? Bg0.height - (2 * Map.tsize) : c.canvas.height - (2 * Map.tsize),
+    height: c.canvas.height > Bg0.height ? Bg0.height - (1.5 * Map.tsize) : c.canvas.height - (1.5 * Map.tsize),
     rightX: 0,
     leftX: 0,
 };
@@ -139,7 +139,6 @@ const Player = {
 * Camera
 */
 function Camera(map, width, height) {
-    console.log("making new camera");
     this.x = 0;
     this.y = 0;
     this.width = width;
@@ -232,6 +231,12 @@ backgroundObjects.push(codingSign, climbingSign);
 /*
 * Text
 */
+const FontHeadingLevels = {
+    H1 : {value: c.canvas.width <= 500 ? 80 : 100},
+    H2 : {value: c.canvas.width <= 500 ? 40 : 50},
+    P : {value: c.canvas.width <= 500 ? 25 : 30}
+}
+
 function Text(words, x, y, fontSize) {
     this.words = words;
     this.x = x;
@@ -245,8 +250,8 @@ function TextBubble(text, x, y, minX, maxX) {
     this.x = x;
     this.y = y;
     this.text = text;
-    this.fontSize = 30;
-    this.maxLineWidth = 600;
+    this.fontSize = FontHeadingLevels.P;
+    this.maxLineWidth = c.canvas.width / 1.3;
     this.leading = 10;
     this.colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
     this.colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
@@ -286,8 +291,8 @@ const textBubbleArray = [];
 let startX = Map.length / 2 + 500;
 let endX;
 const ReadingSpeedPixelsPerCharacter =  7;
-const grass1Image = new Image();
-grass1Image.src = "./images/grass1.png";
+const grassMarkerImage = new Image();
+grassMarkerImage.src = "./images/grass1.png";
 
 for (let i = 0; i < codingStory.length; i++) {
     if (i == codingStory.length - 1) {
@@ -297,7 +302,7 @@ for (let i = 0; i < codingStory.length; i++) {
         endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
     }
     textBubbleArray.push(new TextBubble(codingStory[i], Player.x, Player.y,  startX, endX));
-    foregroundObjects.push(new imageObject(startX, Floor.height - 55, grass1Image));
+    foregroundObjects.push(new imageObject(startX, Floor.height - 55, grassMarkerImage));
     startX = endX;
 }
 
@@ -330,23 +335,28 @@ for (let i = 0; i < climbingStory.length; i++) {
         endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
     }
     textBubbleArray.push(new TextBubble(climbingStory[i], Player.x, Player.y,  endX, startX));
-    foregroundObjects.push(new imageObject(startX, Floor.height - 55, grass1Image));
+    foregroundObjects.push(new imageObject(startX, Floor.height - 55, grassMarkerImage));
     startX = endX;
 }
 
 cutOffFloorEdgesInMap(c);
 
-const welcomeText = new Text("Hey! I'm Luke.", Map.cols * Map.tsize / 2, c.canvas.height / 2, 100);
-const pressArrowKeysText = new Text("USE ARROW KEYS TO MOVE", welcomeText.x, welcomeText.y + 70, 40);
+const welcomeText = new Text("Hey! I'm Luke.", Map.cols * Map.tsize / 2, c.canvas.height / 2, FontHeadingLevels.H1);
+const pressArrowKeysText = new Text("USE ARROW KEYS TO MOVE", welcomeText.x, welcomeText.y + 70, FontHeadingLevels.H2);
 pressArrowKeysText.isVisible = false;
+
+const UserGuidance = setInterval(() => {
+    if (!Controller.userInputRegistered) {
+        pressArrowKeysText.isVisible = !pressArrowKeysText.isVisible;
+    } else {
+        pressArrowKeysText.isVisible = false;
+        clearInterval(UserGuidance);
+    }
+}, 1500);
+
 pressArrowKeysText.draw = (c, text) => {
-    if (!Controller.userInputRegistered && FrameCount > 10) {
-        if (FrameCount % 60 == 0 ) {
-            pressArrowKeysText.isVisible = !pressArrowKeysText.isVisible;
-        }
-        if (pressArrowKeysText.isVisible) {
-            drawText(c, text);
-        }
+    if (pressArrowKeysText.isVisible) {
+        drawText(c, text);
     }
 }
 
@@ -402,7 +412,7 @@ function projectDemo(x, y, img, headerText, text, link) {
     this.headerText = headerText;
     this.text = text;
     this.link = link;
-    this.fontSize = 30;
+    this.fontSize = FontHeadingLevels.P;
     this.maxLineWidth = 600;
     this.leading = 10;
     this.colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
@@ -433,7 +443,9 @@ const loop = function() {
     /*
     * Responsive Scaling
     */
-    handleCanvasResize(c);
+    if (window.innerWidth != c.canvas.width || window.innerHeight != c.canvas.height) {
+        handleCanvasResize(c);
+    }
 
     /*
     * Controller Input
@@ -521,6 +533,7 @@ const loop = function() {
             animateText = false;
         }
     }
+
     for (let i = 0; i < demos.length; i++) {
         demos[i].draw(c);
         if (demos[i].detectMouseHover(demos[i].x, demos[i].y, demos[i].width, demos[i].height)) {
@@ -594,20 +607,25 @@ const loop = function() {
 };
 
 function handleCanvasResize(context) {
-    if (window.innerWidth != context.canvas.width || window.innerHeight != context.canvas.height) {
-        context.canvas.width = window.innerWidth;
-        context.canvas.height = window.innerHeight;
+    context.canvas.width = window.innerWidth;
+    context.canvas.height = window.innerHeight;
 
-        camera.width = window.innerWidth;
-        camera.height = window.innerHeight;
+    camera.width = window.innerWidth;
+    camera.height = window.innerHeight;
 
-        resizeMap(context);
-    }
-    
+    resizeMap(context);
+
+    for (let i = 0; i < textBubbleArray.length; i++) {
+        textBubbleArray[i].maxLineWidth = context.canvas.width / 1.3;
+    } 
+
+    FontHeadingLevels.H1.value = context.canvas.width <= 500 ? 80 : 100;
+    FontHeadingLevels.H2.value = context.canvas.width <= 500 ? 40 : 50;
+    FontHeadingLevels.P.value = context.canvas.width <= 500 ? 25 : 30;
 }
 
 function resizeMap(context) {
-    if (context.canvas.height >= (Floor.height + Map.tsize * 2)) {
+    if (context.canvas.height >= (Floor.height + Map.tsize * 1.5)) {
         Map.rows = Math.ceil((context.canvas.height - Floor.height) / Map.tsize);
     } else {
         Map.rows = 2;
@@ -709,6 +727,7 @@ function drawBackground(context, background) {
 }
 
 function drawRotatingMicrosoftLogo(context, microsoftRectangles) {
+    context.save();
     for (let i = 0; i < microsoftRectangles.length; i++) {
         microsoftRectangles[i].angle+=.01;
         microsoftRectangles[i].x = CircleCenter.x + Math.cos(microsoftRectangles[i].angle) * CircleRadius;
@@ -716,13 +735,15 @@ function drawRotatingMicrosoftLogo(context, microsoftRectangles) {
         context.fillStyle = "rgb(" + microsoftRectangles[i].color + ")";
         context.fillRect(Math.floor(microsoftRectangles[i].x - camera.x), Math.floor(microsoftRectangles[i].y), 100, 100);
     }
+    context.restore();
 }
 
 function drawText(context, text) {
     if (!canShowText) {
         return;
     }
-    context.font = getFont(text.fontSize);
+    
+    context.font = getFont(text.fontSize.value);
     context.fillText(text.words, text.x - camera.x - context.measureText(text.words).width / 2, text.y);
 }
 
@@ -730,9 +751,9 @@ function drawTextBubble(context) {
     if (!canShowText) {
         return;
     }
-    context.font = getFont(this.fontSize);
+    context.font = getFont(this.fontSize.value);
 
-    const {whiteBoxHeight, whiteBoxWidth, linesOfTextArray} = getLinesOfText(context, this.text, this.fontSize, this.leading, this.maxLineWidth);
+    const {whiteBoxHeight, whiteBoxWidth, linesOfTextArray} = getLinesOfText(context, this.text, this.fontSize.value, this.leading, this.maxLineWidth);
     let lines = {
         header: null,
         paragraphText: linesOfTextArray
@@ -743,23 +764,27 @@ function drawTextBubble(context) {
     this.x = Player.screenX;
     this.y = Player.y - Player.image.naturalHeight - whiteBoxHeight - paddingBetweenDialogAndPlayer;
 
-    drawWhiteBoxWithTextAndImage(context, this.x, this.y, whiteBoxHeight, whiteBoxWidth, lines, null, this.fontSize, this.leading, this.colors1, this.colors2);
+    drawWhiteBoxWithTextAndImage(context, this.x, this.y, whiteBoxHeight, whiteBoxWidth, lines, null, this.fontSize.value, this.leading, this.colors1, this.colors2);
 
-    context.drawImage(this.triangleImage, this.x, this.y + whiteBoxHeight);  
+    if (!Player.isGoingToTheRight) {
+        context.drawImage(this.triangleImage, this.x, this.y + whiteBoxHeight);  
+    } else {
+        drawFlippedImage(context, this.triangleImage, this.x, this.y + whiteBoxHeight);
+    }
 }
 
 function drawProjectDemo(context) {
     if (!canShowText) {
         return;
     }
-    context.font = getFont(this.fontSize);
+    context.font = getFont(this.fontSize.value);
 
-    const paragraphLines = getLinesOfText(context, this.text, this.fontSize, this.leading, this.image.width);
+    const paragraphLines = getLinesOfText(context, this.text, this.fontSize.value, this.leading, this.image.width);
     const whiteBoxHeight1 = paragraphLines.whiteBoxHeight
     const whiteBoxWidth1 = paragraphLines.whiteBoxWidth
     const paragraphText = paragraphLines.linesOfTextArray;
 
-    const headerLines = getLinesOfText(context, this.headerText, this.fontSize, this.leading, this.image.width);
+    const headerLines = getLinesOfText(context, this.headerText, this.fontSize.value, this.leading, this.image.width);
     const whiteBoxHeight2 = headerLines.whiteBoxHeight;
     const whiteBoxWidth2 = headerLines.whiteBoxWidth
     const header = headerLines.linesOfTextArray;
@@ -769,7 +794,7 @@ function drawProjectDemo(context) {
         paragraphText: paragraphText
     };
 
-    const {width: demoWidth, height: demoHeight} = drawWhiteBoxWithTextAndImage(context, this.x - camera.x, this.y, whiteBoxHeight1 + whiteBoxHeight2, Math.max(whiteBoxWidth1, whiteBoxWidth2), lines, this.image, this.fontSize, this.leading, this.colors1, this.colors2);
+    const {width: demoWidth, height: demoHeight} = drawWhiteBoxWithTextAndImage(context, this.x - camera.x, this.y, whiteBoxHeight1 + whiteBoxHeight2, Math.max(whiteBoxWidth1, whiteBoxWidth2), lines, this.image, this.fontSize.value, this.leading, this.colors1, this.colors2);
     this.width = demoWidth;
     this.height = demoHeight;
 }
@@ -787,11 +812,12 @@ function detectMouseHover(x, y, width, height) {
 }
 
 function drawHoverBox(context, x, y, width, height, borderLength) {
+    context.save();
     context.fillStyle = "rgb(0 0 0 / .5)";
     context.fillRect(Math.floor(x - camera.x) - width / 2, Math.floor(y - camera.y - borderLength), width, height + borderLength * 2);
 
     context.fillStyle = "white";
-    let fontSize = 30;
+    let fontSize = FontHeadingLevels.P;
     context.font = getFont(fontSize);
 
     let textX = Math.floor(x - camera.x - context.measureText("demo").width / 2);
@@ -803,7 +829,8 @@ function drawHoverBox(context, x, y, width, height, borderLength) {
     context.beginPath();
     context.moveTo(textX, textY + padding);
     context.lineTo(textX + context.measureText("demo").width, textY + padding);
-    context.stroke()
+    context.stroke();
+    context.restore();
 }
 
 function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
@@ -814,12 +841,20 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
     while (i < words.length) {
         let currentLine = "";
         let currentLineWidth = context.measureText(currentLine).width;
-        while (currentLineWidth + context.measureText(words[i]).width < maxLineWidth && i < words.length) {
+
+        // In case the window gets scaled so small that you can't fit one word under the maxLineWidth
+        if (currentLineWidth + context.measureText(words[i]).width > maxLineWidth) {
+            maxLineWidth = currentLineWidth + context.measureText(words[i]).width;
+        }
+
+        while (currentLineWidth + context.measureText(words[i]).width <= maxLineWidth && i < words.length) {
             currentLine += words[i] + " ";
             currentLineWidth = context.measureText(currentLine).width;
             i++;
         }
+
         linesOfTextArray.push(currentLine);
+
         if (currentMaxLineWidth < currentLineWidth) {
             currentMaxLineWidth = currentLineWidth;
         }
@@ -848,6 +883,7 @@ function drawWhiteBoxWithTextAndImage(context, x, y, whiteBoxHeight, whiteBoxWid
     if (lines.header != null) {
         var HeaderFontSize = fontSize + 8;
         whiteBoxHeight += ElementPadding;
+
         // for the paragraph text
         whiteBoxHeight += ElementPadding;
     }
@@ -958,9 +994,9 @@ function drawWhiteBoxWithTextAndImage(context, x, y, whiteBoxHeight, whiteBoxWid
 
 function drawFlippedImage(context, image, x, y) {
     context.save();
-    context.translate(x+Player.image.width/2,0);
+    context.translate(x+image.width/2,0);
     context.scale(-1,1);
-    context.translate(-(x+Player.image.width/2),0);
+    context.translate(-(x+image.width/2),0);
     context.drawImage(image, x, y);
     context.restore();
 };
@@ -968,10 +1004,10 @@ function drawFlippedImage(context, image, x, y) {
 function getFont(fontSize) {
     if (document.fonts.check("12px 'Handjet'")) {
         return fontSize + "px 'Handjet'";
-    } else if (document.fonts.check("12px 'Consolas'")){
-        return (fontSize - 8) + "px 'Consolas'";
+    } else if (document.fonts.check("12px 'Arial Narrow'")){
+        return (fontSize - 8) + "px 'Arial Narrow'";
     } else {
-        return fontSize + "px sans-serif";
+        return (fontSize - 8) + "px sans-serif";
     }
 }
 
