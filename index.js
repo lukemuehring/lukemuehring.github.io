@@ -2,7 +2,7 @@
 * Preloading
 */
 this.addEventListener("DOMContentLoaded", preloadImages, true);
-
+console.log("hello")
 var loadedImages = 0;
 var imagePathArray = new Array(
     "./images/player/jump_0.png",
@@ -276,7 +276,7 @@ const codingStory = [
     "Let me tell you a little bit about myself:",
     "I like tinkering and building, climbing, night walks, manga, and adventure.",
     "Dislikes include: loud places, Atlanta traffic, social media that makes you look at your phone too much, and alfredo pasta (too cheesy)",
-    "I graduated suma cum laude from Georgia Tech with a BA in Computational Media and Chinese in 2021.",
+    "I graduated suma cum laude from Georgia Tech with a B.S. in Computational Media and Chinese in 2021.",
     "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
     "I got a glimpse at what software engineering inside Big Tech is like.",
     "I was developing the skills to become a better engineer, like monitoring service health telemetry during on call rotations, or tracking code changes through the scheduled cycles of the CI/CD pipeline. I wrote production code in C#, NodeJS, React, and TypeScript (among others) while using TDD to ensure requirements were satisfied. Equally as important, I was also learning how to work and communicate effectively in an agile team full of really knowledgable people.",
@@ -1028,6 +1028,7 @@ function updateMousePosition(event) {
 }
 
 function sendToLink(event) {
+    console.log("click detected");
     for (let i = 0; i < demos.length; i++) {
         if (demos[i].hover) {
             window.open(demos[i].link,"_blank");
@@ -1036,13 +1037,84 @@ function sendToLink(event) {
     }
 }
 
+const ongoingTouches = [];
+
+function copyTouch({ identifier, clientX, clientY }) {
+    return { identifier, clientX, clientY };
+}
+
+function ongoingTouchIndexById(idToFind) {
+    for (let i = 0; i < ongoingTouches.length; i++) {
+      const id = ongoingTouches[i].identifier;
+  
+      if (id === idToFind) {
+        return i;
+      }
+    }
+    return -1; // not found
+}
+  
+function handleTouchStart(evt) {
+    const touches = evt.changedTouches;
+    Mouse.x = touches[0].clientX;
+    Mouse.y = touches[0].clientY;
+    
+    for (let i = 0; i < touches.length; i++) {
+      ongoingTouches.push(copyTouch(touches[i]));
+    }
+}
+
+function handleTouchMove(evt) {
+    evt.preventDefault();
+    const touches = evt.changedTouches;
+  
+    for (let i = 0; i < touches.length; i++) {
+      const idx = ongoingTouchIndexById(touches[i].identifier);
+  
+      if (idx >= 0) {
+        if (userInputIsAllowed) {
+            Player.xVelocity += .3 * (ongoingTouches[idx].clientX - touches[i].clientX);  
+        }
+        ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
+      } else {
+        console.log(("can't figure out which touch to continue"));
+      }
+    }
+ }
+
+ function handleTouchEnd(evt) {
+    const touches = evt.changedTouches;
+  
+    for (let i = 0; i < touches.length; i++) {
+      let idx = ongoingTouchIndexById(touches[i].identifier);
+  
+      if (idx >= 0) {
+        ongoingTouches.splice(idx, 1); // remove it; we're done
+      } else {
+        console.log("can't figure out which touch to end");
+      }
+    }
+}
+
+function handleTouchCancel(evt) {
+    evt.preventDefault();
+    const touches = evt.changedTouches;
+  
+    for (let i = 0; i < touches.length; i++) {
+      let idx = ongoingTouchIndexById(touches[i].identifier);
+      ongoingTouches.splice(idx, 1); // remove it; we're done
+    }
+}
+
 window.addEventListener("keydown", Controller.keyListener)
 window.addEventListener("keyup", Controller.keyListener);
 window.addEventListener("wheel", scrollPlayer, {passive: false});
 window.addEventListener("mousemove", updateMousePosition);
 window.addEventListener("click", sendToLink);
-
-
+window.addEventListener("touchstart", handleTouchStart);
+window.addEventListener("touchend", handleTouchEnd);
+window.addEventListener("touchcancel", handleTouchCancel);
+window.addEventListener("touchmove", handleTouchMove);
 
 /* CREDITS
  * Free - Adventure Pack - Grassland by Anokolisa
