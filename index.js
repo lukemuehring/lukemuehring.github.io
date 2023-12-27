@@ -297,15 +297,15 @@ const codingStory = [
   "Here are some of my recent projects. You can hover over them with your mouse to learn more.",
   "If I am talking too slowly, feel free to use the scroll wheel.",
   "Let me tell you a little bit about myself:",
-  "I like tinkering and building, climbing, night walks, manga, and adventure.",
-  "Dislikes include: loud places, Atlanta traffic, social media that makes you look at your phone too much, and alfredo pasta (too cheesy)",
-  "I graduated suma cum laude from Georgia Tech with a B.S. in Computational Media and Chinese in 2021.",
+  "In 2021, I graduated summa cum laude from Georgia Tech with a B.S. in Computational Media and a B.S. in Applied Languages & Intercultural Studies in Chinese.",
   "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
   "I got a glimpse at what software engineering inside Big Tech is like.",
-  "I was developing the skills to become a better engineer, like monitoring service health telemetry during on call rotations, or tracking code changes through the scheduled cycles of the CI/CD pipeline. I wrote production code in C#, NodeJS, React, and TypeScript (among others) while using TDD to ensure requirements were satisfied. Equally as important, I was also learning how to work and communicate effectively in an agile team full of really knowledgable people.",
+  "Together with my team, I improved the DevOps infrastructure for software engineers across Microsoft. I used C#, React, TypeScript and NodeJS to implement a system that ensures compliance requirements on all pull requests.",
+  "Some additional things about me: I like creating, rock climbing, walks at night, and adventure in the great outdoors.",
+  "Dislikes include: loud places, Atlanta traffic, looking at my phone too much, and alfredo pasta (too cheesy)",
   "At the start of 2023, I made a big bet on myself: I took a hiatus from my software career to focus on being a professional athelete and try to make the US climbing team.",
-  "It turns out that climbing is pretty hard. And I learned that I perform best when there's a balance between my coding and climbing, which I talk about more in the climbing section.",
-  "I also wanted to see what the world outside of Big Tech looked like.",
+  "It turns out that climbing is pretty hard. I learned that I perform the best when there's a balance between my coding and climbing, which I talk about more in the climbing section.",
+  "Right now, I am curious about what the world outside of Big Tech looks like.",
   'So, "Hello World!" 😁 If you are hiring, I am actively searching for my next software engineering role.',
   "Thanks for getting to know me a little.",
 ];
@@ -334,21 +334,21 @@ for (let i = 0; i < codingStory.length; i++) {
 }
 
 const climbingStory = [
-  "👊 what's up! I've been climbing for 11 years and I love it.",
-  "Right now, I'm mainly training for indoor competitions with a focus on hard single-pitch lead routes, but I also enjoy lowball to highball boulders and dabble in buildering. I've even done some speed climbing on the 15 meter IFSC wall (6.52 seconds).",
-  "Whether it's standing on the podium at Nationals, or standing on top of V12s outside, my climbing achievements always teach me how to think outside of the box, push myself to accomplish the epic, and find balance in life.",
-  "I started climbing in my first year of high school. I was kind of a nerdy kid. OK, not kind of, I was pretty nerdy.",
-  "My main hobby was playing Call of Duty, and I was shy. So I wasn't exactly the picture of a fit, confident athlete back then.",
-  "One day in 2012, a friend of my mom's suggested that I should try out climbing, and also mentioned that her daughter climbed at what was at the time the nation's largest climbing gym, Stone Summit. So I went.",
-  "When I was on the wall, and not freaking out about the height, my mind could find a focus where I didn't think about anything else except what I was holding on to. I would no longer dwell on what happened earlier that day, and I was free from the stress of tomorrow.",
-  "After switching out my punch pass for a membership, I joined a youth team at the gym and started training with them.",
-  "It was a fine balance to chase grades both in the climbing gym and in school. My time had to be handled more carefully, and I sacrificed the gaming, among other activities that competed for my time.",
-  "The implicit agreement with my parents was that they would keep sending me to the gym as long as I performed at school.",
-  "Little did I know back then that they were setting the framework of how I would approach balancing climbing with the rest of my life while in college, and in developing my professional career.",
-  "In 2020, I made my first open Nationals final in Dallas, Texas during the Combined Open Invitational. It was a challenging competition requiring mastery in three climbing disciplines: speed, lead and bouldering. The winner would go on to take a ticket that sent them to the 2020 Olympics.",
-  "Although I didn't win that ticket, I felt like I broke through a barrier in my climbing. I was also pushing through one of my most challenging years as a Junior and an RA at the Georgia Institute of Technology.",
-  "It's funny how my best competition result so far is at the 2022 US Open Nationals, when I was working full-time as a software engineer at Microsoft. I got 3rd in bouldering and 4th in lead 😁.",
-  "It seems like the formula for success in my climbing and my career requires balance. So I'm trying to continue my Hannah Montana lifestyle to this day. I moved to Salt Lake City in 2023 to train to make the US Team and I'm actively looking for my next move in my software engineering career.",
+  "I've been climbing for 11 years now, and I love it more and more.",
+  "In the past decade, I've scrambled my way up boulders, routes, cracks, compeititon rounds, deep water solos, and even the 15 meter speed wall.",
+  "My climbing achievements always teach me how to think outside of the box, push myself to accomplish the epic, and find balance in life.",
+  "When I'm on the wall, and not freaking out about the height, my mind can find a focus where I don't think about anything else.",
+  "I started climbing in my first year of high school. Instead of doing intramural sports with classmates or going to football games after school, I would go to the climbing gym.",
+  'I didn\'t fit the mold of a "normal" high schooler. No one really did at the climbing gym, which made it so interesting to meet people.',
+  "After switching out my punch pass for a membership at the climbing gym, I joined a youth team and started training with them.",
+  "It was a fine balance to chase grades both in the climbing gym and in school. My time had to be handled more carefully, and I sacrificed other activities competing for my time. Including the Call of Duty.",
+  "I had an implicit agreement with my parents: they would keep sending me to the gym as long as I kept up my grades at school.",
+  "Little did I know back then that this was setting the framework of how I would find balance with climbing and the rest of my life while in college, and in developing my professional career.",
+  "In 2020, I made my first open Nationals final, which only takes the top 8 athletes.",
+  "Over a hundred competitors get filtered through the qualifier and semifinal rounds to make it to the final. It was a challenging competition requiring mastery in three climbing disciplines: speed, lead and bouldering. The winner would go on to take a ticket that sent them to the 2020 Olympics.",
+  "Although I didn't win that ticket, I felt like I broke through the finals barrier in my climbing. I was also pushing through a challenging junior year at the Georgia Institute of Technology, balancing a heavy course load with my responsibilities as an RA.",
+  "It's funny how my best competition result so far is when I was working full-time as a software engineer at Microsoft. At the 2022 US Open Nationals, I got 3rd in bouldering and 4th in lead 😁.",
+  "It seems like the formula for success in my climbing and my career requires balance. So I'm trying to continue my Hannah Montana lifestyle to this day.",
   "But when I'm not training for competitions or grinding LeetCode, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
   "Thanks for getting to know me a little.",
 ];
@@ -375,33 +375,41 @@ cutOffFloorEdgesInMap(c);
 const welcomeText = new Text(
   "Hey! I'm Luke.",
   (Map.cols * Map.tsize) / 2,
-  c.canvas.height / 2,
+  c.canvas.height <= 700 ? 100 : c.canvas.height / 2,
   FontHeadingLevels.H1
 );
-const pressArrowKeysText = new Text(
-  "USE ARROW KEYS TO MOVE",
-  welcomeText.x,
+
+const arrowKeysImage = new Image();
+arrowKeysImage.src = "./images/keys.png";
+const arrowKeys = new imageObject(
+  welcomeText.x - 102,
   welcomeText.y + 70,
-  FontHeadingLevels.H2
+  arrowKeysImage
 );
-pressArrowKeysText.isVisible = false;
+
+arrowKeys.isVisible = false;
 
 const UserGuidance = setInterval(() => {
   if (!Controller.userInputRegistered) {
-    pressArrowKeysText.isVisible = !pressArrowKeysText.isVisible;
+    arrowKeys.isVisible = !arrowKeys.isVisible;
   } else {
-    pressArrowKeysText.isVisible = false;
+    arrowKeys.isVisible = false;
     clearInterval(UserGuidance);
   }
 }, 1500);
 
-pressArrowKeysText.draw = (c, text) => {
-  if (pressArrowKeysText.isVisible) {
-    drawText(c, text);
+arrowKeys.draw = () => {
+  if (arrowKeys.isVisible) {
+    console.log("hello2");
+    c.drawImage(
+      arrowKeys.image,
+      arrowKeys.x - camera.x,
+      arrowKeys.y - camera.y
+    );
   }
 };
 
-var welcomeTextArray = [welcomeText, pressArrowKeysText];
+var welcomeTextArray = [welcomeText];
 
 // Animation to mitigate FOUT and fade in
 var canShowText = false;
@@ -429,28 +437,28 @@ const gtImage = new Image();
 gtImage.src = "./images/gt.png";
 
 let likes = new imageObject(
-  (textBubbleArray[4].minX + textBubbleArray[4].maxX) / 2 -
+  (textBubbleArray[8].minX + textBubbleArray[8].maxX) / 2 -
     likesImage.width / 2,
-  300,
+  100,
   likesImage
 );
 let instagram = new imageObject(
-  (textBubbleArray[5].minX + textBubbleArray[5].maxX) / 2 -
+  (textBubbleArray[9].minX + textBubbleArray[9].maxX) / 2 -
     instagramImage.width / 2,
-  300,
+  100,
   instagramImage
 );
 let gt = new imageObject(
-  (textBubbleArray[6].minX + textBubbleArray[6].maxX) / 2 - 150,
-  300,
+  (textBubbleArray[10].minX + textBubbleArray[10].maxX) / 2 - 150,
+  100,
   gtImage
 );
 backgroundObjects.push(likes, instagram, gt);
 
 const CircleRadius = 100;
 const CircleCenter = {
-  x: (textBubbleArray[7].minX + textBubbleArray[7].maxX) / 2,
-  y: 300,
+  x: (textBubbleArray[5].minX + textBubbleArray[5].maxX) / 2,
+  y: 100,
 };
 let rect1 = {
   x: CircleCenter.x + Math.cos(0),
@@ -631,6 +639,10 @@ const loop = function () {
       Math.floor(backgroundObjects[i].x - camera.x),
       Math.floor(backgroundObjects[i].y)
     );
+  }
+
+  if (arrowKeys.isVisible) {
+    arrowKeys.draw();
   }
 
   drawRotatingMicrosoftLogo(c, microsoftRectangles);
@@ -954,6 +966,7 @@ function drawProjectDemo(context) {
   if (!canShowText) {
     return;
   }
+
   context.font = getFont(this.fontSize.value);
 
   const paragraphLines = getLinesOfText(
@@ -1289,6 +1302,7 @@ function getFont(fontSize) {
 }
 
 function scrollPlayer(event) {
+  Controller.userInputRegistered = true;
   event.preventDefault();
   if (userInputIsAllowed) {
     Player.xVelocity += event.deltaY * 0.1;
