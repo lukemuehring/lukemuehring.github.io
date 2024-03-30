@@ -280,7 +280,7 @@ function TextBubble(text, x, y, minX, maxX) {
   this.x = x;
   this.y = y;
   (this.minX = minX), (this.maxX = maxX), (this.fontSize = FontHeadingLevels.P);
-  this.maxLineWidth = c.canvas.width / 1.3;
+  this.maxLineWidth = Math.floor(c.canvas.width / 1.3);
   this.leading = TextLeading;
   this.elementPadding = ElementPadding;
 
@@ -288,7 +288,7 @@ function TextBubble(text, x, y, minX, maxX) {
   this.borderColorsLeftRight = colors2;
 
   this.draw = drawTextBubble;
-  this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithTextAndImage;
+  this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithText;
 }
 
 const cornerImage = new Image();
@@ -348,10 +348,12 @@ class ProjectDemo {
     this.image = img;
     this.headerText = headerText;
     this.text = text;
+    this.fontSize = calculateFontFitForLargeText(
+      this.headerText,
+      FontHeadingLevels.H1
+    );
     this.link = link;
 
-    this.fontSize = FontHeadingLevels.P;
-    this.headerFontSize = FontHeadingLevels.H2;
     this.maxLineWidth =
       this.image.width > ProjectDemoMaxLineWidth
         ? this.image.width
@@ -363,7 +365,7 @@ class ProjectDemo {
     this.borderColorsLeftRight = colors2;
 
     let { whiteBoxWidth, whiteBoxHeight, lines } =
-      this.calculateProjectDemoWidthHeightAndLines();
+      this.calculateHeaderDimensions();
     this.whiteBoxWidth = whiteBoxWidth;
     this.whiteBoxHeight = whiteBoxHeight;
     this.lines = lines;
@@ -372,74 +374,34 @@ class ProjectDemo {
     this.height = whiteBoxHeight + this.borderColorsLeftRight.length * 2;
 
     this.draw = this.drawProjectDemo;
-    this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithTextAndImage;
+    this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithText;
     this.detectMouseHover = detectMouseHover;
   }
 
-  calculateProjectDemoWidthHeightAndLines() {
-    c.save();
-    c.font = getFont(this.fontSize);
-    let paragraphLines = getLinesOfText(
+  calculateHeaderDimensions() {
+    let lineDataObject = getLinesOfText(
       c,
-      this.text,
+      this.headerText,
       this.fontSize,
       this.leading,
       this.maxLineWidth
     );
 
-    c.font = "bold " + getFont(this.headerFontSize);
-    let headerLines = getLinesOfText(
-      c,
-      this.headerText,
-      this.headerFontSize,
-      this.leading,
-      this.maxLineWidth
-    );
-    c.restore();
-
-    let whiteBoxWidth =
-      Math.max(
-        paragraphLines.whiteBoxWidth,
-        headerLines.whiteBoxWidth,
-        this.image.width
-      ) +
-      this.elementPadding * 2;
+    let whiteBoxWidth = lineDataObject.whiteBoxWidth + this.elementPadding * 2;
 
     let whiteBoxHeight =
-      headerLines.whiteBoxHeight +
-      paragraphLines.whiteBoxHeight +
-      this.image.height +
-      this.elementPadding * 2;
-
-    whiteBoxHeight += this.elementPadding;
-    this.prevImageHeight = this.image.height;
-
-    if (headerLines != null) {
-      whiteBoxHeight += this.elementPadding;
-    }
+      lineDataObject.whiteBoxHeight + this.elementPadding * 2;
 
     return {
       whiteBoxWidth: Math.floor(whiteBoxWidth),
       whiteBoxHeight: Math.floor(whiteBoxHeight),
-      lines: {
-        paragraphLines: paragraphLines.linesOfTextArray,
-        headerLines: headerLines.linesOfTextArray,
-      },
+      lines: lineDataObject.linesOfTextArray,
     };
   }
 
   drawProjectDemo(context) {
     if (!canShowText) {
       return;
-    }
-
-    if (this.prevImageHeight != this.image.height) {
-      let { whiteBoxWidth, whiteBoxHeight, lines } =
-        this.calculateProjectDemoWidthHeightAndLines();
-
-      this.whiteBoxWidth = whiteBoxWidth;
-      this.whiteBoxHeight = whiteBoxHeight;
-      this.lines = lines;
     }
 
     const { width: demoWidth, height: demoHeight } =
@@ -450,7 +412,6 @@ class ProjectDemo {
         this.whiteBoxHeight,
         this.whiteBoxWidth,
         this.lines,
-        this.image,
         this.fontSize,
         this.leading,
         this.borderColorsLeftRight,
@@ -466,7 +427,7 @@ let websiteProjImage = new Image();
 websiteProjImage.src = "./images/restandrelax.png";
 let websiteDemo = new ProjectDemo(
   textBubbleArray[1].maxX,
-  25,
+  Math.floor(Floor.height / 2),
   websiteProjImage,
   "restandrelaxvacation.com",
   "Beach vacation rental website made using ReactJS and Tailwind CSS",
@@ -568,18 +529,18 @@ const welcomeText = new Text(
   "Hey! I'm Luke.",
   (Map.cols * Map.tsize) / 2,
   c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
-  determineWelcomeTextSize()
+  calculateFontFitForLargeText("Hey! I'm Luke.", FontHeadingLevels.H1)
 );
 
-function determineWelcomeTextSize() {
+function calculateFontFitForLargeText(text, initialFontSize) {
   c.save();
-  let currentFontSize = FontHeadingLevels.H1;
+  let currentFontSize = initialFontSize;
   c.font = getFont(currentFontSize);
-  let currentWidth = c.measureText("Hey! I'm Luke.").width;
+  let currentWidth = c.measureText(text).width;
   while (currentWidth > c.canvas.width - 50) {
-    currentFontSize--;
+    currentFontSize -= 10;
     c.font = getFont(currentFontSize);
-    currentWidth = c.measureText("Hey! I'm Luke.").width;
+    currentWidth = c.measureText(text).width;
   }
   return currentFontSize;
 }
@@ -892,40 +853,40 @@ const loop = function () {
   }
 
   // Mouse Draw
-  // c.save();
-  // /*
-  //  * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
-  //  * imageData gives back a one-dimensional array containing the data in the RGBA order,
-  //  * which is why we skip by 4 in the for loop.
-  //  */
+  c.save();
+  /*
+   * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+   * imageData gives back a one-dimensional array containing the data in the RGBA order,
+   * which is why we skip by 4 in the for loop.
+   */
 
-  // let mouseSquareLength = 32;
-  // let imageData = c.getImageData(
-  //   Mouse.x - mouseSquareLength / 2,
-  //   Mouse.y - mouseSquareLength / 2,
-  //   mouseSquareLength,
-  //   mouseSquareLength
-  // ).data;
-  // for (let i = 0; i < imageData.length; i += 4) {
-  //   c.fillStyle = `rgb(
-  //     ${255 - imageData[i]}
-  //     ${255 - imageData[i + 1]}
-  //     ${255 - imageData[i + 2]})`;
+  let mouseSquareLength = 32;
+  let imageData = c.getImageData(
+    Mouse.x - mouseSquareLength / 2,
+    Mouse.y - mouseSquareLength / 2,
+    mouseSquareLength,
+    mouseSquareLength
+  ).data;
+  for (let i = 0; i < imageData.length; i += 4) {
+    c.fillStyle = `rgb(
+      ${255 - imageData[i]}
+      ${255 - imageData[i + 1]}
+      ${255 - imageData[i + 2]})`;
 
-  //   let pixelIndex = i / 4;
-  //   let rowToFlip, colToFlip;
-  //   rowToFlip = colToFlip = 0;
-  //   rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
-  //   colToFlip += pixelIndex % mouseSquareLength;
+    let pixelIndex = i / 4;
+    let rowToFlip, colToFlip;
+    rowToFlip = colToFlip = 0;
+    rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
+    colToFlip += pixelIndex % mouseSquareLength;
 
-  //   c.fillRect(
-  //     Mouse.x - mouseSquareLength / 2 + colToFlip,
-  //     Mouse.y - mouseSquareLength / 2 + rowToFlip,
-  //     1,
-  //     1
-  //   );
-  // }
-  // c.restore();
+    c.fillRect(
+      Mouse.x - mouseSquareLength / 2 + colToFlip,
+      Mouse.y - mouseSquareLength / 2 + rowToFlip,
+      1,
+      1
+    );
+  }
+  c.restore();
 
   /*
    * Animation
@@ -1128,10 +1089,6 @@ function drawTextBubble(context) {
     this.leading,
     this.maxLineWidth
   );
-  let lines = {
-    headerLines: null,
-    paragraphLines: linesOfTextArray,
-  };
 
   let paddingBetweenDialogAndPlayer = 10;
 
@@ -1148,14 +1105,14 @@ function drawTextBubble(context) {
     this.y,
     whiteBoxHeight,
     whiteBoxWidth,
-    lines,
-    null,
+    linesOfTextArray,
     this.fontSize,
     this.leading,
     this.borderColorsLeftRight,
     this.borderColorsTopBottom
   );
 
+  // TextBubble middle triangle above player
   if (!Player.isGoingToTheRight) {
     context.drawImage(this.triangleImage, this.x, this.y + whiteBoxHeight);
   } else {
@@ -1210,6 +1167,9 @@ function drawHoverBox(context, x, y, width, height, borderLength) {
 }
 
 function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
+  context.save();
+  context.font = getFont(fontSize);
+
   let words = text.split(" ");
   let linesOfTextArray = new Array();
   let i = 0;
@@ -1227,7 +1187,11 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
       currentLineWidth + context.measureText(words[i]).width <= maxLineWidth &&
       i < words.length
     ) {
-      currentLine += words[i] + " ";
+      if (i != words.length - 1) {
+        currentLine += words[i] + " ";
+      } else {
+        currentLine += words[i];
+      }
       currentLineWidth = context.measureText(currentLine).width;
       i++;
     }
@@ -1242,6 +1206,7 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
   let whiteBoxHeight = (fontSize + leading) * linesOfTextArray.length;
   let whiteBoxWidth = Math.ceil(currentMaxLineWidth);
 
+  context.restore();
   return {
     whiteBoxHeight: whiteBoxHeight,
     whiteBoxWidth: whiteBoxWidth,
@@ -1249,19 +1214,21 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
   };
 }
 
-function drawWhiteBoxWithTextAndImage(
+function drawWhiteBoxWithText(
   context,
   x,
   y,
   whiteBoxHeight,
   whiteBoxWidth,
   lines,
-  image,
   fontSize,
   leading,
   borderColorsLeftRight,
   borderColorsTopBottom
 ) {
+  context.save();
+
+  // White background
   context.fillStyle = "white";
   context.fillRect(
     Math.floor(x - whiteBoxWidth / 2),
@@ -1270,64 +1237,17 @@ function drawWhiteBoxWithTextAndImage(
     whiteBoxHeight
   );
 
-  if (lines.headerLines !== null) {
-    context.fillStyle = "black";
-    var HeaderSpacing =
-      this.headerFontSize +
-      this.elementPadding +
-      (lines.headerLines.length - 1) * (leading + this.headerFontSize);
-
-    context.save();
-    context.font = "bold " + getFont(this.headerFontSize);
-    for (let i = 0; i < lines.headerLines.length; i++) {
-      context.fillText(
-        lines.headerLines[i],
-        Math.floor(x - whiteBoxWidth / 2 + this.elementPadding),
-        Math.floor(
-          y +
-            this.headerFontSize +
-            i * (leading + this.headerFontSize) +
-            this.elementPadding
-        )
-      );
-    }
-    context.restore();
-  }
-
-  if (image !== null) {
-    context.drawImage(
-      image,
-      Math.floor(x - whiteBoxWidth / 2 + this.elementPadding),
-      Math.floor(y + this.elementPadding + HeaderSpacing)
-    );
-  }
-
-  // Drawing the text in the white box
-  context.fillStyle = "black";
   context.font = getFont(fontSize);
-  let linesOfTextArray = lines.paragraphLines;
 
-  for (let i = 0; i < linesOfTextArray.length; i++) {
-    if (image !== null) {
-      context.fillText(
-        linesOfTextArray[i],
-        Math.floor(x - whiteBoxWidth / 2 + this.elementPadding),
-        Math.floor(
-          y +
-            fontSize +
-            i * (leading + fontSize) +
-            image.height +
-            HeaderSpacing +
-            this.elementPadding
-        )
-      );
-    } else {
-      context.fillText(
-        linesOfTextArray[i],
-        Math.floor(x - whiteBoxWidth / 2 + this.elementPadding / 3),
-        Math.floor(y + fontSize + i * (leading + fontSize))
-      );
-    }
+  // Drawing the text over the white box
+  context.fillStyle = "black";
+
+  for (let i = 0; i < lines.length; i++) {
+    context.fillText(
+      lines[i],
+      Math.floor(x - whiteBoxWidth / 2),
+      Math.floor(y + fontSize + i * (leading + fontSize))
+    );
   }
 
   // Drawing the borders of the white box
@@ -1414,7 +1334,7 @@ function drawWhiteBoxWithTextAndImage(
     5
   );
 
-  context.fillStyle = "black";
+  context.restore();
 
   return {
     width: whiteBoxWidth + 2 * borderColorsLeftRight.length,
