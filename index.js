@@ -2,7 +2,6 @@
  * Preloading
  */
 this.addEventListener("DOMContentLoaded", preloadImages, true);
-console.log("hello");
 var loadedImages = 0;
 var imagePathArray = new Array(
   "./images/player/jump_0.png",
@@ -257,9 +256,9 @@ backgroundObjects.push(codingSign, climbingSign);
  * Text
  */
 const FontHeadingLevels = {
-  H1: { value: c.canvas.width <= 500 ? 80 : 100 },
-  H2: { value: c.canvas.width <= 500 ? 40 : 50 },
-  P: { value: c.canvas.width <= 500 ? 25 : 30 },
+  H1: c.canvas.width <= 500 ? 80 : 100,
+  H2: c.canvas.width <= 500 ? 33 : 38,
+  P: c.canvas.width <= 500 ? 25 : 30,
 };
 
 function Text(words, x, y, fontSize) {
@@ -271,16 +270,25 @@ function Text(words, x, y, fontSize) {
   this.draw = drawText;
 }
 
+const colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
+const colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
+const TextLeading = 10;
+const ElementPadding = 10;
+
 function TextBubble(text, x, y, minX, maxX) {
+  this.text = text;
   this.x = x;
   this.y = y;
-  this.text = text;
-  this.fontSize = FontHeadingLevels.P;
+  (this.minX = minX), (this.maxX = maxX), (this.fontSize = FontHeadingLevels.P);
   this.maxLineWidth = c.canvas.width / 1.3;
-  this.leading = 10;
-  this.colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
-  this.colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
-  (this.minX = minX), (this.maxX = maxX), (this.draw = drawTextBubble);
+  this.leading = TextLeading;
+  this.elementPadding = ElementPadding;
+
+  this.borderColorsTopBottom = colors1;
+  this.borderColorsLeftRight = colors2;
+
+  this.draw = drawTextBubble;
+  this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithTextAndImage;
 }
 
 const cornerImage = new Image();
@@ -293,9 +301,9 @@ TextBubble.prototype.cornerImage = cornerImage;
 TextBubble.prototype.triangleImage = triangleImage;
 
 const codingStory = [
-  "Welcome to my website! I'm a 25-year-old software engineer passionate about using code to bring ideas to life.",
-  "Here are some of my recent projects. You can hover over them with your mouse to learn more.",
+  "Welcome to my website! I'm a software engineer passionate about using code to bring creative ideas to life.",
   "If I am talking too slowly, feel free to use the scroll wheel.",
+  "Here are some of my recent projects.",
   "Let me tell you a little bit about myself:",
   "In 2021, I graduated summa cum laude from Georgia Tech with a B.S. in Computational Media and a B.S. in Applied Languages & Intercultural Studies in Chinese.",
   "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
@@ -317,7 +325,191 @@ const ReadingSpeedPixelsPerCharacter = 7;
 const grassMarkerImage = new Image();
 grassMarkerImage.src = "./images/grass1.png";
 
-for (let i = 0; i < codingStory.length; i++) {
+for (let i = 0; i < 2; i++) {
+  endX = startX + codingStory[i].length * ReadingSpeedPixelsPerCharacter;
+  textBubbleArray.push(
+    new TextBubble(codingStory[i], Player.x, Player.y, startX, endX)
+  );
+  foregroundObjects.push(
+    new imageObject(startX, Floor.height - 55, grassMarkerImage)
+  );
+  startX = endX;
+}
+
+/*
+ * Project Demos
+ */
+class ProjectDemo {
+  constructor(x, y, img, headerText, text, link) {
+    const ProjectDemoMaxLineWidth = Math.min(600, c.canvas.width - 50);
+
+    this.x = x;
+    this.y = y;
+    this.image = img;
+    this.headerText = headerText;
+    this.text = text;
+    this.link = link;
+
+    this.fontSize = FontHeadingLevels.P;
+    this.headerFontSize = FontHeadingLevels.H2;
+    this.maxLineWidth =
+      this.image.width > ProjectDemoMaxLineWidth
+        ? this.image.width
+        : ProjectDemoMaxLineWidth;
+    this.leading = TextLeading;
+    this.elementPadding = ElementPadding;
+
+    this.borderColorsTopBottom = colors1;
+    this.borderColorsLeftRight = colors2;
+
+    let { whiteBoxWidth, whiteBoxHeight, lines } =
+      this.calculateProjectDemoWidthHeightAndLines();
+    this.whiteBoxWidth = whiteBoxWidth;
+    this.whiteBoxHeight = whiteBoxHeight;
+    this.lines = lines;
+
+    this.width = whiteBoxWidth + this.borderColorsTopBottom.length * 2;
+    this.height = whiteBoxHeight + this.borderColorsLeftRight.length * 2;
+
+    this.draw = this.drawProjectDemo;
+    this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithTextAndImage;
+    this.detectMouseHover = detectMouseHover;
+  }
+
+  calculateProjectDemoWidthHeightAndLines() {
+    c.save();
+    c.font = getFont(this.fontSize);
+    let paragraphLines = getLinesOfText(
+      c,
+      this.text,
+      this.fontSize,
+      this.leading,
+      this.maxLineWidth
+    );
+
+    c.font = "bold " + getFont(this.headerFontSize);
+    let headerLines = getLinesOfText(
+      c,
+      this.headerText,
+      this.headerFontSize,
+      this.leading,
+      this.maxLineWidth
+    );
+    c.restore();
+
+    let whiteBoxWidth =
+      Math.max(
+        paragraphLines.whiteBoxWidth,
+        headerLines.whiteBoxWidth,
+        this.image.width
+      ) +
+      this.elementPadding * 2;
+
+    let whiteBoxHeight =
+      headerLines.whiteBoxHeight +
+      paragraphLines.whiteBoxHeight +
+      this.image.height +
+      this.elementPadding * 2;
+
+    whiteBoxHeight += this.elementPadding;
+    this.prevImageHeight = this.image.height;
+
+    if (headerLines != null) {
+      whiteBoxHeight += this.elementPadding;
+    }
+
+    return {
+      whiteBoxWidth: Math.floor(whiteBoxWidth),
+      whiteBoxHeight: Math.floor(whiteBoxHeight),
+      lines: {
+        paragraphLines: paragraphLines.linesOfTextArray,
+        headerLines: headerLines.linesOfTextArray,
+      },
+    };
+  }
+
+  drawProjectDemo(context) {
+    if (!canShowText) {
+      return;
+    }
+
+    if (this.prevImageHeight != this.image.height) {
+      let { whiteBoxWidth, whiteBoxHeight, lines } =
+        this.calculateProjectDemoWidthHeightAndLines();
+
+      this.whiteBoxWidth = whiteBoxWidth;
+      this.whiteBoxHeight = whiteBoxHeight;
+      this.lines = lines;
+    }
+
+    const { width: demoWidth, height: demoHeight } =
+      this.drawWhiteBoxWithTextAndImage(
+        context,
+        this.x - camera.x,
+        this.y,
+        this.whiteBoxHeight,
+        this.whiteBoxWidth,
+        this.lines,
+        this.image,
+        this.fontSize,
+        this.leading,
+        this.borderColorsLeftRight,
+        this.borderColorsTopBottom
+      );
+
+    this.width = demoWidth;
+    this.height = demoHeight;
+  }
+}
+
+let websiteProjImage = new Image();
+websiteProjImage.src = "./images/restandrelax.png";
+let websiteDemo = new ProjectDemo(
+  textBubbleArray[1].maxX,
+  25,
+  websiteProjImage,
+  "restandrelaxvacation.com",
+  "Beach vacation rental website made using ReactJS and Tailwind CSS",
+  "https://restandrelaxvacation.com"
+);
+
+// let lamboChaseImage = new Image();
+// lamboChaseImage.src = "./images/lamboChaseProj.png";
+// let lamboChaseDemo = new ProjectDemo(
+//   websiteDemo.x + websiteDemo.width / 2 + 300,
+//   25,
+//   lamboChaseImage,
+//   "Lambo Chase GBA",
+//   "GameBoy Advance game written in C.",
+//   "https://youtu.be/cMJ9Ia6SovY"
+// );
+
+// let emojiTextImage = new Image();
+// emojiTextImage.src = "./images/emojiTextProj.png";
+// let emojiTextDemo = new ProjectDemo(
+//   lamboChaseDemo.x + lamboChaseDemo.width,
+//   25,
+//   emojiTextImage,
+//   "Emoji Text",
+//   "Converts text to emoji.",
+//   "./emojiText/emojiText.html"
+// );
+
+var demos = new Array();
+// demos.push(websiteDemo, lamboChaseDemo, emojiTextDemo);
+demos.push(websiteDemo);
+
+// Demos insertion into map with corresponding TextBubble
+endX = demos[demos.length - 1].x + demos[demos.length - 1].width;
+textBubbleArray.push(
+  new TextBubble(codingStory[2], Player.x, Player.y, startX, endX)
+);
+foregroundObjects.push(
+  new imageObject(startX, Floor.height - 55, grassMarkerImage)
+);
+startX = demos[demos.length - 1].x + demos[demos.length - 1].width;
+
+for (let i = 3; i < codingStory.length; i++) {
   if (i == codingStory.length - 1) {
     endX = startX + 500 - ((startX + 500) % Map.tsize);
     Floor.rightX = startX + 500 - ((startX + 500) % Map.tsize);
@@ -344,9 +536,9 @@ const climbingStory = [
   "It was a fine balance to chase grades both in the climbing gym and in school. My time had to be handled more carefully, and I sacrificed other activities competing for my time. Including the Call of Duty.",
   "I had an implicit agreement with my parents: they would keep sending me to the gym as long as I kept up my grades at school.",
   "Little did I know back then that this was setting the framework of how I would find balance with climbing and the rest of my life while in college, and in developing my professional career.",
-  "In 2020, I made my first open Nationals final, which only takes the top 8 athletes.",
+  "In 2020, I made my first open Nationals final, which takes the top 8 athletes in the US.",
   "Over a hundred competitors get filtered through the qualifier and semifinal rounds to make it to the final. It was a challenging competition requiring mastery in three climbing disciplines: speed, lead and bouldering. The winner would go on to take a ticket that sent them to the 2020 Olympics.",
-  "Although I didn't win that ticket, I felt like I broke through the finals barrier in my climbing. I was also pushing through a challenging junior year at the Georgia Institute of Technology, balancing a heavy course load with my responsibilities as an RA.",
+  "Although I didn't win that ticket, I felt like I broke through the barrier of making the final round in my climbing. I was also pushing through a challenging junior year in college, balancing a heavy course load with my responsibilities as an RA.",
   "It's funny how my best competition result so far is when I was working full-time as a software engineer at Microsoft. At the 2022 US Open Nationals, I got 3rd in bouldering and 4th in lead 😁.",
   "It seems like the formula for success in my climbing and my career requires balance. So I'm trying to continue my Hannah Montana lifestyle to this day.",
   "But when I'm not training for competitions or grinding LeetCode, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
@@ -375,10 +567,22 @@ cutOffFloorEdgesInMap(c);
 const welcomeText = new Text(
   "Hey! I'm Luke.",
   (Map.cols * Map.tsize) / 2,
-  c.canvas.height <= 700 ? 100 : c.canvas.height / 2,
-  FontHeadingLevels.H1
+  c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
+  determineWelcomeTextSize()
 );
 
+function determineWelcomeTextSize() {
+  c.save();
+  let currentFontSize = FontHeadingLevels.H1;
+  c.font = getFont(currentFontSize);
+  let currentWidth = c.measureText("Hey! I'm Luke.").width;
+  while (currentWidth > c.canvas.width - 50) {
+    currentFontSize--;
+    c.font = getFont(currentFontSize);
+    currentWidth = c.measureText("Hey! I'm Luke.").width;
+  }
+  return currentFontSize;
+}
 const arrowKeysImage = new Image();
 arrowKeysImage.src = "./images/keys.png";
 const arrowKeys = new imageObject(
@@ -399,8 +603,7 @@ const UserGuidance = setInterval(() => {
 }, 1500);
 
 arrowKeys.draw = () => {
-  if (arrowKeys.isVisible) {
-    console.log("hello2");
+  if (arrowKeys.isVisible && !Controller.userInputRegistered) {
     c.drawImage(
       arrowKeys.image,
       arrowKeys.x - camera.x,
@@ -437,19 +640,19 @@ const gtImage = new Image();
 gtImage.src = "./images/gt.png";
 
 let likes = new imageObject(
-  (textBubbleArray[8].minX + textBubbleArray[8].maxX) / 2 -
+  (textBubbleArray[11].minX + textBubbleArray[11].maxX) / 2 -
     likesImage.width / 2,
   100,
   likesImage
 );
 let instagram = new imageObject(
-  (textBubbleArray[9].minX + textBubbleArray[9].maxX) / 2 -
+  (textBubbleArray[12].minX + textBubbleArray[12].maxX) / 2 -
     instagramImage.width / 2,
   100,
   instagramImage
 );
 let gt = new imageObject(
-  (textBubbleArray[10].minX + textBubbleArray[10].maxX) / 2 - 150,
+  (textBubbleArray[7].minX + textBubbleArray[7].maxX) / 2 - 150,
   100,
   gtImage
 );
@@ -457,8 +660,8 @@ backgroundObjects.push(likes, instagram, gt);
 
 const CircleRadius = 100;
 const CircleCenter = {
-  x: (textBubbleArray[5].minX + textBubbleArray[5].maxX) / 2,
-  y: 100,
+  x: (textBubbleArray[8].minX + textBubbleArray[8].maxX) / 2,
+  y: Floor.height - 300,
 };
 let rect1 = {
   x: CircleCenter.x + Math.cos(0),
@@ -485,63 +688,6 @@ let rect4 = {
   color: "255 186 8",
 };
 let microsoftRectangles = [rect1, rect2, rect3, rect4];
-
-/*
- * Project Demos
- */
-function projectDemo(x, y, img, headerText, text, link) {
-  this.x = x;
-  this.y = y;
-  this.width;
-  this.height;
-  this.image = img;
-  this.headerText = headerText;
-  this.text = text;
-  this.link = link;
-  this.fontSize = FontHeadingLevels.P;
-  this.maxLineWidth = 600;
-  this.leading = 10;
-  this.colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
-  this.colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
-  this.draw = drawProjectDemo;
-  this.detectMouseHover = detectMouseHover;
-}
-
-let lamboChaseImage = new Image();
-lamboChaseImage.src = "./images/lamboChaseProj.png";
-let lamboChaseDemo = new projectDemo(
-  textBubbleArray[1].maxX - 300,
-  25,
-  lamboChaseImage,
-  "Lambo Chase GBA",
-  "GameBoy Advance game written in C.",
-  "https://youtu.be/cMJ9Ia6SovY"
-);
-
-let websiteProjImage = new Image();
-websiteProjImage.src = "./images/websiteProj.png";
-let websiteDemo = new projectDemo(
-  lamboChaseDemo.x + 300,
-  25,
-  websiteProjImage,
-  "Personal website",
-  "Coded in vanilla JS using the Canvas API.",
-  "https://lukemuehring.github.io/"
-);
-
-let emojiTextImage = new Image();
-emojiTextImage.src = "./images/emojiTextProj.png";
-let emojiTextDemo = new projectDemo(
-  websiteDemo.x + 300,
-  25,
-  emojiTextImage,
-  "Emoji Text",
-  "Converts text to emoji.",
-  "./emojiText/emojiText.html"
-);
-
-var demos = new Array();
-demos.push(websiteDemo, emojiTextDemo, lamboChaseDemo);
 
 /*
  * Animation Loop
@@ -646,6 +792,7 @@ const loop = function () {
   }
 
   drawRotatingMicrosoftLogo(c, microsoftRectangles);
+  drawInstagram(c, textBubbleArray[12].minX, textBubbleArray[12].maxX);
 
   /*
    * Demos Draw
@@ -660,6 +807,13 @@ const loop = function () {
   }
 
   for (let i = 0; i < demos.length; i++) {
+    if (i > 0) {
+      demos[i].x =
+        demos[i - 1].x +
+        demos[i - 1].width / 2 +
+        demos[i].width / 2 +
+        ElementPadding;
+    }
     demos[i].draw(c);
     if (
       demos[i].detectMouseHover(
@@ -676,7 +830,7 @@ const loop = function () {
         demos[i].y,
         demos[i].width,
         demos[i].height,
-        demos[i].colors1.length
+        demos[i].borderColorsTopBottom.length
       );
     }
   }
@@ -737,6 +891,42 @@ const loop = function () {
     }
   }
 
+  // Mouse Draw
+  // c.save();
+  // /*
+  //  * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+  //  * imageData gives back a one-dimensional array containing the data in the RGBA order,
+  //  * which is why we skip by 4 in the for loop.
+  //  */
+
+  // let mouseSquareLength = 32;
+  // let imageData = c.getImageData(
+  //   Mouse.x - mouseSquareLength / 2,
+  //   Mouse.y - mouseSquareLength / 2,
+  //   mouseSquareLength,
+  //   mouseSquareLength
+  // ).data;
+  // for (let i = 0; i < imageData.length; i += 4) {
+  //   c.fillStyle = `rgb(
+  //     ${255 - imageData[i]}
+  //     ${255 - imageData[i + 1]}
+  //     ${255 - imageData[i + 2]})`;
+
+  //   let pixelIndex = i / 4;
+  //   let rowToFlip, colToFlip;
+  //   rowToFlip = colToFlip = 0;
+  //   rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
+  //   colToFlip += pixelIndex % mouseSquareLength;
+
+  //   c.fillRect(
+  //     Mouse.x - mouseSquareLength / 2 + colToFlip,
+  //     Mouse.y - mouseSquareLength / 2 + rowToFlip,
+  //     1,
+  //     1
+  //   );
+  // }
+  // c.restore();
+
   /*
    * Animation
    */
@@ -761,7 +951,7 @@ function handleCanvasResize(context) {
   }
 
   FontHeadingLevels.H1.value = context.canvas.width <= 500 ? 80 : 100;
-  FontHeadingLevels.H2.value = context.canvas.width <= 500 ? 40 : 50;
+  FontHeadingLevels.H2.value = context.canvas.width <= 500 ? 33 : 38;
   FontHeadingLevels.P.value = context.canvas.width <= 500 ? 25 : 30;
 }
 
@@ -863,7 +1053,7 @@ function drawPlayer(context) {
 }
 
 function drawBackground(context, background) {
-  for (i = 0; i < background.locations.length; i++) {
+  for (let i = 0; i < background.locations.length; i++) {
     if (background.locations[i] + background.width < 0) {
       background.locations[i] =
         background.locations[background.currentMaxLocationIndex] +
@@ -889,9 +1079,26 @@ function drawRotatingMicrosoftLogo(context, microsoftRectangles) {
     context.fillRect(
       Math.floor(microsoftRectangles[i].x - camera.x),
       Math.floor(microsoftRectangles[i].y),
-      100,
-      100
+      150,
+      150
     );
+  }
+  context.restore();
+}
+
+function drawInstagram(context, minX, maxX) {
+  context.save();
+  if (Player.x > minX && Player.x < maxX) {
+    let igScreenX = instagram.x - camera.x + instagramImage.width / 2;
+    let igScreenY = instagram.y - camera.y + instagramImage.height / 2;
+    let playerX = Player.screenX;
+    let playerY = Player.y - Player.height;
+    context.strokeStyle = "red";
+    context.lineWidth = 15;
+    context.beginPath();
+    context.moveTo(igScreenX, igScreenY);
+    context.lineTo(playerX, playerY);
+    context.stroke();
   }
   context.restore();
 }
@@ -901,7 +1108,7 @@ function drawText(context, text) {
     return;
   }
 
-  context.font = getFont(text.fontSize.value);
+  context.font = getFont(text.fontSize);
   context.fillText(
     text.words,
     text.x - camera.x - context.measureText(text.words).width / 2,
@@ -913,18 +1120,17 @@ function drawTextBubble(context) {
   if (!canShowText) {
     return;
   }
-  context.font = getFont(this.fontSize.value);
-
+  context.font = getFont(this.fontSize);
   const { whiteBoxHeight, whiteBoxWidth, linesOfTextArray } = getLinesOfText(
     context,
     this.text,
-    this.fontSize.value,
+    this.fontSize,
     this.leading,
     this.maxLineWidth
   );
   let lines = {
-    header: null,
-    paragraphText: linesOfTextArray,
+    headerLines: null,
+    paragraphLines: linesOfTextArray,
   };
 
   let paddingBetweenDialogAndPlayer = 10;
@@ -936,7 +1142,7 @@ function drawTextBubble(context) {
     whiteBoxHeight -
     paddingBetweenDialogAndPlayer;
 
-  drawWhiteBoxWithTextAndImage(
+  this.drawWhiteBoxWithTextAndImage(
     context,
     this.x,
     this.y,
@@ -944,10 +1150,10 @@ function drawTextBubble(context) {
     whiteBoxWidth,
     lines,
     null,
-    this.fontSize.value,
+    this.fontSize,
     this.leading,
-    this.colors1,
-    this.colors2
+    this.borderColorsLeftRight,
+    this.borderColorsTopBottom
   );
 
   if (!Player.isGoingToTheRight) {
@@ -962,57 +1168,6 @@ function drawTextBubble(context) {
   }
 }
 
-function drawProjectDemo(context) {
-  if (!canShowText) {
-    return;
-  }
-
-  context.font = getFont(this.fontSize.value);
-
-  const paragraphLines = getLinesOfText(
-    context,
-    this.text,
-    this.fontSize.value,
-    this.leading,
-    this.image.width
-  );
-  const whiteBoxHeight1 = paragraphLines.whiteBoxHeight;
-  const whiteBoxWidth1 = paragraphLines.whiteBoxWidth;
-  const paragraphText = paragraphLines.linesOfTextArray;
-
-  const headerLines = getLinesOfText(
-    context,
-    this.headerText,
-    this.fontSize.value,
-    this.leading,
-    this.image.width
-  );
-  const whiteBoxHeight2 = headerLines.whiteBoxHeight;
-  const whiteBoxWidth2 = headerLines.whiteBoxWidth;
-  const header = headerLines.linesOfTextArray;
-
-  let lines = {
-    header: header,
-    paragraphText: paragraphText,
-  };
-
-  const { width: demoWidth, height: demoHeight } = drawWhiteBoxWithTextAndImage(
-    context,
-    this.x - camera.x,
-    this.y,
-    whiteBoxHeight1 + whiteBoxHeight2,
-    Math.max(whiteBoxWidth1, whiteBoxWidth2),
-    lines,
-    this.image,
-    this.fontSize.value,
-    this.leading,
-    this.colors1,
-    this.colors2
-  );
-  this.width = demoWidth;
-  this.height = demoHeight;
-}
-
 function detectMouseHover(x, y, width, height) {
   if (
     Mouse.x >= x - width / 2 - camera.x &&
@@ -1022,10 +1177,9 @@ function detectMouseHover(x, y, width, height) {
       this.hover = true;
       return true;
     }
-  } else {
-    this.hover = false;
-    return false;
   }
+  this.hover = false;
+  return false;
 }
 
 function drawHoverBox(context, x, y, width, height, borderLength) {
@@ -1105,29 +1259,9 @@ function drawWhiteBoxWithTextAndImage(
   image,
   fontSize,
   leading,
-  colors1,
-  colors2
+  borderColorsLeftRight,
+  borderColorsTopBottom
 ) {
-  const ElementPadding = 10;
-
-  if (image !== null) {
-    whiteBoxHeight += image.height + ElementPadding;
-    if (whiteBoxWidth < image.width) {
-      whiteBoxWidth = image.width + ElementPadding * 2;
-    }
-  }
-
-  if (lines.header != null) {
-    var HeaderFontSize = fontSize + 8;
-    whiteBoxHeight += ElementPadding;
-
-    // for the paragraph text
-    whiteBoxHeight += ElementPadding;
-  }
-
-  whiteBoxHeight = Math.floor(whiteBoxHeight);
-  whiteBoxWidth = Math.floor(whiteBoxWidth);
-
   context.fillStyle = "white";
   context.fillRect(
     Math.floor(x - whiteBoxWidth / 2),
@@ -1136,55 +1270,61 @@ function drawWhiteBoxWithTextAndImage(
     whiteBoxHeight
   );
 
-  if (lines.header !== null) {
+  if (lines.headerLines !== null) {
     context.fillStyle = "black";
     var HeaderSpacing =
-      HeaderFontSize +
-      ElementPadding +
-      (lines.header.length - 1) * (leading + HeaderFontSize);
+      this.headerFontSize +
+      this.elementPadding +
+      (lines.headerLines.length - 1) * (leading + this.headerFontSize);
 
-    context.font = "bold " + getFont(HeaderFontSize);
-    for (let i = 0; i < lines.header.length; i++) {
+    context.save();
+    context.font = "bold " + getFont(this.headerFontSize);
+    for (let i = 0; i < lines.headerLines.length; i++) {
       context.fillText(
-        lines.header[i],
-        Math.floor(x - whiteBoxWidth / 2 + ElementPadding),
+        lines.headerLines[i],
+        Math.floor(x - whiteBoxWidth / 2 + this.elementPadding),
         Math.floor(
-          y + HeaderFontSize + i * (leading + HeaderFontSize) + ElementPadding
+          y +
+            this.headerFontSize +
+            i * (leading + this.headerFontSize) +
+            this.elementPadding
         )
       );
     }
+    context.restore();
   }
 
   if (image !== null) {
     context.drawImage(
       image,
-      Math.floor(x - whiteBoxWidth / 2 + ElementPadding),
-      Math.floor(y + ElementPadding + HeaderSpacing)
+      Math.floor(x - whiteBoxWidth / 2 + this.elementPadding),
+      Math.floor(y + this.elementPadding + HeaderSpacing)
     );
   }
 
   // Drawing the text in the white box
   context.fillStyle = "black";
   context.font = getFont(fontSize);
-  let linesOfTextArray = lines.paragraphText;
+  let linesOfTextArray = lines.paragraphLines;
+
   for (let i = 0; i < linesOfTextArray.length; i++) {
     if (image !== null) {
       context.fillText(
         linesOfTextArray[i],
-        Math.floor(x - whiteBoxWidth / 2 + ElementPadding),
+        Math.floor(x - whiteBoxWidth / 2 + this.elementPadding),
         Math.floor(
           y +
             fontSize +
             i * (leading + fontSize) +
             image.height +
             HeaderSpacing +
-            ElementPadding
+            this.elementPadding
         )
       );
     } else {
       context.fillText(
         linesOfTextArray[i],
-        Math.floor(x - whiteBoxWidth / 2 + ElementPadding / 3),
+        Math.floor(x - whiteBoxWidth / 2 + this.elementPadding / 3),
         Math.floor(y + fontSize + i * (leading + fontSize))
       );
     }
@@ -1192,33 +1332,33 @@ function drawWhiteBoxWithTextAndImage(
 
   // Drawing the borders of the white box
   // Top and Bottom
-  for (let i = 0; i < colors1.length; i++) {
-    context.fillStyle = colors1[i];
+  for (let i = 0; i < borderColorsTopBottom.length; i++) {
+    context.fillStyle = borderColorsTopBottom[i];
     context.fillRect(
       Math.floor(x - whiteBoxWidth / 2),
-      Math.floor(y - colors1.length + i),
+      Math.floor(y - borderColorsTopBottom.length + i),
       whiteBoxWidth,
       1
     );
     context.fillRect(
       Math.floor(x - whiteBoxWidth / 2),
-      Math.floor(y + whiteBoxHeight - i + colors1.length - 1),
+      Math.floor(y + whiteBoxHeight - i + borderColorsTopBottom.length - 1),
       whiteBoxWidth,
       1
     );
   }
 
   // Left and Right
-  for (let i = 0; i < colors2.length; i++) {
-    context.fillStyle = colors2[i];
+  for (let i = 0; i < borderColorsLeftRight.length; i++) {
+    context.fillStyle = borderColorsLeftRight[i];
     context.fillRect(
-      Math.floor(x - whiteBoxWidth / 2 - colors2.length + i),
+      Math.floor(x - whiteBoxWidth / 2 - borderColorsLeftRight.length + i),
       Math.floor(y),
       1,
       whiteBoxHeight
     );
     context.fillRect(
-      Math.floor(x + whiteBoxWidth / 2 + colors2.length - 1 - i),
+      Math.floor(x + whiteBoxWidth / 2 + borderColorsLeftRight.length - 1 - i),
       Math.floor(y),
       1,
       whiteBoxHeight
@@ -1232,8 +1372,8 @@ function drawWhiteBoxWithTextAndImage(
     0, // source y
     4, // source width
     5, // source height
-    Math.floor(x - whiteBoxWidth / 2 - colors2.length), // target x
-    Math.floor(y - colors1.length), // target y
+    Math.floor(x - whiteBoxWidth / 2 - borderColorsLeftRight.length), // target x
+    Math.floor(y - borderColorsTopBottom.length), // target y
     4, // target width
     5 // target height
   );
@@ -1244,7 +1384,7 @@ function drawWhiteBoxWithTextAndImage(
     0,
     4,
     5,
-    Math.floor(x - whiteBoxWidth / 2 - colors2.length),
+    Math.floor(x - whiteBoxWidth / 2 - borderColorsLeftRight.length),
     Math.floor(y + whiteBoxHeight),
     4,
     5
@@ -1257,7 +1397,7 @@ function drawWhiteBoxWithTextAndImage(
     4,
     5,
     Math.floor(x + whiteBoxWidth / 2),
-    Math.floor(y - colors1.length),
+    Math.floor(y - borderColorsTopBottom.length),
     4,
     5
   );
@@ -1277,7 +1417,7 @@ function drawWhiteBoxWithTextAndImage(
   context.fillStyle = "black";
 
   return {
-    width: whiteBoxWidth + 2 * colors2.length,
+    width: whiteBoxWidth + 2 * borderColorsLeftRight.length,
     height: whiteBoxHeight,
   };
 }
@@ -1319,7 +1459,6 @@ function updateMousePosition(event) {
 }
 
 function sendToLink(event) {
-  console.log("click detected");
   for (let i = 0; i < demos.length; i++) {
     if (demos[i].hover) {
       window.open(demos[i].link, "_blank");
@@ -1346,6 +1485,8 @@ function ongoingTouchIndexById(idToFind) {
 }
 
 function handleTouchStart(evt) {
+  Controller.userInputRegistered = true;
+
   const touches = evt.changedTouches;
   Mouse.x = touches[0].clientX;
   Mouse.y = touches[0].clientY;
@@ -1398,11 +1539,15 @@ function handleTouchCancel(evt) {
   }
 }
 
+// Event Listeners
 window.addEventListener("keydown", Controller.keyListener);
 window.addEventListener("keyup", Controller.keyListener);
+
 window.addEventListener("wheel", scrollPlayer, { passive: false });
+
 window.addEventListener("mousemove", updateMousePosition);
 window.addEventListener("click", sendToLink);
+
 window.addEventListener("touchstart", handleTouchStart);
 window.addEventListener("touchend", handleTouchEnd);
 window.addEventListener("touchcancel", handleTouchCancel);
@@ -1414,6 +1559,10 @@ window.addEventListener("touchmove", handleTouchMove);
  */
 
 /*  TODO
- * mobile version
- * refactor 🤣
+ * the width isnt lining up because once the project demo image loads it changes the width sizing, which makes the TextBubbleArray startX and endX sizing expired.
+ * change the emoji text demo to computational photography demo
+ * make a demo for seam carving on youtube
+ * delete the climbing section
+ * improve the graphics for the story
+ * add links for resume, github, and linked in (near the front)
  */
