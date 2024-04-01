@@ -415,7 +415,8 @@ class ProjectDemo {
         this.fontSize,
         this.leading,
         this.borderColorsLeftRight,
-        this.borderColorsTopBottom
+        this.borderColorsTopBottom,
+        this.elementPadding
       );
 
     this.width = demoWidth;
@@ -427,40 +428,44 @@ let websiteProjImage = new Image();
 websiteProjImage.src = "./images/restandrelax.png";
 let websiteDemo = new ProjectDemo(
   textBubbleArray[1].maxX,
-  Math.floor(Floor.height / 2),
+  Math.floor(Floor.height / 2) - 100,
   websiteProjImage,
   "restandrelaxvacation.com",
   "Beach vacation rental website made using ReactJS and Tailwind CSS",
   "https://restandrelaxvacation.com"
 );
 
-// let lamboChaseImage = new Image();
-// lamboChaseImage.src = "./images/lamboChaseProj.png";
-// let lamboChaseDemo = new ProjectDemo(
-//   websiteDemo.x + websiteDemo.width / 2 + 300,
-//   25,
-//   lamboChaseImage,
-//   "Lambo Chase GBA",
-//   "GameBoy Advance game written in C.",
-//   "https://youtu.be/cMJ9Ia6SovY"
-// );
+websiteDemo.x += Math.floor(websiteDemo.width / 2);
+let projectSpacing = 300;
 
-// let emojiTextImage = new Image();
-// emojiTextImage.src = "./images/emojiTextProj.png";
-// let emojiTextDemo = new ProjectDemo(
-//   lamboChaseDemo.x + lamboChaseDemo.width,
-//   25,
-//   emojiTextImage,
-//   "Emoji Text",
-//   "Converts text to emoji.",
-//   "./emojiText/emojiText.html"
-// );
+let lamboChaseImage = new Image();
+lamboChaseImage.src = "./images/lamboChaseProj.png";
+let lamboChaseDemo = new ProjectDemo(
+  Math.floor(websiteDemo.x + websiteDemo.width / 2 + projectSpacing),
+  Math.floor(Floor.height / 2) - 100,
+  lamboChaseImage,
+  "Lambo Chase GBA",
+  "GameBoy Advance game written in C.",
+  "https://youtu.be/cMJ9Ia6SovY"
+);
+lamboChaseDemo.x += Math.floor(lamboChaseDemo.width / 2);
+
+let emojiTextImage = new Image();
+emojiTextImage.src = "./images/emojiTextProj.png";
+let emojiTextDemo = new ProjectDemo(
+  Math.floor(lamboChaseDemo.x + lamboChaseDemo.width / 2 + projectSpacing),
+  Math.floor(Floor.height / 2) - 100,
+  emojiTextImage,
+  "Emoji Text",
+  "Converts text to emoji.",
+  "./emojiText/emojiText.html"
+);
+emojiTextDemo.x += Math.floor(emojiTextDemo.width / 2);
 
 var demos = new Array();
-// demos.push(websiteDemo, lamboChaseDemo, emojiTextDemo);
-demos.push(websiteDemo);
+demos.push(websiteDemo, lamboChaseDemo, emojiTextDemo);
 
-// Demos insertion into map with corresponding TextBubble
+// "Here are some of my projects"
 endX = demos[demos.length - 1].x + demos[demos.length - 1].width;
 textBubbleArray.push(
   new TextBubble(codingStory[2], Player.x, Player.y, startX, endX)
@@ -468,7 +473,8 @@ textBubbleArray.push(
 foregroundObjects.push(
   new imageObject(startX, Floor.height - 55, grassMarkerImage)
 );
-startX = demos[demos.length - 1].x + demos[demos.length - 1].width;
+startX =
+  demos[demos.length - 1].x + Math.floor(demos[demos.length - 1].width / 2);
 
 for (let i = 3; i < codingStory.length; i++) {
   if (i == codingStory.length - 1) {
@@ -768,13 +774,6 @@ const loop = function () {
   }
 
   for (let i = 0; i < demos.length; i++) {
-    if (i > 0) {
-      demos[i].x =
-        demos[i - 1].x +
-        demos[i - 1].width / 2 +
-        demos[i].width / 2 +
-        ElementPadding;
-    }
     demos[i].draw(c);
     if (
       demos[i].detectMouseHover(
@@ -1224,7 +1223,8 @@ function drawWhiteBoxWithText(
   fontSize,
   leading,
   borderColorsLeftRight,
-  borderColorsTopBottom
+  borderColorsTopBottom,
+  padding
 ) {
   context.save();
 
@@ -1242,16 +1242,25 @@ function drawWhiteBoxWithText(
   // Drawing the text over the white box
   context.fillStyle = "black";
 
-  for (let i = 0; i < lines.length; i++) {
-    context.fillText(
-      lines[i],
-      Math.floor(x - whiteBoxWidth / 2),
-      Math.floor(y + fontSize + i * (leading + fontSize))
-    );
+  if (padding != null) {
+    for (let i = 0; i < lines.length; i++) {
+      context.fillText(
+        lines[i],
+        Math.floor(x - whiteBoxWidth / 2 + padding),
+        Math.floor(y + fontSize + i * (leading + fontSize))
+      );
+    }
+  } else {
+    for (let i = 0; i < lines.length; i++) {
+      context.fillText(
+        lines[i],
+        Math.floor(x - whiteBoxWidth / 2),
+        Math.floor(y + fontSize + i * (leading + fontSize))
+      );
+    }
   }
 
-  // Drawing the borders of the white box
-  // Top and Bottom
+  // Top and Bottom borders of the white box
   for (let i = 0; i < borderColorsTopBottom.length; i++) {
     context.fillStyle = borderColorsTopBottom[i];
     context.fillRect(
