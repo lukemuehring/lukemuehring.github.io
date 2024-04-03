@@ -12,8 +12,6 @@ var imagePathArray = new Array(
   "./images/player/walk1_1.png",
   "./images/player/walk1_2.png",
   "./images/player/walk1_3.png",
-  "./images/codingSign.png",
-  "./images/climbingSign.png",
   "./images/grass1.png"
 );
 
@@ -91,7 +89,7 @@ const Floor = {
       ? Bg0.height - 1.5 * Map.tsize
       : c.canvas.height - 1.5 * Map.tsize,
   rightX: 0,
-  leftX: 0,
+  leftX: -100,
 };
 
 if (c.canvas.height > Bg0.height) {
@@ -128,8 +126,10 @@ const PlayerStates = {
   Walking: 2,
 };
 
+const spawnX = 100;
+
 const Player = {
-  x: Map.length / 2,
+  x: spawnX,
   xVelocity: 0,
   y: 0,
   yVelocity: 0,
@@ -233,25 +233,6 @@ function imageObject(x, y, img) {
   };
 }
 
-const signWidth = 219;
-const signHeight = 200;
-
-const codingSignImage = new Image();
-codingSignImage.src = "./images/codingSign.png";
-const climbingSignImage = new Image();
-climbingSignImage.src = "./images/climbingSign.png";
-let codingSign = new imageObject(
-  (Map.cols * Map.tsize) / 2 + 500 - signWidth,
-  Floor.height - signHeight,
-  codingSignImage
-);
-let climbingSign = new imageObject(
-  (Map.cols * Map.tsize) / 2 - 500,
-  Floor.height - signHeight,
-  climbingSignImage
-);
-backgroundObjects.push(codingSign, climbingSign);
-
 /*
  * Text
  */
@@ -301,10 +282,11 @@ TextBubble.prototype.cornerImage = cornerImage;
 TextBubble.prototype.triangleImage = triangleImage;
 
 const codingStory = [
-  "Welcome to my website! I'm a software engineer passionate about using code to bring creative ideas to life.",
+  "Welcome to my website! I'm a creative developer currently based in Salt Lake City.",
   "If I am talking too slowly, feel free to use the scroll wheel.",
-  "Here are some of my recent projects.",
+  "Here's what I've been working on recently.",
   "Let me tell you a little bit about myself:",
+  "I was born and raised in Atlanta, Georgia. There, I discovered my love for messing with computers, rock climbing, and nature.",
   "In 2021, I graduated summa cum laude from Georgia Tech with a B.S. in Computational Media and a B.S. in Applied Languages & Intercultural Studies in Chinese.",
   "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
   "I got a glimpse at what software engineering inside Big Tech is like.",
@@ -319,7 +301,7 @@ const codingStory = [
 ];
 
 const textBubbleArray = [];
-let startX = Map.length / 2 + 500;
+let startX = 500;
 let endX;
 const ReadingSpeedPixelsPerCharacter = 7;
 const grassMarkerImage = new Image();
@@ -340,6 +322,7 @@ for (let i = 0; i < 2; i++) {
  * Project Demos
  */
 class ProjectDemo {
+  static demoModalOpen = false;
   constructor(x, y, img, headerText, text, link) {
     const ProjectDemoMaxLineWidth = Math.min(600, c.canvas.width - 50);
 
@@ -376,6 +359,7 @@ class ProjectDemo {
     this.draw = this.drawProjectDemo;
     this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithText;
     this.detectMouseHover = detectMouseHover;
+    this.modalOpen = false;
   }
 
   calculateHeaderDimensions() {
@@ -431,7 +415,7 @@ let websiteDemo = new ProjectDemo(
   Math.floor(Floor.height / 2) - 100,
   websiteProjImage,
   "restandrelaxvacation.com",
-  "Beach vacation rental website made using ReactJS and Tailwind CSS",
+  "a rental website for Rest & Relax Vacation \nin Gulf Shores, AL. Built with React 18 and Tailwind CSS.",
   "https://restandrelaxvacation.com"
 );
 
@@ -466,15 +450,15 @@ var demos = new Array();
 demos.push(websiteDemo, lamboChaseDemo, emojiTextDemo);
 
 // "Here are some of my projects"
-endX = demos[demos.length - 1].x + demos[demos.length - 1].width;
+endX =
+  demos[demos.length - 1].x + Math.floor(demos[demos.length - 1].width / 2);
 textBubbleArray.push(
   new TextBubble(codingStory[2], Player.x, Player.y, startX, endX)
 );
 foregroundObjects.push(
   new imageObject(startX, Floor.height - 55, grassMarkerImage)
 );
-startX =
-  demos[demos.length - 1].x + Math.floor(demos[demos.length - 1].width / 2);
+startX = endX;
 
 for (let i = 3; i < codingStory.length; i++) {
   if (i == codingStory.length - 1) {
@@ -492,48 +476,31 @@ for (let i = 3; i < codingStory.length; i++) {
   startX = endX;
 }
 
-const climbingStory = [
-  "I've been climbing for 11 years now, and I love it more and more.",
-  "In the past decade, I've scrambled my way up boulders, routes, cracks, compeititon rounds, deep water solos, and even the 15 meter speed wall.",
-  "My climbing achievements always teach me how to think outside of the box, push myself to accomplish the epic, and find balance in life.",
-  "When I'm on the wall, and not freaking out about the height, my mind can find a focus where I don't think about anything else.",
-  "I started climbing in my first year of high school. Instead of doing intramural sports with classmates or going to football games after school, I would go to the climbing gym.",
-  'I didn\'t fit the mold of a "normal" high schooler. No one really did at the climbing gym, which made it so interesting to meet people.',
-  "After switching out my punch pass for a membership at the climbing gym, I joined a youth team and started training with them.",
-  "It was a fine balance to chase grades both in the climbing gym and in school. My time had to be handled more carefully, and I sacrificed other activities competing for my time. Including the Call of Duty.",
-  "I had an implicit agreement with my parents: they would keep sending me to the gym as long as I kept up my grades at school.",
-  "Little did I know back then that this was setting the framework of how I would find balance with climbing and the rest of my life while in college, and in developing my professional career.",
-  "In 2020, I made my first open Nationals final, which takes the top 8 athletes in the US.",
-  "Over a hundred competitors get filtered through the qualifier and semifinal rounds to make it to the final. It was a challenging competition requiring mastery in three climbing disciplines: speed, lead and bouldering. The winner would go on to take a ticket that sent them to the 2020 Olympics.",
-  "Although I didn't win that ticket, I felt like I broke through the barrier of making the final round in my climbing. I was also pushing through a challenging junior year in college, balancing a heavy course load with my responsibilities as an RA.",
-  "It's funny how my best competition result so far is when I was working full-time as a software engineer at Microsoft. At the 2022 US Open Nationals, I got 3rd in bouldering and 4th in lead 😁.",
-  "It seems like the formula for success in my climbing and my career requires balance. So I'm trying to continue my Hannah Montana lifestyle to this day.",
-  "But when I'm not training for competitions or grinding LeetCode, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
-  "Thanks for getting to know me a little.",
-];
-
-startX = Map.length / 2 - 500;
-for (let i = 0; i < climbingStory.length; i++) {
-  if (i == climbingStory.length - 1) {
-    endX = startX - 500 - ((startX - 500) % Map.tsize);
-    Floor.leftX = startX - 500 - ((startX - 500) % Map.tsize);
-  } else {
-    endX = startX - climbingStory[i].length * ReadingSpeedPixelsPerCharacter;
-  }
-  textBubbleArray.push(
-    new TextBubble(climbingStory[i], Player.x, Player.y, endX, startX)
-  );
-  foregroundObjects.push(
-    new imageObject(startX, Floor.height - 55, grassMarkerImage)
-  );
-  startX = endX;
-}
+// const climbingStory = [
+//   "I've been climbing for 11 years now, and I love it more and more.",
+//   "In the past decade, I've scrambled my way up boulders, routes, cracks, compeititon rounds, deep water solos, and even the 15 meter speed wall.",
+//   "My climbing achievements always teach me how to think outside of the box, push myself to accomplish the epic, and find balance in life.",
+//   "When I'm on the wall, and not freaking out about the height, my mind can find a focus where I don't think about anything else.",
+//   "I started climbing in my first year of high school. Instead of doing intramural sports with classmates or going to football games after school, I would go to the climbing gym.",
+//   'I didn\'t fit the mold of a "normal" high schooler. No one really did at the climbing gym, which made it so interesting to meet people.',
+//   "After switching out my punch pass for a membership at the climbing gym, I joined a youth team and started training with them.",
+//   "It was a fine balance to chase grades both in the climbing gym and in school. My time had to be handled more carefully, and I sacrificed other activities competing for my time. Including the Call of Duty.",
+//   "I had an implicit agreement with my parents: they would keep sending me to the gym as long as I kept up my grades at school.",
+//   "Little did I know back then that this was setting the framework of how I would find balance with climbing and the rest of my life while in college, and in developing my professional career.",
+//   "In 2020, I made my first open Nationals final, which takes the top 8 athletes in the US.",
+//   "Over a hundred competitors get filtered through the qualifier and semifinal rounds to make it to the final. It was a challenging competition requiring mastery in three climbing disciplines: speed, lead and bouldering. The winner would go on to take a ticket that sent them to the 2020 Olympics.",
+//   "Although I didn't win that ticket, I felt like I broke through the barrier of making the final round in my climbing. I was also pushing through a challenging junior year in college, balancing a heavy course load with my responsibilities as an RA.",
+//   "It's funny how my best competition result so far is when I was working full-time as a software engineer at Microsoft. At the 2022 US Open Nationals, I got 3rd in bouldering and 4th in lead 😁.",
+//   "It seems like the formula for success in my climbing and my career requires balance. So I'm trying to continue my Hannah Montana lifestyle to this day.",
+//   "But when I'm not training for competitions or grinding LeetCode, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
+//   "Thanks for getting to know me a little.",
+// ];
 
 cutOffFloorEdgesInMap(c);
 
 const welcomeText = new Text(
   "Hey! I'm Luke.",
-  (Map.cols * Map.tsize) / 2,
+  Math.floor(c.canvas.width / 2),
   c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
   calculateFontFitForLargeText("Hey! I'm Luke.", FontHeadingLevels.H1)
 );
@@ -676,7 +643,7 @@ const loop = function () {
   if (Player.y > Floor.height && userInputIsAllowed) {
     userInputIsAllowed = false;
     setTimeout(() => {
-      Player.x = Map.length / 2;
+      Player.x = spawnX;
       Player.y = 0;
       Player.xVelocity = 0;
       Player.yVelocity = 0;
@@ -728,6 +695,7 @@ const loop = function () {
     Player.yVelocity = 0;
   }
 
+  // Constraining Player to x range [0, Map Size]
   Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
 
   camera.update();
@@ -942,13 +910,6 @@ function cutOffFloorEdgesInMap(context) {
     row++;
     Map.tiles.fill(2, j, Map.cols * row);
   }
-
-  let leftEndX = textBubbleArray[textBubbleArray.length - 1].minX;
-
-  let endTile = Math.floor(leftEndX / Map.tsize);
-  for (let j = 0; j < Map.rows; j++) {
-    Map.tiles.fill(2, j * Map.cols, j * Map.cols + endTile);
-  }
 }
 
 function drawPlayer(context) {
@@ -1148,21 +1109,21 @@ function drawHoverBox(context, x, y, width, height, borderLength) {
     height + borderLength * 2
   );
 
-  context.fillStyle = "white";
-  let fontSize = FontHeadingLevels.P;
-  context.font = getFont(fontSize);
+  // context.fillStyle = "white";
+  // let fontSize = FontHeadingLevels.P;
+  // context.font = getFont(fontSize);
 
-  let textX = Math.floor(x - camera.x - context.measureText("demo").width / 2);
-  let textY = Math.floor(y + height / 2);
-  let padding = Math.floor(fontSize / 10);
-  context.fillText("demo", textX, textY);
+  // let textX = Math.floor(x - camera.x - context.measureText("learn more").width / 2);
+  // let textY = Math.floor(y + height / 2);
+  // let padding = Math.floor(fontSize / 10);
+  // context.fillText("learn more", textX, textY);
 
-  context.strokeStyle = "white";
-  context.beginPath();
-  context.moveTo(textX, textY + padding);
-  context.lineTo(textX + context.measureText("demo").width, textY + padding);
-  context.stroke();
-  context.restore();
+  // context.strokeStyle = "white";
+  // context.beginPath();
+  // context.moveTo(textX, textY + padding);
+  // context.lineTo(textX + context.measureText("learn more").width, textY + padding);
+  // context.stroke();
+  // context.restore();
 }
 
 function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
@@ -1389,11 +1350,71 @@ function updateMousePosition(event) {
 
 function sendToLink(event) {
   for (let i = 0; i < demos.length; i++) {
-    if (demos[i].hover) {
-      window.open(demos[i].link, "_blank");
+    if (demos[i].hover && !ProjectDemo.demoModalOpen) {
+      injectDemoModal(demos[i]);
       return;
     }
   }
+}
+
+function injectDemoModal(demo) {
+  // create a new div element
+  const newDiv = document.createElement("div");
+
+  // Header
+  const headerElement = document.createElement("p");
+  const headerTextNode = document.createTextNode(demo.headerText);
+  headerElement.appendChild(headerTextNode);
+  headerElement.style.cssText =
+    "width: fit-content;" +
+    "font-size: 3.75rem;" +
+    "line-height: 1;" +
+    "padding: 2rem;";
+
+  // Text
+  const textElement = document.createElement("p");
+  const textNode = document.createTextNode(demo.text);
+  textElement.style.cssText =
+    "font-size: 1.125rem;" + "line-height: 1.75rem;" + "padding: 2rem;";
+  textElement.appendChild(textNode);
+
+  // X to close modal
+  const xButtonElement = document.createElement("button");
+  xButtonElement.innerHTML = "&times";
+  xButtonElement.style.cssText =
+    "position: absolute; right: 0; top: 0;" +
+    "padding: 8px 16px;" +
+    "vertical-align: middle;" +
+    "text-align: center;" +
+    "white-space: nowrap;" +
+    "color: white;" +
+    "background-color: black;" +
+    "cursor: pointer;";
+  xButtonElement.addEventListener("click", () => {
+    document.body.removeChild(newDiv);
+    ProjectDemo.demoModalOpen = false;
+    userInputIsAllowed = true;
+  });
+
+  newDiv.appendChild(headerElement);
+  newDiv.appendChild(xButtonElement);
+  newDiv.appendChild(textElement);
+
+  newDiv.style.cssText =
+    "display:flex;" +
+    "align-items: center;" +
+    "flex-direction: column;" +
+    "position:absolute;top:10%;left:50%;" +
+    "transform: translateX(-50%);" +
+    "width:80%;height:70%;" +
+    "background-color: white;";
+
+  // add the newly created element and its content into the DOM
+  const currentDiv = document.getElementById("canvas");
+  document.body.insertBefore(newDiv, currentDiv);
+
+  ProjectDemo.demoModalOpen = true;
+  userInputIsAllowed = false;
 }
 
 const ongoingTouches = [];
@@ -1488,7 +1509,6 @@ window.addEventListener("touchmove", handleTouchMove);
  */
 
 /*  TODO
- * the width isnt lining up because once the project demo image loads it changes the width sizing, which makes the TextBubbleArray startX and endX sizing expired.
  * change the emoji text demo to computational photography demo
  * make a demo for seam carving on youtube
  * delete the climbing section
