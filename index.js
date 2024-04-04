@@ -1386,31 +1386,47 @@ function injectDemoModal(demo) {
     userInputIsAllowed = true;
   });
 
-  //Image
-  const imageElement = document.createElement("img");
-  imageElement.src = demo.image.src;
+  //Images
+  const imageContainer = document.createElement("div");
+  imageContainer.setAttribute("class", "container");
+
+  const sliderWrapper = document.createElement("div");
+  sliderWrapper.setAttribute("class", "slider-wrapper");
+
+  const imageList = document.createElement("div");
+  imageList.setAttribute("class", "image-list");
+
+  const img1 = document.createElement("img");
+  const img2 = document.createElement("img");
+  const img3 = document.createElement("img");
+
+  img1.setAttribute("class", "image-item");
+  img2.setAttribute("class", "image-item");
+  img3.setAttribute("class", "image-item");
+
+  img1.src = "./images/rr_images/rr1.webp";
+  img2.src = "./images/rr_images/rr2.webp";
+  img3.src = "./images/rr_images/rr3.webp";
+
+  imageList.appendChild(img1);
+  imageList.appendChild(img2);
+  imageList.appendChild(img3);
+
+  sliderWrapper.appendChild(imageList);
+  imageContainer.appendChild(sliderWrapper);
 
   // Text Div
   const textDiv = document.createElement("div");
   textDiv.style.cssText =
-    "height: fit-content;" + "width: 100%;" + "position: relative;";
-
-  const dialogImageElement = document.createElement("img");
-  dialogImageElement.src = "./images/dialog.png";
-  dialogImageElement.style.cssText =
-    "position: absolute;" +
-    "bottom: 0;" +
-    "width:100%;" +
-    "height:100%;" +
-    "image-rendering: pixelated;";
+    "height: fit-content;" +
+    "width: 100%;" +
+    "position: relative;" +
+    "padding: 2rem;";
 
   const textElement = document.createElement("p");
   const textNode = document.createTextNode(demo.text);
   textElement.style.cssText =
-    "font-size: 1.875rem;" +
-    "line-height: 2.25rem;" +
-    "white-space: pre-line;" +
-    "padding: 2rem;";
+    "font-size: 1.875rem;" + "line-height: 2.25rem;" + "white-space: pre-line;";
   textElement.appendChild(textNode);
 
   const linkElement = document.createElement("a");
@@ -1420,13 +1436,12 @@ function injectDemoModal(demo) {
   linkElement.style.cssText =
     "margin-top: 8px;" + "font-size: 1.875rem;" + "line-height: 2.25rem;";
 
-  textDiv.appendChild(dialogImageElement);
   textDiv.appendChild(textElement);
   textDiv.appendChild(linkElement);
 
   newDiv.appendChild(headerElement);
   newDiv.appendChild(xButtonElement);
-  newDiv.appendChild(imageElement);
+  newDiv.appendChild(imageContainer);
   newDiv.appendChild(textDiv);
 
   newDiv.style.cssText =
@@ -1437,7 +1452,7 @@ function injectDemoModal(demo) {
     "position:absolute;top:10%;left:50%;" +
     "transform: translateX(-50%);" +
     "width:80%;height:70%;" +
-    "background-color: white;";
+    "background-color: #F1F4FD;";
 
   // add the newly created element and its content into the DOM
   const currentDiv = document.getElementById("canvas");
