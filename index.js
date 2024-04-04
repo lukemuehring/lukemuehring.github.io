@@ -324,7 +324,7 @@ for (let i = 0; i < 2; i++) {
 class ProjectDemo {
   static demoModalOpen = false;
   constructor(x, y, img, headerText, text, link) {
-    const ProjectDemoMaxLineWidth = Math.min(600, c.canvas.width - 50);
+    const ProjectDemoMaxLineWidth = Math.min(1000, c.canvas.width - 50);
 
     this.x = x;
     this.y = y;
@@ -337,10 +337,7 @@ class ProjectDemo {
     );
     this.link = link;
 
-    this.maxLineWidth =
-      this.image.width > ProjectDemoMaxLineWidth
-        ? this.image.width
-        : ProjectDemoMaxLineWidth;
+    this.maxLineWidth = ProjectDemoMaxLineWidth;
     this.leading = TextLeading;
     this.elementPadding = ElementPadding;
 
@@ -415,7 +412,7 @@ let websiteDemo = new ProjectDemo(
   Math.floor(Floor.height / 2) - 100,
   websiteProjImage,
   "restandrelaxvacation.com",
-  "a rental website for Rest & Relax Vacation \nin Gulf Shores, AL. Built with React 18 and Tailwind CSS.",
+  "a rental website for Rest & Relax Vacation in Gulf Shores, AL.\nBuilt with React 18 and Tailwind CSS.",
   "https://restandrelaxvacation.com"
 );
 
@@ -429,7 +426,7 @@ let lamboChaseDemo = new ProjectDemo(
   Math.floor(Floor.height / 2) - 100,
   lamboChaseImage,
   "Lambo Chase GBA",
-  "GameBoy Advance game written in C.",
+  "a 2D platformer GameBoy Advance game.\nWritten in C and features collision detection, game states, and memory management.",
   "https://youtu.be/cMJ9Ia6SovY"
 );
 lamboChaseDemo.x += Math.floor(lamboChaseDemo.width / 2);
@@ -1371,13 +1368,6 @@ function injectDemoModal(demo) {
     "line-height: 1;" +
     "padding: 2rem;";
 
-  // Text
-  const textElement = document.createElement("p");
-  const textNode = document.createTextNode(demo.text);
-  textElement.style.cssText =
-    "font-size: 1.125rem;" + "line-height: 1.75rem;" + "padding: 2rem;";
-  textElement.appendChild(textNode);
-
   // X to close modal
   const xButtonElement = document.createElement("button");
   xButtonElement.innerHTML = "&times";
@@ -1396,14 +1386,54 @@ function injectDemoModal(demo) {
     userInputIsAllowed = true;
   });
 
+  //Image
+  const imageElement = document.createElement("img");
+  imageElement.src = demo.image.src;
+
+  // Text Div
+  const textDiv = document.createElement("div");
+  textDiv.style.cssText =
+    "height: fit-content;" + "width: 100%;" + "position: relative;";
+
+  const dialogImageElement = document.createElement("img");
+  dialogImageElement.src = "./images/dialog.png";
+  dialogImageElement.style.cssText =
+    "position: absolute;" +
+    "bottom: 0;" +
+    "width:100%;" +
+    "height:100%;" +
+    "image-rendering: pixelated;";
+
+  const textElement = document.createElement("p");
+  const textNode = document.createTextNode(demo.text);
+  textElement.style.cssText =
+    "font-size: 1.875rem;" +
+    "line-height: 2.25rem;" +
+    "white-space: pre-line;" +
+    "padding: 2rem;";
+  textElement.appendChild(textNode);
+
+  const linkElement = document.createElement("a");
+  linkElement.setAttribute("href", demo.link);
+  linkElement.setAttribute("target", "_blank");
+  linkElement.innerHTML = "Click here for a demo!";
+  linkElement.style.cssText =
+    "margin-top: 8px;" + "font-size: 1.875rem;" + "line-height: 2.25rem;";
+
+  textDiv.appendChild(dialogImageElement);
+  textDiv.appendChild(textElement);
+  textDiv.appendChild(linkElement);
+
   newDiv.appendChild(headerElement);
   newDiv.appendChild(xButtonElement);
-  newDiv.appendChild(textElement);
+  newDiv.appendChild(imageElement);
+  newDiv.appendChild(textDiv);
 
   newDiv.style.cssText =
     "display:flex;" +
-    "align-items: center;" +
     "flex-direction: column;" +
+    "align-items: center;" +
+    "justify-content: space-between;" +
     "position:absolute;top:10%;left:50%;" +
     "transform: translateX(-50%);" +
     "width:80%;height:70%;" +
