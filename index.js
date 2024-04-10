@@ -294,14 +294,14 @@ const codingStory = [
   "Some additional things about me: I like creating, rock climbing, walks at night, and adventure in the great outdoors.",
   "Dislikes include: loud places, Atlanta traffic, looking at my phone too much, and alfredo pasta (too cheesy)",
   "At the start of 2023, I made a big bet on myself: I took a hiatus from my software career to focus on being a professional athelete and try to make the US climbing team.",
-  "It turns out that climbing is pretty hard. I learned that I perform the best when there's a balance between my coding and climbing, which I talk about more in the climbing section.",
+  "It turns out that climbing is pretty hard. I learned that I perform the best when there's a balance between my coding and climbing.",
   "Right now, I am curious about what the world outside of Big Tech looks like.",
-  'So, "Hello World!" 😁 If you are hiring, I am actively searching for my next software engineering role.',
+  'So, "Hello World!" 😁 If you are hiring, I am actively searching for my next software engineering role as a full stack developer.',
   "Thanks for getting to know me a little.",
 ];
 
 const textBubbleArray = [];
-let startX = 500;
+let startX = c.canvas.width - Math.floor(c.canvas.width * 0.4);
 let endX;
 const ReadingSpeedPixelsPerCharacter = 7;
 const grassMarkerImage = new Image();
@@ -323,12 +323,12 @@ for (let i = 0; i < 2; i++) {
  */
 class ProjectDemo {
   static demoModalOpen = false;
-  constructor(x, y, img, headerText, text, link) {
+  constructor(x, y, images, headerText, text, link) {
     const ProjectDemoMaxLineWidth = Math.min(1000, c.canvas.width - 50);
 
     this.x = x;
     this.y = y;
-    this.image = img;
+    this.images = images;
     this.headerText = headerText;
     this.text = text;
     this.fontSize = calculateFontFitForLargeText(
@@ -405,12 +405,25 @@ class ProjectDemo {
   }
 }
 
-let websiteProjImage = new Image();
-websiteProjImage.src = "./images/restandrelax.png";
+let imageURLS = [
+  "./images/rr_images/rr1.webp",
+  "./images/rr_images/rr2.webp",
+  "./images/rr_images/rr3.webp",
+  "./images/rr_images/rr4.webp",
+  "./images/rr_images/rr5.webp",
+  "./images/rr_images/rr6.webp",
+];
+
+let images = new Array(imageURLS.length);
+for (let i = 0; i < images.length; i++) {
+  images[i] = new Image();
+  images[i].src = imageURLS[i];
+}
+
 let websiteDemo = new ProjectDemo(
   textBubbleArray[1].maxX,
   Math.floor(Floor.height / 2) - 100,
-  websiteProjImage,
+  images,
   "restandrelaxvacation.com",
   "a rental website for Rest & Relax Vacation in Gulf Shores, AL.\nBuilt with React 18 and Tailwind CSS.",
   "https://restandrelaxvacation.com"
@@ -420,11 +433,12 @@ websiteDemo.x += Math.floor(websiteDemo.width / 2);
 let projectSpacing = 300;
 
 let lamboChaseImage = new Image();
-lamboChaseImage.src = "./images/lamboChaseProj.png";
+lamboChaseImage.src = "./images/lamboChaseProj.webp";
+images = [lamboChaseImage];
 let lamboChaseDemo = new ProjectDemo(
   Math.floor(websiteDemo.x + websiteDemo.width / 2 + projectSpacing),
   Math.floor(Floor.height / 2) - 100,
-  lamboChaseImage,
+  images,
   "Lambo Chase GBA",
   "a 2D platformer GameBoy Advance game.\nWritten in C and features collision detection, game states, and memory management.",
   "https://youtu.be/cMJ9Ia6SovY"
@@ -432,11 +446,12 @@ let lamboChaseDemo = new ProjectDemo(
 lamboChaseDemo.x += Math.floor(lamboChaseDemo.width / 2);
 
 let emojiTextImage = new Image();
-emojiTextImage.src = "./images/emojiTextProj.png";
+emojiTextImage.src = "./images/emojiTextProj.webp";
+images = [emojiTextImage];
 let emojiTextDemo = new ProjectDemo(
   Math.floor(lamboChaseDemo.x + lamboChaseDemo.width / 2 + projectSpacing),
   Math.floor(Floor.height / 2) - 100,
-  emojiTextImage,
+  images,
   "Emoji Text",
   "Converts text to emoji.",
   "./emojiText/emojiText.html"
@@ -570,29 +585,31 @@ instagramImage.src = "./images/ig.png";
 const gtImage = new Image();
 gtImage.src = "./images/gt.png";
 
+const objectHeight = Floor.height - 300;
+
 let likes = new imageObject(
-  (textBubbleArray[11].minX + textBubbleArray[11].maxX) / 2 -
+  (textBubbleArray[9].minX + textBubbleArray[9].maxX) / 2 -
     likesImage.width / 2,
-  100,
+  objectHeight,
   likesImage
 );
 let instagram = new imageObject(
-  (textBubbleArray[12].minX + textBubbleArray[12].maxX) / 2 -
+  (textBubbleArray[10].minX + textBubbleArray[10].maxX) / 2 -
     instagramImage.width / 2,
-  100,
+  objectHeight,
   instagramImage
 );
 let gt = new imageObject(
-  (textBubbleArray[7].minX + textBubbleArray[7].maxX) / 2 - 150,
-  100,
+  (textBubbleArray[5].minX + textBubbleArray[5].maxX) / 2 - 150,
+  objectHeight,
   gtImage
 );
 backgroundObjects.push(likes, instagram, gt);
 
 const CircleRadius = 100;
 const CircleCenter = {
-  x: (textBubbleArray[8].minX + textBubbleArray[8].maxX) / 2,
-  y: Floor.height - 300,
+  x: (textBubbleArray[7].minX + textBubbleArray[7].maxX) / 2,
+  y: objectHeight,
 };
 let rect1 = {
   x: CircleCenter.x + Math.cos(0),
@@ -724,7 +741,7 @@ const loop = function () {
   }
 
   drawRotatingMicrosoftLogo(c, microsoftRectangles);
-  drawInstagram(c, textBubbleArray[12].minX, textBubbleArray[12].maxX);
+  // drawInstagram(c, textBubbleArray[12].minX, textBubbleArray[12].maxX);
 
   /*
    * Demos Draw
@@ -817,40 +834,40 @@ const loop = function () {
   }
 
   // Mouse Draw
-  c.save();
-  /*
-   * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
-   * imageData gives back a one-dimensional array containing the data in the RGBA order,
-   * which is why we skip by 4 in the for loop.
-   */
+  // c.save();
+  // /*
+  //  * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+  //  * imageData gives back a one-dimensional array containing the data in the RGBA order,
+  //  * which is why we skip by 4 in the for loop.
+  //  */
 
-  let mouseSquareLength = 32;
-  let imageData = c.getImageData(
-    Mouse.x - mouseSquareLength / 2,
-    Mouse.y - mouseSquareLength / 2,
-    mouseSquareLength,
-    mouseSquareLength
-  ).data;
-  for (let i = 0; i < imageData.length; i += 4) {
-    c.fillStyle = `rgb(
-      ${255 - imageData[i]}
-      ${255 - imageData[i + 1]}
-      ${255 - imageData[i + 2]})`;
+  // let mouseSquareLength = 32;
+  // let imageData = c.getImageData(
+  //   Mouse.x - mouseSquareLength / 2,
+  //   Mouse.y - mouseSquareLength / 2,
+  //   mouseSquareLength,
+  //   mouseSquareLength
+  // ).data;
+  // for (let i = 0; i < imageData.length; i += 4) {
+  //   c.fillStyle = `rgb(
+  //     ${255 - imageData[i]}
+  //     ${255 - imageData[i + 1]}
+  //     ${255 - imageData[i + 2]})`;
 
-    let pixelIndex = i / 4;
-    let rowToFlip, colToFlip;
-    rowToFlip = colToFlip = 0;
-    rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
-    colToFlip += pixelIndex % mouseSquareLength;
+  //   let pixelIndex = i / 4;
+  //   let rowToFlip, colToFlip;
+  //   rowToFlip = colToFlip = 0;
+  //   rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
+  //   colToFlip += pixelIndex % mouseSquareLength;
 
-    c.fillRect(
-      Mouse.x - mouseSquareLength / 2 + colToFlip,
-      Mouse.y - mouseSquareLength / 2 + rowToFlip,
-      1,
-      1
-    );
-  }
-  c.restore();
+  //   c.fillRect(
+  //     Mouse.x - mouseSquareLength / 2 + colToFlip,
+  //     Mouse.y - mouseSquareLength / 2 + rowToFlip,
+  //     1,
+  //     1
+  //   );
+  // }
+  // c.restore();
 
   /*
    * Animation
@@ -1364,22 +1381,13 @@ function injectDemoModal(demo) {
   headerElement.appendChild(headerTextNode);
   headerElement.style.cssText =
     "width: fit-content;" +
-    "font-size: 3.75rem;" +
-    "line-height: 1;" +
-    "padding: 2rem;";
+    "font-size: var(--font-size-xxl);" +
+    "margin: 2rem;";
 
   // X to close modal
   const xButtonElement = document.createElement("button");
   xButtonElement.innerHTML = "&times";
-  xButtonElement.style.cssText =
-    "position: absolute; right: 0; top: 0;" +
-    "padding: 8px 16px;" +
-    "vertical-align: middle;" +
-    "text-align: center;" +
-    "white-space: nowrap;" +
-    "color: white;" +
-    "background-color: black;" +
-    "cursor: pointer;";
+  xButtonElement.setAttribute("class", "xModal");
   xButtonElement.addEventListener("click", () => {
     document.body.removeChild(newDiv);
     ProjectDemo.demoModalOpen = false;
@@ -1396,21 +1404,13 @@ function injectDemoModal(demo) {
   const imageList = document.createElement("div");
   imageList.setAttribute("class", "image-list");
 
-  const img1 = document.createElement("img");
-  const img2 = document.createElement("img");
-  const img3 = document.createElement("img");
-
-  img1.setAttribute("class", "image-item");
-  img2.setAttribute("class", "image-item");
-  img3.setAttribute("class", "image-item");
-
-  img1.src = "./images/rr_images/rr1.webp";
-  img2.src = "./images/rr_images/rr2.webp";
-  img3.src = "./images/rr_images/rr3.webp";
-
-  imageList.appendChild(img1);
-  imageList.appendChild(img2);
-  imageList.appendChild(img3);
+  const imageElements = [];
+  for (let i = 0; i < demo.images.length; i++) {
+    let currentImageElement = document.createElement("img");
+    currentImageElement.setAttribute("class", "image-item");
+    currentImageElement.src = demo.images[i].src;
+    imageList.appendChild(currentImageElement);
+  }
 
   sliderWrapper.appendChild(imageList);
   imageContainer.appendChild(sliderWrapper);
@@ -1421,12 +1421,13 @@ function injectDemoModal(demo) {
     "height: fit-content;" +
     "width: 100%;" +
     "position: relative;" +
-    "padding: 2rem;";
+    "padding: 1rem;" +
+    "text-align: center;";
 
   const textElement = document.createElement("p");
   const textNode = document.createTextNode(demo.text);
   textElement.style.cssText =
-    "font-size: 1.875rem;" + "line-height: 2.25rem;" + "white-space: pre-line;";
+    "font-size: var(--font-size-md);" + "white-space: pre-line;";
   textElement.appendChild(textNode);
 
   const linkElement = document.createElement("a");
@@ -1434,7 +1435,9 @@ function injectDemoModal(demo) {
   linkElement.setAttribute("target", "_blank");
   linkElement.innerHTML = "Click here for a demo!";
   linkElement.style.cssText =
-    "margin-top: 8px;" + "font-size: 1.875rem;" + "line-height: 2.25rem;";
+    "display: inline-block;" +
+    "margin-top: 2rem;" +
+    "font-size: var(--font-size-md);";
 
   textDiv.appendChild(textElement);
   textDiv.appendChild(linkElement);
@@ -1452,6 +1455,8 @@ function injectDemoModal(demo) {
     "position:absolute;top:10%;left:50%;" +
     "transform: translateX(-50%);" +
     "width:80%;height:70%;" +
+    "overflow: hidden;" +
+    "border-radius: 8px;" +
     "background-color: #F1F4FD;";
 
   // add the newly created element and its content into the DOM
