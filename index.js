@@ -432,9 +432,19 @@ let websiteDemo = new ProjectDemo(
 websiteDemo.x += Math.floor(websiteDemo.width / 2);
 let projectSpacing = 300;
 
-let lamboChaseImage = new Image();
-lamboChaseImage.src = "./images/lamboChaseProj.webp";
-images = [lamboChaseImage];
+imageURLS = [
+  "./images/lambo_images/lambo1.webp",
+  "./images/lambo_images/lambo2.webp",
+  "./images/lambo_images/lambo3.webp",
+  "./images/lambo_images/lambo4.webp",
+];
+
+images = new Array(imageURLS.length);
+for (let i = 0; i < images.length; i++) {
+  images[i] = new Image();
+  images[i].src = imageURLS[i];
+}
+
 let lamboChaseDemo = new ProjectDemo(
   Math.floor(websiteDemo.x + websiteDemo.width / 2 + projectSpacing),
   Math.floor(Floor.height / 2) - 100,
@@ -445,21 +455,8 @@ let lamboChaseDemo = new ProjectDemo(
 );
 lamboChaseDemo.x += Math.floor(lamboChaseDemo.width / 2);
 
-let emojiTextImage = new Image();
-emojiTextImage.src = "./images/emojiTextProj.webp";
-images = [emojiTextImage];
-let emojiTextDemo = new ProjectDemo(
-  Math.floor(lamboChaseDemo.x + lamboChaseDemo.width / 2 + projectSpacing),
-  Math.floor(Floor.height / 2) - 100,
-  images,
-  "Emoji Text",
-  "Converts text to emoji.",
-  "./emojiText/emojiText.html"
-);
-emojiTextDemo.x += Math.floor(emojiTextDemo.width / 2);
-
 var demos = new Array();
-demos.push(websiteDemo, lamboChaseDemo, emojiTextDemo);
+demos.push(websiteDemo, lamboChaseDemo);
 
 // "Here are some of my projects"
 endX =
@@ -585,7 +582,7 @@ instagramImage.src = "./images/ig.png";
 const gtImage = new Image();
 gtImage.src = "./images/gt.png";
 
-const objectHeight = Floor.height - 300;
+const objectHeight = Math.floor(c.canvas.height * 0.2);
 
 let likes = new imageObject(
   (textBubbleArray[9].minX + textBubbleArray[9].maxX) / 2 -
@@ -641,6 +638,15 @@ let microsoftRectangles = [rect1, rect2, rect3, rect4];
  * Animation Loop
  */
 const loop = function () {
+  if (FrameCount == 30) {
+    demos.forEach((demo) => {
+      let { whiteBoxWidth, whiteBoxHeight, lines } =
+        demo.calculateHeaderDimensions();
+      demo.whiteBoxWidth = whiteBoxWidth;
+      demo.whiteBoxHeight = whiteBoxHeight;
+      demo.lines = lines;
+    });
+  }
   /*
    * Responsive Scaling
    */
@@ -1412,6 +1418,13 @@ function injectDemoModal(demo) {
     imageList.appendChild(currentImageElement);
   }
 
+  imageListContent = Array.from(imageList.children);
+  imageListContent.forEach((item) => {
+    const duplicatedItem = item.cloneNode(true);
+    duplicatedItem.setAttribute("aria-hidden", true);
+    imageList.appendChild(duplicatedItem);
+  });
+
   sliderWrapper.appendChild(imageList);
   imageContainer.appendChild(sliderWrapper);
 
@@ -1451,13 +1464,14 @@ function injectDemoModal(demo) {
     "display:flex;" +
     "flex-direction: column;" +
     "align-items: center;" +
-    "justify-content: space-between;" +
+    "justify-content: center;" +
     "position:absolute;top:10%;left:50%;" +
     "transform: translateX(-50%);" +
     "width:80%;height:70%;" +
+    "max-width:90%;" +
     "overflow: hidden;" +
     "border-radius: 8px;" +
-    "background-color: #F1F4FD;";
+    "background: linear-gradient(#F1F4FD 0%, #F1F4FD 50%, #FFF 80%);";
 
   // add the newly created element and its content into the DOM
   const currentDiv = document.getElementById("canvas");
