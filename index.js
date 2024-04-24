@@ -286,7 +286,7 @@ const codingStory = [
   "If I am talking too slowly, feel free to use the scroll wheel.",
   "Here's what I've been working on recently.",
   "Let me tell you a little bit about myself:",
-  "Exploring how to creatively use technology to create a unique experience is a passion of mine, as is rock climbing. Both have taught me creative problem solving, time-management skills, and the determination to achieve.",
+  "I'm a full-stack software engineer experienced with C#, React, TypeScript, and the HTML/CSS/JS stack. Currently learning Elixir, LiveView + Phoenix, PostgreSQL, and WebGL.",
   "I was born and raised in Atlanta, Georgia. There, I graduated from Georgia Tech with a B.S. in Computational Media and a B.S. in Chinese.",
   "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
   "I got a glimpse at what software engineering inside Big Tech is like.",
@@ -294,8 +294,7 @@ const codingStory = [
   "Some additional things about me: I like creating, walks at night, and adventure in the great outdoors.",
   "Dislikes include: loud places, Atlanta traffic, looking at my phone too much, and alfredo pasta (too cheesy)",
   "At the start of 2023, I made a big bet on myself: I took a hiatus from my software career to focus on being a professional athelete and became a member on the US Team for climbing.",
-  "I learned a lot and fell a lot. In the end, I realized that I'm the happiest when I'm approaching both my work and my play with a balance. Now, I'm exploring epic climbing lines in nature and continuing my software journey.",
-  "I am curious about React, graphics, VR/AR, WebGL, and modern front-end tech in general. I think the Vision Pro is the coolest thing and I love the movie Ready Player One.",
+  "I fell a lot, and learned even more: I realized that I'm the happiest when I have the right balance between work and play. Now, I'm and continuing my software journey while also exploring epic climbs outside.",
   "If you have an idea to create something cool or just want to chat, I’d love to get to know you better, so feel free to reach me at muehring.luke@gmail.com",
   "Thanks for getting to know me a little.",
 ];
