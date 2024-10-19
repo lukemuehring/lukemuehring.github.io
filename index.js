@@ -130,8 +130,10 @@ const spawnX = 100;
 
 const Player = {
   x: spawnX,
+  screenX: spawnX,
   xVelocity: 0,
   y: 0,
+  screenY: 0,
   yVelocity: 0,
   height: 160,
   width: 94,
@@ -170,6 +172,7 @@ Camera.prototype.update = function () {
     this.following.x > this.maxX + this.width / 2
   ) {
     this.following.screenX = this.following.x - this.x;
+    this.following.screenY = this.following.y - this.y;
   }
 };
 
@@ -209,6 +212,10 @@ const Controller = {
 const Mouse = {
   x: 0,
   y: 0,
+  prevX: 0,
+  prevY: 0,
+  dx: 0,
+  dy: 0,
 };
 
 /*
@@ -740,6 +747,7 @@ const loop = function () {
       Math.floor(backgroundObjects[i].y)
     );
   }
+  gt.y += Math.sin(0.05 * FrameCount);
 
   if (arrowKeys.isVisible) {
     arrowKeys.draw();
@@ -839,40 +847,14 @@ const loop = function () {
   }
 
   // Mouse Draw
-  // c.save();
-  // /*
-  //  * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
-  //  * imageData gives back a one-dimensional array containing the data in the RGBA order,
-  //  * which is why we skip by 4 in the for loop.
-  //  */
-
-  // let mouseSquareLength = 32;
-  // let imageData = c.getImageData(
-  //   Mouse.x - mouseSquareLength / 2,
-  //   Mouse.y - mouseSquareLength / 2,
-  //   mouseSquareLength,
-  //   mouseSquareLength
-  // ).data;
-  // for (let i = 0; i < imageData.length; i += 4) {
-  //   c.fillStyle = `rgb(
-  //     ${255 - imageData[i]}
-  //     ${255 - imageData[i + 1]}
-  //     ${255 - imageData[i + 2]})`;
-
-  //   let pixelIndex = i / 4;
-  //   let rowToFlip, colToFlip;
-  //   rowToFlip = colToFlip = 0;
-  //   rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
-  //   colToFlip += pixelIndex % mouseSquareLength;
-
-  //   c.fillRect(
-  //     Mouse.x - mouseSquareLength / 2 + colToFlip,
-  //     Mouse.y - mouseSquareLength / 2 + rowToFlip,
-  //     1,
-  //     1
-  //   );
-  // }
-  // c.restore();
+  if (
+    Mouse.x > Player.screenX - Player.width / 2 &&
+    Mouse.x < Player.screenX + Player.width / 2
+  ) {
+    if (Mouse.y > Player.screenY - Player.height && Mouse.y < Player.screenY) {
+      scrambleDrawPixelsAtMouse(c);
+    }
+  }
 
   /*
    * Animation
@@ -883,6 +865,48 @@ const loop = function () {
     FrameCount = 0;
   }
 };
+
+// ---------------------------------------------------------END ANIMATION LOOP----------------------------------------
+
+/*
+ * Scrambles the pixels around the mouse as a visual effect
+ * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+ * imageData gives back a one-dimensional array containing the data in the RGBA order,
+ * which is why we skip by 4 in the for loop.
+ */
+function scrambleDrawPixelsAtMouse(context) {
+  let c = context;
+  c.save();
+
+  let mouseSquareLength = 32;
+  let imageData = c.getImageData(
+    Mouse.x - mouseSquareLength / 2,
+    Mouse.y - mouseSquareLength / 2,
+    mouseSquareLength,
+    mouseSquareLength
+  ).data;
+  for (let i = 0; i < imageData.length; i += 4) {
+    c.fillStyle = `rgb(
+      ${imageData[i]}
+      ${imageData[i + 1]}
+      ${imageData[i + 2]})`;
+
+    let pixelIndex = i / 4;
+    let rowToFlip, colToFlip;
+    rowToFlip = colToFlip = 0;
+    rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
+    colToFlip += pixelIndex % mouseSquareLength;
+
+    c.fillRect(
+      Mouse.x + 0.5 * Mouse.dx - mouseSquareLength / 2 + colToFlip,
+      Mouse.y + 0.5 * Mouse.dy - mouseSquareLength / 2 + rowToFlip,
+      1,
+      1
+    );
+  }
+
+  c.restore();
+}
 
 function handleCanvasResize(context) {
   context.canvas.width = window.innerWidth;
@@ -1360,20 +1384,39 @@ function scrollPlayer(event) {
 
 function updateMousePosition(event) {
   if (Mouse.x != event.clientX) {
+    Mouse.prevX = Mouse.x;
     Mouse.x = event.clientX;
+    Mouse.dx = Mouse.x - Mouse.prevX;
   }
   if (Mouse.y != event.clientY) {
+    Mouse.prevY = Mouse.y;
     Mouse.y = event.clientY;
+    Mouse.dy = Mouse.y - Mouse.prevY;
   }
 }
 
-function sendToLink(event) {
+function onClick(event) {
+  let wasLinkClicked = checkIfLinkClicked(event);
+  // if (!wasLinkClicked) {
+  //   movePlayerToScreenCoords(event.screenX, event.screenY);
+  // }
+}
+
+// todo fix
+function movePlayerToScreenCoords(x, y) {
+  console.log("moving to" + "(" + x + "," + y + ")");
+
+  (Player.screenX = x), (Player.screenY = y);
+}
+
+function checkIfLinkClicked(event) {
   for (let i = 0; i < demos.length; i++) {
     if (demos[i].hover && !ProjectDemo.demoModalOpen) {
       injectDemoModal(demos[i]);
-      return;
+      return true;
     }
   }
+  return false;
 }
 
 function injectDemoModal(demo) {
@@ -1523,7 +1566,7 @@ function handleTouchMove(evt) {
       }
       ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
     } else {
-      console.log("can't figure out which touch to continue");
+      console.error("can't figure out which touch to continue");
     }
   }
 }
@@ -1537,7 +1580,7 @@ function handleTouchEnd(evt) {
     if (idx >= 0) {
       ongoingTouches.splice(idx, 1); // remove it; we're done
     } else {
-      console.log("can't figure out which touch to end");
+      console.error("can't figure out which touch to end");
     }
   }
 }
@@ -1559,7 +1602,7 @@ window.addEventListener("keyup", Controller.keyListener);
 window.addEventListener("wheel", scrollPlayer, { passive: false });
 
 window.addEventListener("mousemove", updateMousePosition);
-window.addEventListener("click", sendToLink);
+window.addEventListener("click", onClick);
 
 window.addEventListener("touchstart", handleTouchStart);
 window.addEventListener("touchend", handleTouchEnd);
