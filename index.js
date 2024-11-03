@@ -293,15 +293,10 @@ const codingStory = [
   "If I am talking too slowly, feel free to use the scroll wheel.",
   "Here's what I've been working on recently.",
   "Let me tell you a little bit about myself:",
-  "I'm a full-stack software engineer experienced with C#, React, TypeScript, and the HTML/CSS/JS stack. Currently learning Elixir, LiveView + Phoenix, PostgreSQL, and WebGL.",
+  "I'm a full-stack software engineer experienced with using React, Angular, and C#.",
   "I was born and raised in Atlanta, Georgia. There, I graduated from Georgia Tech with a B.S. in Computational Media and a B.S. in Chinese.",
   "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
-  "I got a glimpse at what software engineering inside Big Tech is like.",
-  "Together with my team, I improved the DevOps infrastructure for software engineers across Microsoft. I used C#, React, TypeScript and NodeJS to implement a system that ensures compliance requirements on all pull requests.",
-  "Some additional things about me: I like creating, walks at night, and adventure in the great outdoors.",
-  "Dislikes include: loud places, Atlanta traffic, looking at my phone too much, and alfredo pasta (too cheesy)",
-  "At the start of 2023, I made a big bet on myself: I took a hiatus from my software career to focus on being a professional athelete and became a member on the US Team for climbing.",
-  "I fell a lot, and learned even more: I realized that I'm the happiest when I have the right balance between work and play. Now, I'm and continuing my software journey while also exploring epic climbs outside.",
+  "Then I moved to Utah after making the US Team for competitive rock climbing, and I decided to stay for the mountains.",
   "If you have an idea to create something cool or just want to chat, I’d love to get to know you better, so feel free to reach me at muehring.luke@gmail.com",
   "Thanks for getting to know me a little.",
 ];
@@ -581,37 +576,11 @@ const fontTimeout = setTimeout(() => {
 var animateText = false;
 var textAlpha = 0;
 
-const likesImage = new Image();
-likesImage.src = "./images/likes.png";
-const instagramImage = new Image();
-instagramImage.src = "./images/ig.png";
-const gtImage = new Image();
-gtImage.src = "./images/gt.png";
-
 const objectHeight = Math.floor(c.canvas.height * 0.2);
-
-let likes = new imageObject(
-  (textBubbleArray[9].minX + textBubbleArray[9].maxX) / 2 -
-    likesImage.width / 2,
-  objectHeight,
-  likesImage
-);
-let instagram = new imageObject(
-  (textBubbleArray[10].minX + textBubbleArray[10].maxX) / 2 -
-    instagramImage.width / 2,
-  objectHeight,
-  instagramImage
-);
-let gt = new imageObject(
-  (textBubbleArray[5].minX + textBubbleArray[5].maxX) / 2 - 150,
-  objectHeight,
-  gtImage
-);
-backgroundObjects.push(likes, instagram, gt);
 
 const CircleRadius = 100;
 const CircleCenter = {
-  x: (textBubbleArray[7].minX + textBubbleArray[7].maxX) / 2,
+  x: (textBubbleArray[6].minX + textBubbleArray[6].maxX) / 2,
   y: objectHeight,
 };
 let rect1 = {
@@ -747,14 +716,12 @@ const loop = function () {
       Math.floor(backgroundObjects[i].y)
     );
   }
-  gt.y += Math.sin(0.05 * FrameCount);
 
   if (arrowKeys.isVisible) {
     arrowKeys.draw();
   }
 
   drawRotatingMicrosoftLogo(c, microsoftRectangles);
-  // drawInstagram(c, textBubbleArray[12].minX, textBubbleArray[12].maxX);
 
   /*
    * Demos Draw
