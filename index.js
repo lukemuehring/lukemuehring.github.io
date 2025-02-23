@@ -268,7 +268,7 @@ function TextBubble(text, x, y, minX, maxX) {
   this.x = x;
   this.y = y;
   (this.minX = minX), (this.maxX = maxX), (this.fontSize = FontHeadingLevels.P);
-  this.maxLineWidth = Math.floor(c.canvas.width / 1.3);
+  this.maxLineWidth = Math.floor(c.canvas.width / 1.5);
   this.leading = TextLeading;
   this.elementPadding = ElementPadding;
 
@@ -289,14 +289,16 @@ TextBubble.prototype.cornerImage = cornerImage;
 TextBubble.prototype.triangleImage = triangleImage;
 
 const codingStory = [
-  "Welcome to my website! I'm a software engineer currently based in Salt Lake City.",
+  "Welcome to my website! I'm a software engineer and climber based in Salt Lake City.",
   "If I am talking too slowly, feel free to use the scroll wheel.",
   "Here's what I've been working on recently.",
   "Let me tell you a little bit about myself:",
-  "I'm a full-stack software engineer experienced with using React, Angular, and C#.",
-  "I was born and raised in Atlanta, Georgia. There, I graduated from Georgia Tech with a B.S. in Computational Media and a B.S. in Chinese.",
+  "I'm a full-stack software engineer with 5+ years of experience. I've built SPAs with React and Angular, and APIs with C#.",
+  "I was born and raised in Atlanta, Georgia. There, I graduated from Georgia Tech with a B.S. in Computational Media (and also Chinese).",
   "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
-  "Then I moved to Utah after making the US Team for competitive rock climbing, and I decided to stay for the mountains.",
+  "I made the US Team for competitive rock climbing, so I quit my job and moved to Utah to give my professional athlete career a shot.",
+  "Even though that didn't pan out the way I expected, I decided to stay for the mountains. Now, I'm building full stack applications for Utah's largest physician group, Revere Health.",
+  "Outside of work, I like to pursue my interests in climbing and creative coding. I'm currently psyched on creative coding for the web and learning Swift to make VisionOS apps (I'm starting my Apple fanboy arc).",
   "If you have an idea to create something cool or just want to chat, I’d love to get to know you better, so feel free to reach me at muehring.luke@gmail.com",
   "Thanks for getting to know me a little.",
 ];
@@ -433,31 +435,9 @@ let websiteDemo = new ProjectDemo(
 websiteDemo.x += Math.floor(websiteDemo.width / 2);
 let projectSpacing = 300;
 
-imageURLS = [
-  "./images/lambo_images/lambo1.webp",
-  "./images/lambo_images/lambo2.webp",
-  "./images/lambo_images/lambo3.webp",
-  "./images/lambo_images/lambo4.webp",
-];
-
-images = new Array(imageURLS.length);
-for (let i = 0; i < images.length; i++) {
-  images[i] = new Image();
-  images[i].src = imageURLS[i];
-}
-
-let lamboChaseDemo = new ProjectDemo(
-  Math.floor(websiteDemo.x + websiteDemo.width / 2 + projectSpacing),
-  Math.floor(Floor.height / 2) - 100,
-  images,
-  "Lambo Chase GBA",
-  "a 2D platformer GameBoy Advance game.\nWritten in C and features collision detection, game states, and memory management.",
-  "https://youtu.be/cMJ9Ia6SovY"
-);
-lamboChaseDemo.x += Math.floor(lamboChaseDemo.width / 2);
 
 var demos = new Array();
-demos.push(websiteDemo, lamboChaseDemo);
+demos.push(websiteDemo);
 
 // "Here are some of my projects"
 endX =
@@ -508,11 +488,12 @@ for (let i = 3; i < codingStory.length; i++) {
 
 cutOffFloorEdgesInMap(c);
 
+const welcome = "HEY, I'M LUKE";
 const welcomeText = new Text(
-  "Hey! I'm Luke.",
+  welcome,
   Math.floor(c.canvas.width / 2),
   c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
-  calculateFontFitForLargeText("Hey! I'm Luke.", FontHeadingLevels.H1)
+  calculateFontFitForLargeText(welcome, FontHeadingLevels.H1)
 );
 
 function calculateFontFitForLargeText(text, initialFontSize) {
@@ -612,214 +593,229 @@ let microsoftRectangles = [rect1, rect2, rect3, rect4];
 /*
  * Animation Loop
  */
-const loop = function () {
-  if (FrameCount == 30) {
-    demos.forEach((demo) => {
-      let { whiteBoxWidth, whiteBoxHeight, lines } =
-        demo.calculateHeaderDimensions();
-      demo.whiteBoxWidth = whiteBoxWidth;
-      demo.whiteBoxHeight = whiteBoxHeight;
-      demo.lines = lines;
-    });
-  }
-  /*
-   * Responsive Scaling
-   */
-  if (
-    window.innerWidth != c.canvas.width ||
-    window.innerHeight != c.canvas.height
-  ) {
-    handleCanvasResize(c);
-  }
+let lastTime = 0;
+const targetFPS = 60;
+const frameDuration = 1000 / targetFPS; // 16.67 per frame, of 60 frames per second
 
-  /*
-   * Controller Input
-   */
-  if (Player.y > Floor.height && userInputIsAllowed) {
-    userInputIsAllowed = false;
-    setTimeout(() => {
-      Player.x = spawnX;
-      Player.y = 0;
+function loop(timestamp) {
+  // calculate time elapsed since last frame
+  const deltaTime = timestamp - lastTime;
+  if (deltaTime >= frameDuration) {
+    lastTime = timestamp - (deltaTime % frameDuration);
+
+    if (FrameCount == 30) {
+      demos.forEach((demo) => {
+        let { whiteBoxWidth, whiteBoxHeight, lines } =
+          demo.calculateHeaderDimensions();
+        demo.whiteBoxWidth = whiteBoxWidth;
+        demo.whiteBoxHeight = whiteBoxHeight;
+        demo.lines = lines;
+      });
+    }
+    /*
+    * Responsive Scaling
+    */
+    if (
+      window.innerWidth != c.canvas.width ||
+      window.innerHeight != c.canvas.height
+    ) {
+      handleCanvasResize(c);
+    }
+
+    /*
+    * Controller Input
+    */
+    if (Player.y > Floor.height && userInputIsAllowed) {
+      userInputIsAllowed = false;
+      setTimeout(() => {
+        Player.x = spawnX;
+        Player.y = 0;
+        Player.xVelocity = 0;
+        Player.yVelocity = 0;
+        userInputIsAllowed = true;
+      }, 1000);
+    }
+
+    if (
+      (Controller.up || Controller.left || Controller.right) &&
+      userInputIsAllowed
+    ) {
+      Controller.userInputRegistered = true;
+      if (Controller.up && Player.state != PlayerStates.Jumping) {
+        Player.yVelocity -= JumpHeight;
+      }
+      if (Controller.left) {
+        Player.xVelocity -= 0.5;
+      }
+
+      if (Controller.right) {
+        Player.xVelocity += 0.5;
+      }
+    }
+
+    /*
+    * Gravity and Friction
+    */
+    Player.yVelocity += Gravity;
+    Player.x += Player.xVelocity;
+    Player.y += Player.yVelocity;
+
+    Player.xVelocity *= 0.9;
+
+    // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
+    if (Player.xVelocity <= 0.2 && Player.xVelocity >= -0.2) {
       Player.xVelocity = 0;
+    }
+    Player.yVelocity += 0.9;
+
+    /*
+    * Floor Collision
+    */
+    if (
+      Player.y > Floor.height &&
+      Player.x < Floor.rightX &&
+      Player.x > Floor.leftX
+    ) {
+      Player.y = Floor.height;
       Player.yVelocity = 0;
-      userInputIsAllowed = true;
-    }, 1000);
-  }
-
-  if (
-    (Controller.up || Controller.left || Controller.right) &&
-    userInputIsAllowed
-  ) {
-    Controller.userInputRegistered = true;
-    if (Controller.up && Player.state != PlayerStates.Jumping) {
-      Player.yVelocity -= JumpHeight;
-    }
-    if (Controller.left) {
-      Player.xVelocity -= 0.5;
     }
 
-    if (Controller.right) {
-      Player.xVelocity += 0.5;
-    }
-  }
+    // Constraining Player to x range [0, Map Size]
+    Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
 
-  /*
-   * Gravity and Friction
-   */
-  Player.yVelocity += Gravity;
-  Player.x += Player.xVelocity;
-  Player.y += Player.yVelocity;
+    camera.update();
 
-  Player.xVelocity *= 0.9;
+    /*
+    * Background Draw
+    */
+    c.save();
+    c.fillStyle = "rgb(" + Bg1.color + ")";
+    c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+    c.restore();
 
-  // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
-  if (Player.xVelocity <= 0.2 && Player.xVelocity >= -0.2) {
-    Player.xVelocity = 0;
-  }
-  Player.yVelocity += 0.9;
+    drawBackground(c, Bg0);
+    drawBackground(c, Bg1);
 
-  /*
-   * Floor Collision
-   */
-  if (
-    Player.y > Floor.height &&
-    Player.x < Floor.rightX &&
-    Player.x > Floor.leftX
-  ) {
-    Player.y = Floor.height;
-    Player.yVelocity = 0;
-  }
-
-  // Constraining Player to x range [0, Map Size]
-  Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
-
-  camera.update();
-
-  /*
-   * Background Draw
-   */
-  c.save();
-  c.fillStyle = "rgb(" + Bg1.color + ")";
-  c.fillRect(0, 0, c.canvas.width, c.canvas.height);
-  c.restore();
-
-  drawBackground(c, Bg0);
-  drawBackground(c, Bg1);
-
-  /*
-   * Background Object Draw
-   */
-  for (let i = 0; i < backgroundObjects.length; i++) {
-    c.drawImage(
-      backgroundObjects[i].image,
-      Math.floor(backgroundObjects[i].x - camera.x),
-      Math.floor(backgroundObjects[i].y)
-    );
-  }
-
-  if (arrowKeys.isVisible) {
-    arrowKeys.draw();
-  }
-
-  drawRotatingMicrosoftLogo(c, microsoftRectangles);
-
-  /*
-   * Demos Draw
-   */
-  c.save();
-  if (animateText) {
-    c.globalAlpha = 100 * textAlpha ** 3;
-    textAlpha += 0.01;
-    if (c.globalAlpha >= 1) {
-      animateText = false;
-    }
-  }
-
-  for (let i = 0; i < demos.length; i++) {
-    demos[i].draw(c);
-    if (
-      demos[i].detectMouseHover(
-        demos[i].x,
-        demos[i].y,
-        demos[i].width,
-        demos[i].height
-      )
-    ) {
-      // draw transparent rectangle for demo
-      drawHoverBox(
-        c,
-        demos[i].x,
-        demos[i].y,
-        demos[i].width,
-        demos[i].height,
-        demos[i].borderColorsTopBottom.length
-      );
-    }
-  }
-
-  /*
-   * Text Draw
-   */
-  for (let i = 0; i < welcomeTextArray.length; i++) {
-    welcomeTextArray[i].draw(c, welcomeTextArray[i]);
-  }
-
-  for (let i = 0; i < textBubbleArray.length; i++) {
-    if (
-      textBubbleArray[i].minX < Player.x &&
-      textBubbleArray[i].maxX > Player.x
-    ) {
-      textBubbleArray[i].draw(c);
-    }
-  }
-  c.restore();
-
-  /*
-   * Player Draw
-   */
-  drawPlayer(c);
-
-  /*
-   * Foreground Object Draw
-   */
-  for (let i = 0; i < foregroundObjects.length; i++) {
-    foregroundObjects[i].draw(c);
-  }
-
-  /*
-   * Floor Draw
-   */
-  var startCol = Math.floor(camera.x / Map.tsize);
-  var endCol = startCol + camera.width / Map.tsize + 2;
-  var offsetX = -camera.x + startCol * Map.tsize;
-
-  for (let column = startCol; column < endCol; column++) {
-    for (let row = 0; row < Map.rows; row++) {
-      const tile = Map.getTile(column, row);
-      const x = (column - startCol) * Map.tsize + offsetX;
-      const y = row * Map.tsize;
-
+    /*
+    * Background Object Draw
+    */
+    for (let i = 0; i < backgroundObjects.length; i++) {
       c.drawImage(
-        tileSheet, // image
-        tile * Map.tsize, // source x
-        0, // source y
-        Map.tsize, // source width
-        Map.tsize, // source height
-        Math.floor(x), // target x
-        y + Floor.height, // target y
-        Map.tsize, // target width
-        Map.tsize // target height
+        backgroundObjects[i].image,
+        Math.floor(backgroundObjects[i].x - camera.x),
+        Math.floor(backgroundObjects[i].y)
       );
     }
-  }
 
-  // Mouse Draw
-  if (
-    Mouse.x > Player.screenX - Player.width / 2 &&
-    Mouse.x < Player.screenX + Player.width / 2
-  ) {
-    if (Mouse.y > Player.screenY - Player.height && Mouse.y < Player.screenY) {
-      scrambleDrawPixelsAtMouse(c);
+    if (arrowKeys.isVisible) {
+      arrowKeys.draw();
+    }
+
+    drawRotatingMicrosoftLogo(c, microsoftRectangles);
+
+    /*
+    * Demos Draw
+    */
+    c.save();
+    if (animateText) {
+      c.globalAlpha = 100 * textAlpha ** 3;
+      textAlpha += 0.01;
+      if (c.globalAlpha >= 1) {
+        animateText = false;
+      }
+    }
+
+    for (let i = 0; i < demos.length; i++) {
+      demos[i].draw(c);
+      if (
+        demos[i].detectMouseHover(
+          demos[i].x,
+          demos[i].y,
+          demos[i].width,
+          demos[i].height
+        )
+      ) {
+        // draw transparent rectangle for demo
+        drawHoverBox(
+          c,
+          demos[i].x,
+          demos[i].y,
+          demos[i].width,
+          demos[i].height,
+          demos[i].borderColorsTopBottom.length
+        );
+      }
+    }
+
+    /*
+    * Text Draw
+    */
+    for (let i = 0; i < welcomeTextArray.length; i++) {
+      welcomeTextArray[i].draw(c, welcomeTextArray[i]);
+    }
+
+    for (let i = 0; i < textBubbleArray.length; i++) {
+      if (
+        textBubbleArray[i].minX < Player.x &&
+        textBubbleArray[i].maxX > Player.x
+      ) {
+        textBubbleArray[i].draw(c);
+      }
+    }
+    c.restore();
+
+    /*
+    * Player Draw
+    */
+    drawPlayer(c);
+
+    /*
+    * Foreground Object Draw
+    */
+    for (let i = 0; i < foregroundObjects.length; i++) {
+      foregroundObjects[i].draw(c);
+    }
+
+    /*
+    * Floor Draw
+    */
+    var startCol = Math.floor(camera.x / Map.tsize);
+    var endCol = startCol + camera.width / Map.tsize + 2;
+    var offsetX = -camera.x + startCol * Map.tsize;
+
+    for (let column = startCol; column < endCol; column++) {
+      for (let row = 0; row < Map.rows; row++) {
+        const tile = Map.getTile(column, row);
+        const x = (column - startCol) * Map.tsize + offsetX;
+        const y = row * Map.tsize;
+
+        c.drawImage(
+          tileSheet, // image
+          tile * Map.tsize, // source x
+          0, // source y
+          Map.tsize, // source width
+          Map.tsize, // source height
+          Math.floor(x), // target x
+          y + Floor.height, // target y
+          Map.tsize, // target width
+          Map.tsize // target height
+        );
+      }
+    }
+
+    // Mouse Draw
+    if (
+      Mouse.x > Player.screenX - Player.width / 2 &&
+      Mouse.x < Player.screenX + Player.width / 2
+    ) {
+      if (Mouse.y > Player.screenY - Player.height && Mouse.y < Player.screenY) {
+        scrambleDrawPixelsAtMouse(c);
+      }
+    }
+
+    FrameCount++;
+    if (FrameCount >= Number.MAX_SAFE_INTEGER) {
+      FrameCount = 0;
     }
   }
 
@@ -827,10 +823,7 @@ const loop = function () {
    * Animation
    */
   window.requestAnimationFrame(loop);
-  FrameCount++;
-  if (FrameCount >= Number.MAX_SAFE_INTEGER) {
-    FrameCount = 0;
-  }
+ 
 };
 
 // ---------------------------------------------------------END ANIMATION LOOP----------------------------------------
@@ -1332,11 +1325,11 @@ function drawFlippedImage(context, image, x, y) {
 }
 
 function getFont(fontSize) {
-  if (document.fonts.check("12px 'Handjet'")) {
-    return fontSize + "px 'Handjet'";
-  } else if (document.fonts.check("12px 'Arial Narrow'")) {
-    return fontSize - 8 + "px 'Arial Narrow'";
-  } else {
+  
+  if (document.fonts.check("12px 'VT323'")) {
+    return fontSize + "px 'VT323'";
+  } 
+  else {
     return fontSize - 8 + "px sans-serif";
   }
 }
@@ -1582,9 +1575,7 @@ window.addEventListener("touchmove", handleTouchMove);
  */
 
 /*  TODO
- * change the emoji text demo to computational photography demo
- * make a demo for seam carving on youtube
- * delete the climbing section
  * improve the graphics for the story
+* replace text bubble with actual html
  * add links for resume, github, and linked in (near the front)
  */
