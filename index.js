@@ -245,8 +245,8 @@ function imageObject(x, y, img) {
  */
 const FontHeadingLevels = {
   H1: c.canvas.width <= 500 ? 80 : 100,
-  H2: c.canvas.width <= 500 ? 33 : 38,
-  P: c.canvas.width <= 500 ? 25 : 30,
+  H2: c.canvas.width <= 500 ? 33 : 48,
+  P: c.canvas.width <= 500 ? 25 : 38,
 };
 
 function Text(words, x, y, fontSize) {
@@ -542,7 +542,7 @@ var welcomeTextArray = [welcomeText];
 // Animation to mitigate FOUT and fade in
 var canShowText = false;
 const fontInterval = setInterval(() => {
-  if (document.fonts.check("12px 'Handjet'")) {
+  if (document.fonts.check("12px 'VT323'")) {
     canShowText = true;
     animateText = true;
     clearInterval(fontInterval);
@@ -1442,17 +1442,17 @@ function injectDemoModal(demo) {
   const textElement = document.createElement("p");
   const textNode = document.createTextNode(demo.text);
   textElement.style.cssText =
-    "font-size: var(--font-size-md);" + "white-space: pre-line;";
+    "font-size: var(--font-size-lg);" + "white-space: pre-line;";
   textElement.appendChild(textNode);
 
   const linkElement = document.createElement("a");
   linkElement.setAttribute("href", demo.link);
   linkElement.setAttribute("target", "_blank");
-  linkElement.innerHTML = "Click here for a demo!";
+  linkElement.innerHTML = "See it live!";
   linkElement.style.cssText =
     "display: inline-block;" +
     "margin-top: 2rem;" +
-    "font-size: var(--font-size-md);";
+    "font-size: var(--font-size-lg);";
 
   textDiv.appendChild(textElement);
   textDiv.appendChild(linkElement);
