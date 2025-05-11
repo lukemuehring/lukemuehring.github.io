@@ -108,3 +108,70 @@ canvas {
     transform: translate(calc(-50% - 0.5rem));
   }
 }
+
+/* Toast container styles */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Toast notification styles */
+.toast {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(#f1f4fd 0%, #f1f4fd 50%, #fff 80%);
+  padding: 10px;
+  color: #333;
+  font-size: var(--font-size-xxxl);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.toast-in {
+  animation: toast-in 0.5s forwards;
+}
+
+.toast-out {
+  animation: toast-out 0.5s forwards;
+}
+
+/* Animation for showing the toast with mosaic effect */
+/* https://codepen.io/collection/BNZzRL?cursor=eyJwYWdlIjoxMn0= */
+@keyframes toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: contrast(200%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: contrast(100%);
+  }
+}
+
+/* Animation for hiding the toast with mosaic effect */
+@keyframes toast-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: contrast(100%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: contrast(200%);
+  }
+}

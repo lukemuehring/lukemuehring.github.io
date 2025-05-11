@@ -36,8 +36,8 @@ function trackProgress() {
 /*
  * Game Variables
  */
-let canvas = document.querySelector("canvas");
-const c = canvas.getContext("2d");
+const CANVAS_DOM_ELEMENT = document.getElementById("canvas");
+const c = CANVAS_DOM_ELEMENT.getContext("2d");
 
 c.canvas.width = window.innerWidth;
 c.canvas.height = window.innerHeight;
@@ -126,7 +126,7 @@ const PlayerStates = {
   Walking: 2,
 };
 
-const spawnX = 100;
+const spawnX = c.canvas.width / 2;
 
 const Player = {
   x: spawnX,
@@ -241,9 +241,9 @@ function imageObject(x, y, img) {
 }
 
 /*
- * Text
+ * Text and Fonts
  */
-const FontHeadingLevels = {
+const FONT_HEADING = {
   H1: c.canvas.width <= 500 ? 80 : 100,
   H2: c.canvas.width <= 500 ? 33 : 48,
   P: c.canvas.width <= 500 ? 25 : 38,
@@ -267,7 +267,7 @@ function TextBubble(text, x, y, minX, maxX) {
   this.text = text;
   this.x = x;
   this.y = y;
-  (this.minX = minX), (this.maxX = maxX), (this.fontSize = FontHeadingLevels.P);
+  (this.minX = minX), (this.maxX = maxX), (this.fontSize = FONT_HEADING.P);
   this.maxLineWidth = Math.floor(c.canvas.width / 1.5);
   this.leading = TextLeading;
   this.elementPadding = ElementPadding;
@@ -322,25 +322,34 @@ for (let i = 0; i < 2; i++) {
 }
 
 /*
- * Project Demos
+ * Button
+ * Used for menu screen buttons and the project demos.
  */
-class ProjectDemo {
-  static demoModalOpen = false;
-  constructor(x, y, images, headerText, text, link) {
-    const ProjectDemoMaxLineWidth = Math.min(1000, c.canvas.width - 50);
+class Button {
+  // global flag if modal is open
+  static IsModalOpen = false;
+  constructor({
+    x,
+    y,
+    images = null,
+    headerText,
+    headerTextSize = FONT_HEADING.H1,
+    text = null,
+    link,
+    onClick,
+  }) {
+    const BTN_MAX_LINE_WIDTH = Math.min(1000, c.canvas.width - 50);
 
     this.x = x;
     this.y = y;
     this.images = images;
     this.headerText = headerText;
     this.text = text;
-    this.fontSize = calculateFontFitForLargeText(
-      this.headerText,
-      FontHeadingLevels.H1
-    );
+    this.fontSize = calculateHeadingFontSize(this.headerText, headerTextSize);
     this.link = link;
+    this.onClick = onClick;
 
-    this.maxLineWidth = ProjectDemoMaxLineWidth;
+    this.maxLineWidth = BTN_MAX_LINE_WIDTH;
     this.leading = TextLeading;
     this.elementPadding = ElementPadding;
 
@@ -356,10 +365,8 @@ class ProjectDemo {
     this.width = whiteBoxWidth + this.borderColorsTopBottom.length * 2;
     this.height = whiteBoxHeight + this.borderColorsLeftRight.length * 2;
 
-    this.draw = this.drawProjectDemo;
-    this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithText;
-    this.detectMouseHover = detectMouseHover;
-    this.modalOpen = false;
+    this.draw = this.drawButton;
+    this.hover = false;
   }
 
   calculateHeaderDimensions() {
@@ -383,31 +390,56 @@ class ProjectDemo {
     };
   }
 
-  drawProjectDemo(context) {
+  drawButton(context) {
     if (!canShowText) {
       return;
     }
 
-    const { width: demoWidth, height: demoHeight } =
-      this.drawWhiteBoxWithTextAndImage(
-        context,
-        this.x - camera.x,
-        this.y,
-        this.whiteBoxHeight,
-        this.whiteBoxWidth,
-        this.lines,
-        this.fontSize,
-        this.leading,
-        this.borderColorsLeftRight,
-        this.borderColorsTopBottom,
-        this.elementPadding
-      );
+    const { width: btnWidth, height: btnHeight } = drawWhiteBoxWithText(
+      context,
+      this.x - camera.x,
+      this.y,
+      this.whiteBoxHeight,
+      this.whiteBoxWidth,
+      this.lines,
+      this.fontSize,
+      this.leading,
+      this.borderColorsLeftRight,
+      this.borderColorsTopBottom,
+      this.elementPadding
+    );
 
-    this.width = demoWidth;
-    this.height = demoHeight;
+    this.width = btnWidth;
+    this.height = btnHeight;
+  }
+
+  /**
+   * Detects if the mouse is within the box bounds
+   * @returns if the mouse is within the box or not
+   */
+  detectMouseHover() {
+    // If modal is open, disable hovering
+    if (Button.IsModalOpen) {
+      console.log("modal is open for", this);
+
+      this.hover = false;
+      return false;
+    }
+
+    this.hover = false;
+    if (
+      Mouse.x >= this.x - this.width / 2 - camera.x &&
+      Mouse.x <= this.x + this.width / 2 - camera.x
+    ) {
+      if (Mouse.y >= this.y && Mouse.y < this.y + this.height) {
+        this.hover = true;
+      }
+    }
+    return this.hover;
   }
 }
 
+// #region --- Project Demos ---
 let imageURLS = [
   "./images/rr_images/rr1.webp",
   "./images/rr_images/rr2.webp",
@@ -423,23 +455,70 @@ for (let i = 0; i < images.length; i++) {
   images[i].src = imageURLS[i];
 }
 
-let websiteDemo = new ProjectDemo(
-  textBubbleArray[1].maxX,
-  Math.floor(Floor.height / 2) - 100,
-  images,
-  "restandrelaxvacation.com",
-  "a rental website for Rest & Relax Vacation in Gulf Shores, AL.\nBuilt with React 18 and Tailwind CSS.",
-  "https://restandrelaxvacation.com"
-);
+const websiteDemo = new Button({
+  x: textBubbleArray[1].maxX,
+  y: Math.floor(Floor.height / 2) - 100,
+  images: images,
+  headerText: "restandrelaxvacation.com",
+  text: "A rental website for Rest & Relax Vacation in Gulf Shores, AL.\nBuilt with React 18 and Tailwind CSS.",
+  link: "https://restandrelaxvacation.com",
+  onClick: injectDemoModal,
+});
 
 websiteDemo.x += Math.floor(websiteDemo.width / 2);
 let projectSpacing = 300;
 
-
 var demos = new Array();
 demos.push(websiteDemo);
+// #endregion
 
-// "Here are some of my projects"
+// #region --- Menu Buttons ---
+var menuButtons = new Array();
+
+const emailMeBtn = new Button({
+  x: 300,
+  y: camera.height / 2,
+  headerText: "Email Me",
+  headerTextSize: FONT_HEADING.H2,
+  link: "muehring.luke@gmail.com",
+  onClick: () => {
+    navigator.clipboard.writeText("muehring.luke@gmail.com");
+    showToast("Email copied to clipboard!");
+  },
+});
+
+function showToast(message, duration = 3000, containerId = "toastContainer") {
+  const newDiv = document.createElement("div");
+  newDiv.classList.add("toast", "toast-in");
+  newDiv.textContent = message;
+
+  const container = document.getElementById(containerId);
+  container.appendChild(newDiv);
+
+  // Set a timeout to remove the toast after the specified duration
+  setTimeout(() => {
+    newDiv.classList.remove("toast-in");
+    newDiv.classList.add("toast-out");
+
+    setTimeout(() => {
+      console.log("removing div");
+      newDiv.remove(); // Remove the toast after animation
+    }, 500); // Wait for animation to finish
+  }, duration);
+}
+
+const linkedInBtn = new Button({
+  x: 600,
+  y: camera.height / 2,
+  headerText: "LinkedIn",
+  headerTextSize: FONT_HEADING.H2,
+  link: "https://www.linkedin.com/in/lukemuehring/",
+});
+
+menuButtons.push(emailMeBtn, linkedInBtn);
+// #endregion
+
+// #region Continue story from "Here are some of my projects"
 endX =
   demos[demos.length - 1].x + Math.floor(demos[demos.length - 1].width / 2);
 textBubbleArray.push(
@@ -465,26 +544,156 @@ for (let i = 3; i < codingStory.length; i++) {
   );
   startX = endX;
 }
+// #endregion
 
-// const climbingStory = [
-//   "I've been climbing for 11 years now, and I love it more and more.",
-//   "In the past decade, I've scrambled my way up boulders, routes, cracks, compeititon rounds, deep water solos, and even the 15 meter speed wall.",
-//   "My climbing achievements always teach me how to think outside of the box, push myself to accomplish the epic, and find balance in life.",
-//   "When I'm on the wall, and not freaking out about the height, my mind can find a focus where I don't think about anything else.",
-//   "I started climbing in my first year of high school. Instead of doing intramural sports with classmates or going to football games after school, I would go to the climbing gym.",
-//   'I didn\'t fit the mold of a "normal" high schooler. No one really did at the climbing gym, which made it so interesting to meet people.',
-//   "After switching out my punch pass for a membership at the climbing gym, I joined a youth team and started training with them.",
-//   "It was a fine balance to chase grades both in the climbing gym and in school. My time had to be handled more carefully, and I sacrificed other activities competing for my time. Including the Call of Duty.",
-//   "I had an implicit agreement with my parents: they would keep sending me to the gym as long as I kept up my grades at school.",
-//   "Little did I know back then that this was setting the framework of how I would find balance with climbing and the rest of my life while in college, and in developing my professional career.",
-//   "In 2020, I made my first open Nationals final, which takes the top 8 athletes in the US.",
-//   "Over a hundred competitors get filtered through the qualifier and semifinal rounds to make it to the final. It was a challenging competition requiring mastery in three climbing disciplines: speed, lead and bouldering. The winner would go on to take a ticket that sent them to the 2020 Olympics.",
-//   "Although I didn't win that ticket, I felt like I broke through the barrier of making the final round in my climbing. I was also pushing through a challenging junior year in college, balancing a heavy course load with my responsibilities as an RA.",
-//   "It's funny how my best competition result so far is when I was working full-time as a software engineer at Microsoft. At the 2022 US Open Nationals, I got 3rd in bouldering and 4th in lead 😁.",
-//   "It seems like the formula for success in my climbing and my career requires balance. So I'm trying to continue my Hannah Montana lifestyle to this day.",
-//   "But when I'm not training for competitions or grinding LeetCode, I love getting some fresh air outside and climbing on real rocks. Especially sandstone.",
-//   "Thanks for getting to know me a little.",
-// ];
+// #region  --- Click event handling + HTML injection ---
+// On click event handler
+function onClick(event) {
+  let obj = checkIfObjectClicked(event);
+  if (obj) {
+    console.log(obj);
+
+    obj.onClick(obj);
+  }
+
+  // if (!wasLinkClicked) {
+  //   movePlayerToScreenCoords(event.screenX, event.screenY);
+  // }
+}
+
+// todo fix
+function movePlayerToScreenCoords(x, y) {
+  console.log("moving to" + "(" + x + "," + y + ")");
+
+  (Player.screenX = x), (Player.screenY = y);
+}
+
+/**
+ *  Checks if an object was clicked,
+ * if so, we call the object's onClick function
+ * @param event
+ * @returns the object that was clicked
+ */
+function checkIfObjectClicked(event) {
+  // check project demos
+  for (let i = 0; i < demos.length; i++) {
+    if (demos[i].hover && !Button.IsModalOpen) {
+      return demos[i];
+    }
+  }
+
+  // check menu buttons
+  for (let i = 0; i < menuButtons.length; i++) {
+    if (menuButtons[i].hover) {
+      return menuButtons[i];
+    }
+  }
+  return null;
+}
+
+function injectDemoModal(demo) {
+  // create a new div element
+  const newDiv = document.createElement("div");
+
+  // Header
+  const headerElement = document.createElement("p");
+  const headerTextNode = document.createTextNode(demo.headerText);
+  headerElement.appendChild(headerTextNode);
+  headerElement.style.cssText =
+    "width: fit-content;" +
+    "font-size: var(--font-size-xxl);" +
+    "margin: 2rem;";
+
+  // X to close modal
+  const xButtonElement = document.createElement("button");
+  xButtonElement.innerHTML = "&times";
+  xButtonElement.setAttribute("class", "xModal");
+  xButtonElement.addEventListener("click", () => {
+    document.body.removeChild(newDiv);
+    Button.IsModalOpen = false;
+    userInputIsAllowed = true;
+  });
+
+  //Images
+  const imageContainer = document.createElement("div");
+  imageContainer.setAttribute("class", "container");
+
+  const sliderWrapper = document.createElement("div");
+  sliderWrapper.setAttribute("class", "slider-wrapper");
+
+  const imageList = document.createElement("div");
+  imageList.setAttribute("class", "image-list");
+
+  const imageElements = [];
+  for (let i = 0; i < demo.images.length; i++) {
+    let currentImageElement = document.createElement("img");
+    currentImageElement.setAttribute("class", "image-item");
+    currentImageElement.src = demo.images[i].src;
+    imageList.appendChild(currentImageElement);
+  }
+
+  imageListContent = Array.from(imageList.children);
+  imageListContent.forEach((item) => {
+    const duplicatedItem = item.cloneNode(true);
+    duplicatedItem.setAttribute("aria-hidden", true);
+    imageList.appendChild(duplicatedItem);
+  });
+
+  sliderWrapper.appendChild(imageList);
+  imageContainer.appendChild(sliderWrapper);
+
+  // Text Div
+  const textDiv = document.createElement("div");
+  textDiv.style.cssText =
+    "height: fit-content;" +
+    "width: 100%;" +
+    "position: relative;" +
+    "padding: 1rem;" +
+    "text-align: center;";
+
+  const textElement = document.createElement("p");
+  const textNode = document.createTextNode(demo.text);
+  textElement.style.cssText =
+    "font-size: var(--font-size-lg);" + "white-space: pre-line;";
+  textElement.appendChild(textNode);
+
+  const linkElement = document.createElement("a");
+  linkElement.setAttribute("href", demo.link);
+  linkElement.setAttribute("target", "_blank");
+  linkElement.innerHTML = "See it live!";
+  linkElement.style.cssText =
+    "display: inline-block;" +
+    "margin-top: 2rem;" +
+    "font-size: var(--font-size-lg);";
+
+  textDiv.appendChild(textElement);
+  textDiv.appendChild(linkElement);
+
+  newDiv.appendChild(headerElement);
+  newDiv.appendChild(xButtonElement);
+  newDiv.appendChild(imageContainer);
+  newDiv.appendChild(textDiv);
+
+  newDiv.style.cssText =
+    "display:flex;" +
+    "flex-direction: column;" +
+    "align-items: center;" +
+    "justify-content: center;" +
+    "position:absolute;top:10%;left:50%;" +
+    "transform: translateX(-50%);" +
+    "width:80%;height:70%;" +
+    "max-width:90%;" +
+    "overflow: hidden;" +
+    "border-radius: 8px;" +
+    "background: linear-gradient(#F1F4FD 0%, #F1F4FD 50%, #FFF 80%);";
+
+  // add the newly created element and its content into the DOM
+  document.body.insertBefore(newDiv, CANVAS_DOM_ELEMENT);
+
+  Button.IsModalOpen = true;
+  userInputIsAllowed = false; //todo wtf
+}
+// #endregion
 
 cutOffFloorEdgesInMap(c);
 
@@ -493,19 +702,27 @@ const welcomeText = new Text(
   welcome,
   Math.floor(c.canvas.width / 2),
   c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
-  calculateFontFitForLargeText(welcome, FontHeadingLevels.H1)
+  calculateHeadingFontSize(welcome, FONT_HEADING.H1)
 );
 
-function calculateFontFitForLargeText(text, initialFontSize) {
+/**
+ * calculates the font size needed for the heading to fit in the screen
+ */
+function calculateHeadingFontSize(text, initialFontSize) {
   c.save();
+
   let currentFontSize = initialFontSize;
-  c.font = getFont(currentFontSize);
-  let currentWidth = c.measureText(text).width;
-  while (currentWidth > c.canvas.width - 50) {
+  c.font = getCanvasFontString(currentFontSize);
+
+  // Scale down font size until it fits the screen.
+  let currentFontWidthInPx = c.measureText(text).width;
+  while (currentFontWidthInPx > c.canvas.width - 50) {
     currentFontSize -= 10;
-    c.font = getFont(currentFontSize);
-    currentWidth = c.measureText(text).width;
+    c.font = getCanvasFontString(currentFontSize);
+    currentFontWidthInPx = c.measureText(text).width;
   }
+
+  c.restore();
   return currentFontSize;
 }
 const arrowKeysImage = new Image();
@@ -531,8 +748,8 @@ arrowKeys.draw = () => {
   if (arrowKeys.isVisible && !Controller.userInputRegistered) {
     c.drawImage(
       arrowKeys.image,
-      arrowKeys.x - camera.x,
-      arrowKeys.y - camera.y
+      Math.floor(arrowKeys.x - camera.x),
+      Math.floor(arrowKeys.y - camera.y)
     );
   }
 };
@@ -559,6 +776,7 @@ var textAlpha = 0;
 
 const objectHeight = Math.floor(c.canvas.height * 0.2);
 
+// #region --- MSFT logo ---
 const CircleRadius = 100;
 const CircleCenter = {
   x: (textBubbleArray[6].minX + textBubbleArray[6].maxX) / 2,
@@ -589,10 +807,8 @@ let rect4 = {
   color: "255 186 8",
 };
 let microsoftRectangles = [rect1, rect2, rect3, rect4];
-
-/*
- * Animation Loop
- */
+// #endregion
+// #region --- Animation Loop ---
 let lastTime = 0;
 const targetFPS = 60;
 const frameDuration = 1000 / targetFPS; // 16.67 per frame, of 60 frames per second
@@ -613,8 +829,8 @@ function loop(timestamp) {
       });
     }
     /*
-    * Responsive Scaling
-    */
+     * Responsive Scaling
+     */
     if (
       window.innerWidth != c.canvas.width ||
       window.innerHeight != c.canvas.height
@@ -623,8 +839,8 @@ function loop(timestamp) {
     }
 
     /*
-    * Controller Input
-    */
+     * Controller Input
+     */
     if (Player.y > Floor.height && userInputIsAllowed) {
       userInputIsAllowed = false;
       setTimeout(() => {
@@ -654,8 +870,8 @@ function loop(timestamp) {
     }
 
     /*
-    * Gravity and Friction
-    */
+     * Gravity and Friction
+     */
     Player.yVelocity += Gravity;
     Player.x += Player.xVelocity;
     Player.y += Player.yVelocity;
@@ -669,8 +885,8 @@ function loop(timestamp) {
     Player.yVelocity += 0.9;
 
     /*
-    * Floor Collision
-    */
+     * Floor Collision
+     */
     if (
       Player.y > Floor.height &&
       Player.x < Floor.rightX &&
@@ -686,8 +902,8 @@ function loop(timestamp) {
     camera.update();
 
     /*
-    * Background Draw
-    */
+     * Background Draw
+     */
     c.save();
     c.fillStyle = "rgb(" + Bg1.color + ")";
     c.fillRect(0, 0, c.canvas.width, c.canvas.height);
@@ -697,8 +913,8 @@ function loop(timestamp) {
     drawBackground(c, Bg1);
 
     /*
-    * Background Object Draw
-    */
+     * Background Object Draw
+     */
     for (let i = 0; i < backgroundObjects.length; i++) {
       c.drawImage(
         backgroundObjects[i].image,
@@ -714,8 +930,8 @@ function loop(timestamp) {
     drawRotatingMicrosoftLogo(c, microsoftRectangles);
 
     /*
-    * Demos Draw
-    */
+     * Demos Draw
+     */
     c.save();
     if (animateText) {
       c.globalAlpha = 100 * textAlpha ** 3;
@@ -727,14 +943,7 @@ function loop(timestamp) {
 
     for (let i = 0; i < demos.length; i++) {
       demos[i].draw(c);
-      if (
-        demos[i].detectMouseHover(
-          demos[i].x,
-          demos[i].y,
-          demos[i].width,
-          demos[i].height
-        )
-      ) {
+      if (demos[i].detectMouseHover()) {
         // draw transparent rectangle for demo
         drawHoverBox(
           c,
@@ -747,9 +956,24 @@ function loop(timestamp) {
       }
     }
 
+    // Menu Buttons Draw
+    for (let i = 0; i < menuButtons.length; i++) {
+      menuButtons[i].draw(c);
+      if (menuButtons[i].detectMouseHover()) {
+        drawHoverBox(
+          c,
+          menuButtons[i].x,
+          menuButtons[i].y,
+          menuButtons[i].width,
+          menuButtons[i].height,
+          menuButtons[i].borderColorsTopBottom.length
+        );
+      }
+    }
+
     /*
-    * Text Draw
-    */
+     * Text Draw
+     */
     for (let i = 0; i < welcomeTextArray.length; i++) {
       welcomeTextArray[i].draw(c, welcomeTextArray[i]);
     }
@@ -765,20 +989,20 @@ function loop(timestamp) {
     c.restore();
 
     /*
-    * Player Draw
-    */
+     * Player Draw
+     */
     drawPlayer(c);
 
     /*
-    * Foreground Object Draw
-    */
+     * Foreground Object Draw
+     */
     for (let i = 0; i < foregroundObjects.length; i++) {
       foregroundObjects[i].draw(c);
     }
 
     /*
-    * Floor Draw
-    */
+     * Floor Draw
+     */
     var startCol = Math.floor(camera.x / Map.tsize);
     var endCol = startCol + camera.width / Map.tsize + 2;
     var offsetX = -camera.x + startCol * Map.tsize;
@@ -796,7 +1020,7 @@ function loop(timestamp) {
           Map.tsize, // source width
           Map.tsize, // source height
           Math.floor(x), // target x
-          y + Floor.height, // target y
+          Math.floor(y + Floor.height), // target y
           Map.tsize, // target width
           Map.tsize // target height
         );
@@ -804,11 +1028,15 @@ function loop(timestamp) {
     }
 
     // Mouse Draw
+    drawMouse(demos, menuButtons);
     if (
       Mouse.x > Player.screenX - Player.width / 2 &&
       Mouse.x < Player.screenX + Player.width / 2
     ) {
-      if (Mouse.y > Player.screenY - Player.height && Mouse.y < Player.screenY) {
+      if (
+        Mouse.y > Player.screenY - Player.height &&
+        Mouse.y < Player.screenY
+      ) {
         scrambleDrawPixelsAtMouse(c);
       }
     }
@@ -823,51 +1051,10 @@ function loop(timestamp) {
    * Animation
    */
   window.requestAnimationFrame(loop);
- 
-};
-
-// ---------------------------------------------------------END ANIMATION LOOP----------------------------------------
-
-/*
- * Scrambles the pixels around the mouse as a visual effect
- * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
- * imageData gives back a one-dimensional array containing the data in the RGBA order,
- * which is why we skip by 4 in the for loop.
- */
-function scrambleDrawPixelsAtMouse(context) {
-  let c = context;
-  c.save();
-
-  let mouseSquareLength = 32;
-  let imageData = c.getImageData(
-    Mouse.x - mouseSquareLength / 2,
-    Mouse.y - mouseSquareLength / 2,
-    mouseSquareLength,
-    mouseSquareLength
-  ).data;
-  for (let i = 0; i < imageData.length; i += 4) {
-    c.fillStyle = `rgb(
-      ${imageData[i]}
-      ${imageData[i + 1]}
-      ${imageData[i + 2]})`;
-
-    let pixelIndex = i / 4;
-    let rowToFlip, colToFlip;
-    rowToFlip = colToFlip = 0;
-    rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
-    colToFlip += pixelIndex % mouseSquareLength;
-
-    c.fillRect(
-      Mouse.x + 0.5 * Mouse.dx - mouseSquareLength / 2 + colToFlip,
-      Mouse.y + 0.5 * Mouse.dy - mouseSquareLength / 2 + rowToFlip,
-      1,
-      1
-    );
-  }
-
-  c.restore();
 }
+// #endregion Animation Loop
 
+// #region --- Map and Responsive Scaling ---
 function handleCanvasResize(context) {
   context.canvas.width = window.innerWidth;
   context.canvas.height = window.innerHeight;
@@ -877,13 +1064,9 @@ function handleCanvasResize(context) {
 
   resizeMap(context);
 
-  for (let i = 0; i < textBubbleArray.length; i++) {
-    textBubbleArray[i].maxLineWidth = context.canvas.width / 1.3;
-  }
+  resizeText(context);
 
-  FontHeadingLevels.H1.value = context.canvas.width <= 500 ? 80 : 100;
-  FontHeadingLevels.H2.value = context.canvas.width <= 500 ? 33 : 38;
-  FontHeadingLevels.P.value = context.canvas.width <= 500 ? 25 : 30;
+  // console.log("canvas resize"); todo fix rescaling
 }
 
 function resizeMap(context) {
@@ -902,6 +1085,24 @@ function resizeMap(context) {
   cutOffFloorEdgesInMap(context);
 }
 
+function resizeText(context) {
+  for (let i = 0; i < textBubbleArray.length; i++) {
+    textBubbleArray[i].maxLineWidth = context.canvas.width / 1.3;
+  }
+
+  for (let i = 0; i < demos.length; i++) {
+    demos[i].maxLineWidth = context.canvas.width / 1.3;
+  }
+
+  for (let i = 0; i < menuButtons.length; i++) {
+    menuButtons[i].maxLineWidth = context.canvas.width / 1.3;
+  }
+
+  FONT_HEADING.H1.value = context.canvas.width <= 500 ? 80 : 100;
+  FONT_HEADING.H2.value = context.canvas.width <= 500 ? 33 : 38;
+  FONT_HEADING.P.value = context.canvas.width <= 500 ? 25 : 30;
+}
+
 function cutOffFloorEdgesInMap(context) {
   let row = 0;
   let rightEndX = textBubbleArray[codingStory.length - 1].maxX;
@@ -914,6 +1115,7 @@ function cutOffFloorEdgesInMap(context) {
     Map.tiles.fill(2, j, Map.cols * row);
   }
 }
+// #endregion
 
 function drawPlayer(context) {
   if (Player.y < Floor.height) {
@@ -970,8 +1172,8 @@ function drawPlayer(context) {
   } else {
     c.drawImage(
       Player.image,
-      Player.screenX - Player.width / 2,
-      Player.y - Player.image.naturalHeight
+      Math.floor(Player.screenX - Player.width / 2),
+      Math.floor(Player.y - Player.image.naturalHeight)
     );
   }
 }
@@ -987,44 +1189,8 @@ function drawBackground(context, background) {
 
     background.locations[i] -= background.moveRate;
 
-    context.drawImage(background.image, background.locations[i], 0);
+    context.drawImage(background.image, Math.floor(background.locations[i]), 0);
   }
-}
-
-function drawRotatingMicrosoftLogo(context, microsoftRectangles) {
-  context.save();
-  for (let i = 0; i < microsoftRectangles.length; i++) {
-    microsoftRectangles[i].angle += 0.01;
-    microsoftRectangles[i].x =
-      CircleCenter.x + Math.cos(microsoftRectangles[i].angle) * CircleRadius;
-    microsoftRectangles[i].y =
-      CircleCenter.y + Math.sin(microsoftRectangles[i].angle) * CircleRadius;
-    context.fillStyle = "rgb(" + microsoftRectangles[i].color + ")";
-    context.fillRect(
-      Math.floor(microsoftRectangles[i].x - camera.x),
-      Math.floor(microsoftRectangles[i].y),
-      150,
-      150
-    );
-  }
-  context.restore();
-}
-
-function drawInstagram(context, minX, maxX) {
-  context.save();
-  if (Player.x > minX && Player.x < maxX) {
-    let igScreenX = instagram.x - camera.x + instagramImage.width / 2;
-    let igScreenY = instagram.y - camera.y + instagramImage.height / 2;
-    let playerX = Player.screenX;
-    let playerY = Player.y - Player.height;
-    context.strokeStyle = "red";
-    context.lineWidth = 15;
-    context.beginPath();
-    context.moveTo(igScreenX, igScreenY);
-    context.lineTo(playerX, playerY);
-    context.stroke();
-  }
-  context.restore();
 }
 
 function drawText(context, text) {
@@ -1032,7 +1198,7 @@ function drawText(context, text) {
     return;
   }
 
-  context.font = getFont(text.fontSize);
+  context.font = getCanvasFontString(text.fontSize);
   context.fillText(
     text.words,
     text.x - camera.x - context.measureText(text.words).width / 2,
@@ -1040,11 +1206,12 @@ function drawText(context, text) {
   );
 }
 
+// this draws the speech bubbles above the player
 function drawTextBubble(context) {
   if (!canShowText) {
     return;
   }
-  context.font = getFont(this.fontSize);
+  context.font = getCanvasFontString(this.fontSize);
   const { whiteBoxHeight, whiteBoxWidth, linesOfTextArray } = getLinesOfText(
     context,
     this.text,
@@ -1082,29 +1249,16 @@ function drawTextBubble(context) {
     drawFlippedImage(
       context,
       this.triangleImage,
-      this.x,
-      this.y + whiteBoxHeight
+      Math.floor(this.x),
+      Math.floor(this.y + whiteBoxHeight)
     );
   }
 }
 
-function detectMouseHover(x, y, width, height) {
-  if (
-    Mouse.x >= x - width / 2 - camera.x &&
-    Mouse.x <= x + width / 2 - camera.x
-  ) {
-    if (Mouse.y >= y && Mouse.y < y + height) {
-      this.hover = true;
-      return true;
-    }
-  }
-  this.hover = false;
-  return false;
-}
-
+// "on:hover" overlay effect for demos
 function drawHoverBox(context, x, y, width, height, borderLength) {
   context.save();
-  context.fillStyle = "rgb(0 0 0 / .5)";
+  context.fillStyle = "rgb(0 0 0 / .2)";
   context.fillRect(
     Math.floor(x - camera.x) - width / 2,
     Math.floor(y - camera.y - borderLength),
@@ -1126,12 +1280,13 @@ function drawHoverBox(context, x, y, width, height, borderLength) {
   // context.moveTo(textX, textY + padding);
   // context.lineTo(textX + context.measureText("learn more").width, textY + padding);
   // context.stroke();
-  // context.restore();
+
+  context.restore();
 }
 
 function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
   context.save();
-  context.font = getFont(fontSize);
+  context.font = getCanvasFontString(fontSize);
 
   let words = text.split(" ");
   let linesOfTextArray = new Array();
@@ -1177,6 +1332,21 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
   };
 }
 
+/**
+ * Draws a white box with text.
+ * @param {*} context
+ * @param {*} x
+ * @param {*} y
+ * @param {*} whiteBoxHeight
+ * @param {*} whiteBoxWidth
+ * @param {*} lines
+ * @param {*} fontSize
+ * @param {*} leading
+ * @param {*} borderColorsLeftRight
+ * @param {*} borderColorsTopBottom
+ * @param {*} padding
+ * @returns
+ */
 function drawWhiteBoxWithText(
   context,
   x,
@@ -1201,7 +1371,7 @@ function drawWhiteBoxWithText(
     whiteBoxHeight
   );
 
-  context.font = getFont(fontSize);
+  context.font = getCanvasFontString(fontSize);
 
   // Drawing the text over the white box
   context.fillStyle = "black";
@@ -1320,20 +1490,27 @@ function drawFlippedImage(context, image, x, y) {
   context.translate(x + image.width / 2, 0);
   context.scale(-1, 1);
   context.translate(-(x + image.width / 2), 0);
-  context.drawImage(image, x, y);
+  context.drawImage(image, Math.floor(x), Math.floor(y));
   context.restore();
 }
 
-function getFont(fontSize) {
-  
+/**
+ * Gets the font string used for setting the CanvasRenderingContext2D.font property.
+ * Checks if the web page has the font VT323 loaded.
+ * If not, we default to sans-serif.
+ * @param {*} fontSize the font size
+ * @returns the font string in the format "{fontSize}px VT323" or "{fontSize}px sans-serif"
+ */
+function getCanvasFontString(fontSize) {
   if (document.fonts.check("12px 'VT323'")) {
     return fontSize + "px 'VT323'";
-  } 
-  else {
+  } else {
     return fontSize - 8 + "px sans-serif";
   }
 }
 
+// Scrolls the player across the screen
+// Note: We can no longer use the scroll wheel to scroll because of this implementation.
 function scrollPlayer(event) {
   Controller.userInputRegistered = true;
   event.preventDefault();
@@ -1342,7 +1519,27 @@ function scrollPlayer(event) {
   }
 }
 
-function updateMousePosition(event) {
+// #region Mouse functions
+/**
+ * updates the cursor style if an object is hovered
+ * @param  {...any} objArrays array of arrays containing objects that could be hovered
+ */
+function drawMouse(...objArrays) {
+  let someElementIsHovered = objArrays.some(
+    (arr) => Array.isArray(arr) && arr.some((el) => el && el["hover"] === true)
+  );
+
+  // Update the cursor style
+  if (someElementIsHovered) {
+    CANVAS_DOM_ELEMENT.style.cursor = "pointer";
+  } else {
+    CANVAS_DOM_ELEMENT.style.cursor = "default";
+  }
+}
+
+// Used for calculating mouse FX based on dx, dy
+// Triggered on mousemove events
+function updateMousePositionData(event) {
   if (Mouse.x != event.clientX) {
     Mouse.prevX = Mouse.x;
     Mouse.x = event.clientX;
@@ -1354,135 +1551,87 @@ function updateMousePosition(event) {
     Mouse.dy = Mouse.y - Mouse.prevY;
   }
 }
+// #endregion
 
-function onClick(event) {
-  let wasLinkClicked = checkIfLinkClicked(event);
-  // if (!wasLinkClicked) {
-  //   movePlayerToScreenCoords(event.screenX, event.screenY);
-  // }
-}
-
-// todo fix
-function movePlayerToScreenCoords(x, y) {
-  console.log("moving to" + "(" + x + "," + y + ")");
-
-  (Player.screenX = x), (Player.screenY = y);
-}
-
-function checkIfLinkClicked(event) {
-  for (let i = 0; i < demos.length; i++) {
-    if (demos[i].hover && !ProjectDemo.demoModalOpen) {
-      injectDemoModal(demos[i]);
-      return true;
-    }
+// #region --- Misc. Drawing and FX ---
+function drawRotatingMicrosoftLogo(context, microsoftRectangles) {
+  context.save();
+  for (let i = 0; i < microsoftRectangles.length; i++) {
+    microsoftRectangles[i].angle += 0.01;
+    microsoftRectangles[i].x =
+      CircleCenter.x + Math.cos(microsoftRectangles[i].angle) * CircleRadius;
+    microsoftRectangles[i].y =
+      CircleCenter.y + Math.sin(microsoftRectangles[i].angle) * CircleRadius;
+    context.fillStyle = "rgb(" + microsoftRectangles[i].color + ")";
+    context.fillRect(
+      Math.floor(microsoftRectangles[i].x - camera.x),
+      Math.floor(microsoftRectangles[i].y),
+      150,
+      150
+    );
   }
-  return false;
+  context.restore();
 }
 
-function injectDemoModal(demo) {
-  // create a new div element
-  const newDiv = document.createElement("div");
+function drawInstagram(context, minX, maxX) {
+  context.save();
+  if (Player.x > minX && Player.x < maxX) {
+    let igScreenX = instagram.x - camera.x + instagramImage.width / 2;
+    let igScreenY = instagram.y - camera.y + instagramImage.height / 2;
+    let playerX = Player.screenX;
+    let playerY = Player.y - Player.height;
+    context.strokeStyle = "red";
+    context.lineWidth = 15;
+    context.beginPath();
+    context.moveTo(igScreenX, igScreenY);
+    context.lineTo(playerX, playerY);
+    context.stroke();
+  }
+  context.restore();
+}
 
-  // Header
-  const headerElement = document.createElement("p");
-  const headerTextNode = document.createTextNode(demo.headerText);
-  headerElement.appendChild(headerTextNode);
-  headerElement.style.cssText =
-    "width: fit-content;" +
-    "font-size: var(--font-size-xxl);" +
-    "margin: 2rem;";
+/*
+ * Scrambles the pixels around the mouse as a visual effect
+ * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
+ * imageData gives back a one-dimensional array containing the data in the RGBA order,
+ * which is why we skip by 4 in the for loop.
+ */
+function scrambleDrawPixelsAtMouse(context) {
+  let c = context;
+  c.save();
 
-  // X to close modal
-  const xButtonElement = document.createElement("button");
-  xButtonElement.innerHTML = "&times";
-  xButtonElement.setAttribute("class", "xModal");
-  xButtonElement.addEventListener("click", () => {
-    document.body.removeChild(newDiv);
-    ProjectDemo.demoModalOpen = false;
-    userInputIsAllowed = true;
-  });
+  let mouseSquareLength = 32;
+  let imageData = c.getImageData(
+    Mouse.x - mouseSquareLength / 2,
+    Mouse.y - mouseSquareLength / 2,
+    mouseSquareLength,
+    mouseSquareLength
+  ).data;
+  for (let i = 0; i < imageData.length; i += 4) {
+    c.fillStyle = `rgb(
+      ${imageData[i]}
+      ${imageData[i + 1]}
+      ${imageData[i + 2]})`;
 
-  //Images
-  const imageContainer = document.createElement("div");
-  imageContainer.setAttribute("class", "container");
+    let pixelIndex = i / 4;
+    let rowToFlip, colToFlip;
+    rowToFlip = colToFlip = 0;
+    rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
+    colToFlip += pixelIndex % mouseSquareLength;
 
-  const sliderWrapper = document.createElement("div");
-  sliderWrapper.setAttribute("class", "slider-wrapper");
-
-  const imageList = document.createElement("div");
-  imageList.setAttribute("class", "image-list");
-
-  const imageElements = [];
-  for (let i = 0; i < demo.images.length; i++) {
-    let currentImageElement = document.createElement("img");
-    currentImageElement.setAttribute("class", "image-item");
-    currentImageElement.src = demo.images[i].src;
-    imageList.appendChild(currentImageElement);
+    c.fillRect(
+      Mouse.x + 0.5 * Mouse.dx - mouseSquareLength / 2 + colToFlip,
+      Mouse.y + 0.5 * Mouse.dy - mouseSquareLength / 2 + rowToFlip,
+      1,
+      1
+    );
   }
 
-  imageListContent = Array.from(imageList.children);
-  imageListContent.forEach((item) => {
-    const duplicatedItem = item.cloneNode(true);
-    duplicatedItem.setAttribute("aria-hidden", true);
-    imageList.appendChild(duplicatedItem);
-  });
-
-  sliderWrapper.appendChild(imageList);
-  imageContainer.appendChild(sliderWrapper);
-
-  // Text Div
-  const textDiv = document.createElement("div");
-  textDiv.style.cssText =
-    "height: fit-content;" +
-    "width: 100%;" +
-    "position: relative;" +
-    "padding: 1rem;" +
-    "text-align: center;";
-
-  const textElement = document.createElement("p");
-  const textNode = document.createTextNode(demo.text);
-  textElement.style.cssText =
-    "font-size: var(--font-size-lg);" + "white-space: pre-line;";
-  textElement.appendChild(textNode);
-
-  const linkElement = document.createElement("a");
-  linkElement.setAttribute("href", demo.link);
-  linkElement.setAttribute("target", "_blank");
-  linkElement.innerHTML = "See it live!";
-  linkElement.style.cssText =
-    "display: inline-block;" +
-    "margin-top: 2rem;" +
-    "font-size: var(--font-size-lg);";
-
-  textDiv.appendChild(textElement);
-  textDiv.appendChild(linkElement);
-
-  newDiv.appendChild(headerElement);
-  newDiv.appendChild(xButtonElement);
-  newDiv.appendChild(imageContainer);
-  newDiv.appendChild(textDiv);
-
-  newDiv.style.cssText =
-    "display:flex;" +
-    "flex-direction: column;" +
-    "align-items: center;" +
-    "justify-content: center;" +
-    "position:absolute;top:10%;left:50%;" +
-    "transform: translateX(-50%);" +
-    "width:80%;height:70%;" +
-    "max-width:90%;" +
-    "overflow: hidden;" +
-    "border-radius: 8px;" +
-    "background: linear-gradient(#F1F4FD 0%, #F1F4FD 50%, #FFF 80%);";
-
-  // add the newly created element and its content into the DOM
-  const currentDiv = document.getElementById("canvas");
-  document.body.insertBefore(newDiv, currentDiv);
-
-  ProjectDemo.demoModalOpen = true;
-  userInputIsAllowed = false;
+  c.restore();
 }
+// #endregion
 
+// #region Touch
 const ongoingTouches = [];
 
 function copyTouch({ identifier, clientX, clientY }) {
@@ -1555,13 +1704,15 @@ function handleTouchCancel(evt) {
   }
 }
 
+// #endregion
+
 // Event Listeners
 window.addEventListener("keydown", Controller.keyListener);
 window.addEventListener("keyup", Controller.keyListener);
 
-window.addEventListener("wheel", scrollPlayer, { passive: false });
+window.addEventListener("wheel", scrollPlayer, { passive: false }); // passive false to tell browser we are calling event.preventDefault()
 
-window.addEventListener("mousemove", updateMousePosition);
+window.addEventListener("mousemove", updateMousePositionData);
 window.addEventListener("click", onClick);
 
 window.addEventListener("touchstart", handleTouchStart);
@@ -1575,7 +1726,10 @@ window.addEventListener("touchmove", handleTouchMove);
  */
 
 /*  TODO
- * improve the graphics for the story
-* replace text bubble with actual html
+ * Menu Buttons
+ * on click, button is pressed UI
+ * on click, something happens
+ * toast notification for
+ * Responsive Scaling? It's not working properly.
  * add links for resume, github, and linked in (near the front)
  */
