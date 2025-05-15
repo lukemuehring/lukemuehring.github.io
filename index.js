@@ -356,11 +356,12 @@ class Button {
     this.borderColorsTopBottom = colors1;
     this.borderColorsLeftRight = colors2;
 
-    let { whiteBoxWidth, whiteBoxHeight, lines } =
+    let { whiteBoxWidth, whiteBoxHeight, lines, lineWidths } =
       this.calculateHeaderDimensions();
     this.whiteBoxWidth = whiteBoxWidth;
     this.whiteBoxHeight = whiteBoxHeight;
     this.lines = lines;
+    this.lineWidths = lineWidths;
 
     this.width = whiteBoxWidth + this.borderColorsTopBottom.length * 2;
     this.height = whiteBoxHeight + this.borderColorsLeftRight.length * 2;
@@ -387,6 +388,7 @@ class Button {
       whiteBoxWidth: Math.floor(whiteBoxWidth),
       whiteBoxHeight: Math.floor(whiteBoxHeight),
       lines: lineDataObject.linesOfTextArray,
+      lineWidths: lineDataObject.linesOfTextWidthsArray,
     };
   }
 
@@ -406,7 +408,8 @@ class Button {
       this.leading,
       this.borderColorsLeftRight,
       this.borderColorsTopBottom,
-      this.elementPadding
+      this.elementPadding,
+      this.lineWidths
     );
 
     this.width = btnWidth;
@@ -420,8 +423,6 @@ class Button {
   detectMouseHover() {
     // If modal is open, disable hovering
     if (Button.IsModalOpen) {
-      console.log("modal is open for", this);
-
       this.hover = false;
       return false;
     }
@@ -476,8 +477,8 @@ demos.push(websiteDemo);
 var menuButtons = new Array();
 
 const emailMeBtn = new Button({
-  x: 300,
-  y: camera.height / 2,
+  x: camera.width * 0.2,
+  y: camera.height * 0.2,
   headerText: "Email Me",
   headerTextSize: FONT_HEADING.H2,
   link: "muehring.luke@gmail.com",
@@ -501,21 +502,49 @@ function showToast(message, duration = 3000, containerId = "toastContainer") {
     newDiv.classList.add("toast-out");
 
     setTimeout(() => {
-      console.log("removing div");
       newDiv.remove(); // Remove the toast after animation
     }, 500); // Wait for animation to finish
   }, duration);
 }
 
 const linkedInBtn = new Button({
-  x: 600,
-  y: camera.height / 2,
+  x: camera.width * 0.8,
+  y: camera.height * 0.2,
   headerText: "LinkedIn",
   headerTextSize: FONT_HEADING.H2,
   link: "https://www.linkedin.com/in/lukemuehring/",
+  onClick: () => {
+    window.open(
+      "https://www.linkedin.com/in/lukemuehring/",
+      "_blank",
+      "noopener,noreferrer"
+    );
+  },
 });
 
-menuButtons.push(emailMeBtn, linkedInBtn);
+const resumeBtn = new Button({
+  x: camera.width * 0.6,
+  y: camera.height * 0.2,
+  headerText: "Resume",
+  headerTextSize: FONT_HEADING.H2,
+  link: "",
+  onClick: () => {
+    window.open("./assets/Luke Muehring Resume.pdf", "_blank");
+  },
+});
+
+const myProjectsBtn = new Button({
+  x: camera.width * 0.4,
+  y: camera.height * 0.2,
+  headerText: "My Projects",
+  headerTextSize: FONT_HEADING.H2,
+  link: "",
+  onClick: () => {
+    // movePlayerToScreenCoords(100, 100);
+  },
+});
+
+menuButtons.push(emailMeBtn, linkedInBtn, resumeBtn, myProjectsBtn);
 // #endregion
 
 // #region Continue story from "Here are some of my projects"
@@ -551,8 +580,6 @@ for (let i = 3; i < codingStory.length; i++) {
 function onClick(event) {
   let obj = checkIfObjectClicked(event);
   if (obj) {
-    console.log(obj);
-
     obj.onClick(obj);
   }
 
@@ -1284,12 +1311,28 @@ function drawHoverBox(context, x, y, width, height, borderLength) {
   context.restore();
 }
 
+/**
+ * Gets the lines of text data object
+ * @param {*} context
+ * @param {*} text
+ * @param {*} fontSize
+ * @param {*} leading
+ * @param {*} maxLineWidth
+ * @returns
+ * {
+ *  whiteBoxHeight: whiteBoxHeight,
+    whiteBoxWidth: whiteBoxWidth,
+    linesOfTextArray: linesOfTextArray,
+    linesOfTextWidthsArray: linesOfTextWidthsArray
+ * }
+ */
 function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
   context.save();
   context.font = getCanvasFontString(fontSize);
 
   let words = text.split(" ");
   let linesOfTextArray = new Array();
+  let linesOfTextWidthsArray = new Array();
   let i = 0;
   let currentMaxLineWidth = 0;
   while (i < words.length) {
@@ -1315,6 +1358,7 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
     }
 
     linesOfTextArray.push(currentLine);
+    linesOfTextWidthsArray.push(currentLineWidth);
 
     if (currentMaxLineWidth < currentLineWidth) {
       currentMaxLineWidth = currentLineWidth;
@@ -1329,6 +1373,7 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
     whiteBoxHeight: whiteBoxHeight,
     whiteBoxWidth: whiteBoxWidth,
     linesOfTextArray: linesOfTextArray,
+    linesOfTextWidthsArray: linesOfTextWidthsArray,
   };
 }
 
@@ -1358,7 +1403,8 @@ function drawWhiteBoxWithText(
   leading,
   borderColorsLeftRight,
   borderColorsTopBottom,
-  padding
+  padding,
+  lineWidths
 ) {
   context.save();
 
@@ -1376,22 +1422,18 @@ function drawWhiteBoxWithText(
   // Drawing the text over the white box
   context.fillStyle = "black";
 
-  if (padding != null) {
-    for (let i = 0; i < lines.length; i++) {
-      context.fillText(
-        lines[i],
-        Math.floor(x - whiteBoxWidth / 2 + padding),
-        Math.floor(y + fontSize + i * (leading + fontSize))
-      );
+  for (let i = 0; i < lines.length; i++) {
+    let xToDraw = x - whiteBoxWidth / 2 + (padding ?? 0.0);
+    if (lineWidths) {
+      let curLineWidth = lineWidths[i];
+      let spaceRemaining = (whiteBoxWidth - curLineWidth) / 2;
+      xToDraw += spaceRemaining;
     }
-  } else {
-    for (let i = 0; i < lines.length; i++) {
-      context.fillText(
-        lines[i],
-        Math.floor(x - whiteBoxWidth / 2),
-        Math.floor(y + fontSize + i * (leading + fontSize))
-      );
-    }
+    context.fillText(
+      lines[i],
+      Math.floor(xToDraw),
+      Math.floor(y + fontSize + i * (leading + fontSize))
+    );
   }
 
   // Top and Bottom borders of the white box

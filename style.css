@@ -130,13 +130,18 @@ canvas {
   width: fit-content;
   overflow: hidden;
   border-radius: 8px;
-  background: linear-gradient(#f1f4fd 0%, #f1f4fd 50%, #fff 80%);
-  padding: 10px;
-  color: #333;
-  font-size: var(--font-size-xxxl);
+  background: linear-gradient(
+    rgba(241, 244, 253, 0.94) 0%,
+    rgba(241, 244, 253, 0.94) 50%,
+    rgba(255, 255, 255, 0.94) 80%
+  );
+  padding: 20px;
+  color: #222222;
+  font-size: var(--font-size-xxl);
   white-space: nowrap;
   opacity: 0;
   transform: translateY(20px);
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .toast-in {
