@@ -473,12 +473,21 @@ var demos = new Array();
 demos.push(websiteDemo);
 // #endregion
 
-// #region --- Menu Buttons ---
+// #region --- First Main Screen ---
+const welcome = "HEY, I'M LUKE";
+const welcomeText = new Text(
+  welcome,
+  Math.floor(c.canvas.width / 2),
+  c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
+  calculateHeadingFontSize(welcome, FONT_HEADING.H1)
+);
+
 var menuButtons = new Array();
+const menuBtnsCircleRadius = 300; // todo make responsive
 
 const emailMeBtn = new Button({
-  x: camera.width * 0.2,
-  y: camera.height * 0.2,
+  x: welcomeText.x + Math.cos(0) * menuBtnsCircleRadius,
+  y: welcomeText.y + Math.sin(0) * menuBtnsCircleRadius,
   headerText: "Email Me",
   headerTextSize: FONT_HEADING.H2,
   link: "muehring.luke@gmail.com",
@@ -487,6 +496,7 @@ const emailMeBtn = new Button({
     showToast("Email copied to clipboard!");
   },
 });
+emailMeBtn.angle = 0;
 
 function showToast(message, duration = 3000, containerId = "toastContainer") {
   const newDiv = document.createElement("div");
@@ -508,8 +518,8 @@ function showToast(message, duration = 3000, containerId = "toastContainer") {
 }
 
 const linkedInBtn = new Button({
-  x: camera.width * 0.8,
-  y: camera.height * 0.2,
+  x: welcomeText.x + Math.cos(0) * menuBtnsCircleRadius,
+  y: welcomeText.y + Math.sin(1) * menuBtnsCircleRadius,
   headerText: "LinkedIn",
   headerTextSize: FONT_HEADING.H2,
   link: "https://www.linkedin.com/in/lukemuehring/",
@@ -521,28 +531,33 @@ const linkedInBtn = new Button({
     );
   },
 });
+linkedInBtn.angle = Math.PI / 2;
 
 const resumeBtn = new Button({
-  x: camera.width * 0.6,
-  y: camera.height * 0.2,
+  x: welcomeText.x + Math.cos(-1) * menuBtnsCircleRadius,
+  y: welcomeText.y + Math.sin(0) * menuBtnsCircleRadius,
+  angle: Math.PI,
   headerText: "Resume",
   headerTextSize: FONT_HEADING.H2,
   link: "",
   onClick: () => {
-    window.open("./assets/Luke Muehring Resume.pdf", "_blank");
+    window.open("./assets/Resume.pdf", "_blank");
   },
 });
+resumeBtn.angle = Math.PI;
 
 const myProjectsBtn = new Button({
-  x: camera.width * 0.4,
-  y: camera.height * 0.2,
+  x: welcomeText.x + Math.cos(-1) * menuBtnsCircleRadius,
+  y: welcomeText.y + Math.sin(-1) * menuBtnsCircleRadius,
+  angle: (Math.PI * 3) / 2,
   headerText: "My Projects",
   headerTextSize: FONT_HEADING.H2,
   link: "",
   onClick: () => {
-    // movePlayerToScreenCoords(100, 100);
+    movePlayerToScreenCoords(websiteDemo.x, Player.y);
   },
 });
+myProjectsBtn.angle = (3 * Math.PI) / 2;
 
 menuButtons.push(emailMeBtn, linkedInBtn, resumeBtn, myProjectsBtn);
 // #endregion
@@ -588,11 +603,14 @@ function onClick(event) {
   // }
 }
 
-// todo fix
+// todo make smooth
 function movePlayerToScreenCoords(x, y) {
-  console.log("moving to" + "(" + x + "," + y + ")");
-
-  (Player.screenX = x), (Player.screenY = y);
+  if (x < Player.x) {
+    while (Player.x < x) {
+      Player.x += 1;
+    }
+  }
+  (Player.x = x), (Player.y = 0);
 }
 
 /**
@@ -724,14 +742,6 @@ function injectDemoModal(demo) {
 
 cutOffFloorEdgesInMap(c);
 
-const welcome = "HEY, I'M LUKE";
-const welcomeText = new Text(
-  welcome,
-  Math.floor(c.canvas.width / 2),
-  c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
-  calculateHeadingFontSize(welcome, FONT_HEADING.H1)
-);
-
 /**
  * calculates the font size needed for the heading to fit in the screen
  */
@@ -814,25 +824,47 @@ let rect1 = {
   y: CircleCenter.y + Math.sin(0),
   angle: 0,
   color: "243 83 37",
+  draw: function (context) {
+    drawColoredRect(context, this.x, this.y, this.color);
+  },
 };
 let rect2 = {
   x: CircleCenter.x + Math.cos(0),
   y: CircleCenter.y + Math.sin(1),
   angle: Math.PI / 2,
   color: "129 188 6",
+  draw: function (context) {
+    drawColoredRect(context, this.x, this.y, this.color);
+  },
 };
 let rect3 = {
   x: CircleCenter.x + Math.cos(-1),
   y: CircleCenter.y + Math.sin(0),
   angle: Math.PI,
   color: "5 166 240",
+  draw: function (context) {
+    drawColoredRect(context, this.x, this.y, this.color);
+  },
 };
 let rect4 = {
   x: CircleCenter.x + Math.cos(-1),
   y: CircleCenter.y + Math.sin(-1),
   angle: (Math.PI * 3) / 2,
   color: "255 186 8",
+  draw: function (context) {
+    drawColoredRect(context, this.x, this.y, this.color);
+  },
 };
+
+function drawColoredRect(context, x, y, color) {
+  context.save();
+
+  context.fillStyle = "rgb(" + color + ")";
+  context.fillRect(Math.floor(x - camera.x), Math.floor(y), 150, 150);
+
+  context.restore();
+}
+
 let microsoftRectangles = [rect1, rect2, rect3, rect4];
 // #endregion
 // #region --- Animation Loop ---
@@ -954,11 +986,21 @@ function loop(timestamp) {
       arrowKeys.draw();
     }
 
-    drawRotatingMicrosoftLogo(c, microsoftRectangles);
-
     /*
-     * Demos Draw
+     * Microsoft Logo Draw
      */
+    rotateArrayItemsAroundCircle(
+      microsoftRectangles,
+      CircleCenter.x,
+      CircleCenter.y,
+      CircleRadius,
+      0.01
+    );
+    for (let rect of microsoftRectangles) {
+      rect.draw(c);
+    }
+
+    // ??? fade in text based off boolean
     c.save();
     if (animateText) {
       c.globalAlpha = 100 * textAlpha ** 3;
@@ -968,10 +1010,13 @@ function loop(timestamp) {
       }
     }
 
+    /*
+     * Demos Draw
+     */
     for (let i = 0; i < demos.length; i++) {
       demos[i].draw(c);
+      // Hover Effect
       if (demos[i].detectMouseHover()) {
-        // draw transparent rectangle for demo
         drawHoverBox(
           c,
           demos[i].x,
@@ -984,8 +1029,17 @@ function loop(timestamp) {
     }
 
     // Menu Buttons Draw
+    rotateArrayItemsAroundCircle(
+      menuButtons,
+      welcomeText.x,
+      welcomeText.y,
+      menuBtnsCircleRadius,
+      0.005
+    );
     for (let i = 0; i < menuButtons.length; i++) {
       menuButtons[i].draw(c);
+
+      // Hover effect
       if (menuButtons[i].detectMouseHover()) {
         drawHoverBox(
           c,
@@ -1596,23 +1650,20 @@ function updateMousePositionData(event) {
 // #endregion
 
 // #region --- Misc. Drawing and FX ---
-function drawRotatingMicrosoftLogo(context, microsoftRectangles) {
-  context.save();
-  for (let i = 0; i < microsoftRectangles.length; i++) {
-    microsoftRectangles[i].angle += 0.01;
-    microsoftRectangles[i].x =
-      CircleCenter.x + Math.cos(microsoftRectangles[i].angle) * CircleRadius;
-    microsoftRectangles[i].y =
-      CircleCenter.y + Math.sin(microsoftRectangles[i].angle) * CircleRadius;
-    context.fillStyle = "rgb(" + microsoftRectangles[i].color + ")";
-    context.fillRect(
-      Math.floor(microsoftRectangles[i].x - camera.x),
-      Math.floor(microsoftRectangles[i].y),
-      150,
-      150
-    );
+/**
+ * updates the positions of all items to rotate clockwise around a circle
+ * @param {*} items array of items to rotate
+ * @param {*} centerX x of circle center
+ * @param {*} centerY y of circle center
+ * @param {*} radius radius of center to items
+ * @param {*} rate the rate of rotation
+ */
+function rotateArrayItemsAroundCircle(items, centerX, centerY, radius, rate) {
+  for (let i = 0; i < items.length; i++) {
+    items[i].angle += rate;
+    items[i].x = centerX + Math.cos(items[i].angle) * radius;
+    items[i].y = centerY + Math.sin(items[i].angle) * radius;
   }
-  context.restore();
 }
 
 function drawInstagram(context, minX, maxX) {

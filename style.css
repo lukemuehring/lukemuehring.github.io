@@ -130,10 +130,11 @@ canvas {
   width: fit-content;
   overflow: hidden;
   border-radius: 8px;
+  backdrop-filter: blur(15px);
   background: linear-gradient(
-    rgba(241, 244, 253, 0.94) 0%,
-    rgba(241, 244, 253, 0.94) 50%,
-    rgba(255, 255, 255, 0.94) 80%
+    rgba(241, 244, 253, 0.7) 0%,
+    rgba(241, 244, 253, 0.7) 50%,
+    rgba(255, 255, 255, 0.7) 80%
   );
   padding: 20px;
   color: #222222;
