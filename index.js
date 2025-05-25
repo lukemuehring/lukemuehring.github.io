@@ -276,7 +276,6 @@ function TextBubble(text, x, y, minX, maxX) {
   this.borderColorsLeftRight = colors2;
 
   this.draw = drawTextBubble;
-  this.drawWhiteBoxWithTextAndImage = drawWhiteBoxWithText;
 }
 
 const cornerImage = new Image();
@@ -350,7 +349,7 @@ class Button {
     this.onClick = onClick;
 
     this.maxLineWidth = BTN_MAX_LINE_WIDTH;
-    this.leading = TextLeading;
+    this.leading = 0;
     this.elementPadding = ElementPadding;
 
     this.borderColorsTopBottom = colors1;
@@ -1293,7 +1292,12 @@ function drawTextBubble(context) {
     return;
   }
   context.font = getCanvasFontString(this.fontSize);
-  const { whiteBoxHeight, whiteBoxWidth, linesOfTextArray } = getLinesOfText(
+  const {
+    whiteBoxHeight,
+    whiteBoxWidth,
+    linesOfTextArray,
+    linesOfTextWidthsArray,
+  } = getLinesOfText(
     context,
     this.text,
     this.fontSize,
@@ -1310,7 +1314,7 @@ function drawTextBubble(context) {
     whiteBoxHeight -
     paddingBetweenDialogAndPlayer;
 
-  this.drawWhiteBoxWithTextAndImage(
+  drawWhiteBoxWithText(
     context,
     this.x,
     this.y,
@@ -1320,7 +1324,9 @@ function drawTextBubble(context) {
     this.fontSize,
     this.leading,
     this.borderColorsLeftRight,
-    this.borderColorsTopBottom
+    this.borderColorsTopBottom,
+    this.elementPadding,
+    linesOfTextWidthsArray
   );
 
   // TextBubble middle triangle above player
@@ -1477,7 +1483,7 @@ function drawWhiteBoxWithText(
   context.fillStyle = "black";
 
   for (let i = 0; i < lines.length; i++) {
-    let xToDraw = x - whiteBoxWidth / 2 + (padding ?? 0.0);
+    let xToDraw = x - whiteBoxWidth / 2 + (padding ?? 0.0) / 2;
     if (lineWidths) {
       let curLineWidth = lineWidths[i];
       let spaceRemaining = (whiteBoxWidth - curLineWidth) / 2;
