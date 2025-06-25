@@ -293,17 +293,17 @@ TextBubble.prototype.cornerImage = cornerImage;
 TextBubble.prototype.triangleImage = triangleImage;
 
 const codingStory = [
-  "Welcome to my website! I'm a software engineer and climber based in Salt Lake City.",
-  "If I am talking too slowly, feel free to use the scroll wheel.",
+  "Welcome! I’m Luke Muehring — a full-stack software engineer with over 3 years of experience and an avid adventurer based in Salt Lake City.",
+  "If I'm talking too slowly, feel free to use the scroll wheel.",
   "Here's what I've been working on recently.",
   "Let me tell you a little bit about myself:",
-  "I'm a full-stack software engineer with over 3 years of experience. I've built SPAs with React and Angular, and APIs with C#.",
+  "For the past three years, I’ve been building SPAs with React and Angular, and developing APIs with C#. I’ve also enjoyed diving into UI design with Figma and managing complex front-end state using Redux.",
   "I was born and raised in Atlanta, Georgia. There, I graduated from Georgia Tech with a B.S. in Computational Media (and also Chinese).",
   "After graduating, I moved to Seattle to begin my first job as a software engineer at Microsoft under the M365 organization.",
   "In 2023, I made the US Team for competitive rock climbing. It was a hard decision, but I decided to give my professional athlete career a shot and moved to Salt Lake City.",
-  "I got to experience full-time training at an elite level, and explored my own interest with coding. I explored front-end design by creating RestAndRelaxVacation.com and the website you're looking at. Now, I'm building full stack applications for Utah's largest physician group, Revere Health.",
-  "Outside of work, I spend most of my time climbing and running across epic mountain ridgelines, and finding ways to be creative with coding.",
-  "Currently, besides learning about full-stack development and system design, I'm exploring how to make iOS and VisionOS apps with Swift and XCode. I'm also training for a sub-24 hour WURL.",
+  "During that year, I trained full-time for elite climbing competitons and explored my own interests with coding. I explored front-end design by creating RestAndRelaxVacation.com, and the website you're looking at. Currently, I'm building full stack applications for Utah's largest physician group, Revere Health.",
+  "Outside of work, I spend most of my time climbing, exploring Utah's epic mountains, and creating new things with code.",
+  "Besides full-stack development and system design, I'm exploring how to make iOS and VisionOS apps with Swift and XCode. Outside of my career, my current outdoor project is training for a sub-24 hour WURL, a 36-mile alpine traverse with 18,000+ feet of elevation gain.",
   "If you have an idea to create something cool or just want to chat, I’d love to get to know you better, so feel free to reach me at muehring.luke@gmail.com",
   "Thanks for getting to know me a little.",
 ];
@@ -384,8 +384,8 @@ class Button {
       this.maxLineWidth
     );
 
+    // ADD PADDING TO BIG BUTTONS
     let whiteBoxWidth = lineDataObject.whiteBoxWidth + this.elementPadding * 2;
-
     let whiteBoxHeight =
       lineDataObject.whiteBoxHeight + this.elementPadding * 2;
 
@@ -520,7 +520,7 @@ document.querySelectorAll("button[data-target]").forEach((button) => {
 
     case "work":
       button.onclick = () => {
-        movePlayerToScreenCoords(websiteDemo.x, Player.y);
+        movePlayerToScreenCoords(websiteDemo.x, 0);
         closeMenu();
       };
       break;
@@ -534,6 +534,12 @@ const menuContainer = document.querySelector(".menu-container");
 hamMenu.addEventListener("click", () => {
   hamMenu.classList.toggle("active");
   menuContainer.classList.toggle("active");
+
+  if (hamMenu.classList.contains("active")) {
+    userInputIsAllowed = false;
+  } else {
+    userInputIsAllowed = true;
+  }
 });
 
 /**
@@ -549,6 +555,8 @@ function closeMenu() {
   if (menuContainer && menuContainer.classList.contains("active")) {
     menuContainer.classList.remove("active");
   }
+
+  userInputIsAllowed = true;
 }
 
 function showToast(message, duration = 3000, containerId = "toastContainer") {
@@ -738,13 +746,14 @@ function injectDemoModal(demo) {
     "max-width:90%;" +
     "overflow: hidden;" +
     "border-radius: 8px;" +
-    "background: linear-gradient(#F1F4FD 0%, #F1F4FD 50%, #FFF 80%);";
+    "background: linear-gradient(#F1F4FD 0%, #F1F4FD 50%, #FFF 80%);" +
+    "z-index: 10;";
 
   // add the newly created element and its content into the DOM
   document.body.insertBefore(newDiv, CANVAS_DOM_ELEMENT);
 
   Button.IsModalOpen = true;
-  userInputIsAllowed = false; //todo wtf
+  userInputIsAllowed = false;
 }
 // #endregion
 
@@ -858,15 +867,6 @@ function loop(timestamp) {
   if (deltaTime >= frameDuration) {
     lastTime = timestamp - (deltaTime % frameDuration);
 
-    if (FrameCount == 30) {
-      demos.forEach((demo) => {
-        let { whiteBoxWidth, whiteBoxHeight, lines } =
-          demo.calculateHeaderDimensions();
-        demo.whiteBoxWidth = whiteBoxWidth;
-        demo.whiteBoxHeight = whiteBoxHeight;
-        demo.lines = lines;
-      });
-    }
     /*
      * Responsive Scaling
      */
@@ -1269,7 +1269,7 @@ function drawTextBubble(context) {
     return;
   }
   context.font = getCanvasFontString(this.fontSize);
-  const {
+  let {
     whiteBoxHeight,
     whiteBoxWidth,
     linesOfTextArray,
@@ -1281,6 +1281,9 @@ function drawTextBubble(context) {
     this.leading,
     this.maxLineWidth
   );
+
+  // Add horizontal padding for text bubbles
+  whiteBoxWidth = whiteBoxWidth + this.elementPadding * 2;
 
   let paddingBetweenDialogAndPlayer = 10;
 
@@ -1358,7 +1361,7 @@ function drawHoverBox(context, x, y, width, height, borderLength) {
  * @returns
  * {
  *  whiteBoxHeight: whiteBoxHeight,
-    whiteBoxWidth: whiteBoxWidth,
+    whiteBoxWidth: whiteBoxWidth, no padding included
     linesOfTextArray: linesOfTextArray,
     linesOfTextWidthsArray: linesOfTextWidthsArray
  * }
@@ -1417,7 +1420,7 @@ function getLinesOfText(context, text, fontSize, leading, maxLineWidth) {
 /**
  * Draws a white box with text.
  * @param {*} context
- * @param {*} x
+ * @param {*} x - x coordinate representing the center of the white box
  * @param {*} y
  * @param {*} whiteBoxHeight
  * @param {*} whiteBoxWidth
@@ -1460,12 +1463,11 @@ function drawWhiteBoxWithText(
   context.fillStyle = "black";
 
   for (let i = 0; i < lines.length; i++) {
-    let xToDraw = x - whiteBoxWidth / 2 + (padding ?? 0.0) / 2;
-    if (lineWidths) {
-      let curLineWidth = lineWidths[i];
-      let spaceRemaining = (whiteBoxWidth - curLineWidth) / 2;
-      xToDraw += spaceRemaining;
-    }
+    let startPadding =
+      (whiteBoxWidth - context.measureText(lines[i]).width) / 2;
+
+    let xToDraw = x - whiteBoxWidth / 2 + startPadding;
+
     context.fillText(
       lines[i],
       Math.floor(xToDraw),
