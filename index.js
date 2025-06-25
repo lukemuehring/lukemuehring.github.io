@@ -202,6 +202,11 @@ const Controller = {
       case 39: // right arrow
         Controller.right = keyState;
         break;
+      case 27: // Escape
+        if (keyState) {
+          closeMenu();
+        }
+        break;
     }
   },
 };
@@ -292,12 +297,13 @@ const codingStory = [
   "If I am talking too slowly, feel free to use the scroll wheel.",
   "Here's what I've been working on recently.",
   "Let me tell you a little bit about myself:",
-  "I'm a full-stack software engineer with 5+ years of experience. I've built SPAs with React and Angular, and APIs with C#.",
+  "I'm a full-stack software engineer with over 3 years of experience. I've built SPAs with React and Angular, and APIs with C#.",
   "I was born and raised in Atlanta, Georgia. There, I graduated from Georgia Tech with a B.S. in Computational Media (and also Chinese).",
-  "After graduating, I worked at Microsoft for two years as a software engineer in the M365 organization.",
-  "I made the US Team for competitive rock climbing, so I quit my job and moved to Utah to give my professional athlete career a shot.",
-  "Even though that didn't pan out the way I expected, I decided to stay for the mountains. Now, I'm building full stack applications for Utah's largest physician group, Revere Health.",
-  "Outside of work, I like to pursue my interests in climbing and creative coding. I'm currently psyched on creative coding for the web and learning Swift to make VisionOS apps (I'm starting my Apple fanboy arc).",
+  "After graduating, I moved to Seattle to begin my first job as a software engineer at Microsoft under the M365 organization.",
+  "In 2023, I made the US Team for competitive rock climbing. It was a hard decision, but I decided to give my professional athlete career a shot and moved to Salt Lake City.",
+  "I got to experience full-time training at an elite level, and explored my own interest with coding. I explored front-end design by creating RestAndRelaxVacation.com and the website you're looking at. Now, I'm building full stack applications for Utah's largest physician group, Revere Health.",
+  "Outside of work, I spend most of my time climbing and running across epic mountain ridgelines, and finding ways to be creative with coding.",
+  "Currently, besides learning about full-stack development and system design, I'm exploring how to make iOS and VisionOS apps with Swift and XCode. I'm also training for a sub-24 hour WURL.",
   "If you have an idea to create something cool or just want to chat, I’d love to get to know you better, so feel free to reach me at muehring.luke@gmail.com",
   "Thanks for getting to know me a little.",
 ];
@@ -481,21 +487,69 @@ const welcomeText = new Text(
   calculateHeadingFontSize(welcome, FONT_HEADING.H1)
 );
 
-var menuButtons = new Array();
-const menuBtnsCircleRadius = 300; // todo make responsive
+// Menu Button Event listeners
+document.querySelectorAll("button[data-target]").forEach((button) => {
+  const target = button.getAttribute("data-target");
 
-const emailMeBtn = new Button({
-  x: welcomeText.x + Math.cos(0) * menuBtnsCircleRadius,
-  y: welcomeText.y + Math.sin(0) * menuBtnsCircleRadius,
-  headerText: "Email Me",
-  headerTextSize: FONT_HEADING.H2,
-  link: "muehring.luke@gmail.com",
-  onClick: () => {
-    navigator.clipboard.writeText("muehring.luke@gmail.com");
-    showToast("Email copied to clipboard!");
-  },
+  switch (target) {
+    case "linkedIn":
+      button.onclick = () => {
+        window.open(
+          "https://www.linkedin.com/in/lukemuehring/",
+          "_blank",
+          "noopener,noreferrer"
+        );
+        closeMenu();
+      };
+      break;
+
+    case "resume":
+      button.onclick = () => {
+        window.open("./assets/Resume.pdf", "_blank");
+        closeMenu();
+      };
+      break;
+
+    case "contact":
+      button.onclick = () => {
+        navigator.clipboard.writeText("muehring.luke@gmail.com");
+        showToast("Email copied to clipboard!");
+        closeMenu();
+      };
+      break;
+
+    case "work":
+      button.onclick = () => {
+        movePlayerToScreenCoords(websiteDemo.x, Player.y);
+        closeMenu();
+      };
+      break;
+  }
 });
-emailMeBtn.angle = 0;
+
+// Hamburger Menu Button Event Listener
+const hamMenu = document.querySelector(".ham-menu");
+const menuContainer = document.querySelector(".menu-container");
+
+hamMenu.addEventListener("click", () => {
+  hamMenu.classList.toggle("active");
+  menuContainer.classList.toggle("active");
+});
+
+/**
+ * Closes the mobile menu
+ */
+function closeMenu() {
+  const hamMenu = document.querySelector(".ham-menu");
+  if (hamMenu && hamMenu.classList.contains("active")) {
+    hamMenu.classList.remove("active");
+  }
+
+  const menuContainer = document.querySelector(".menu-container");
+  if (menuContainer && menuContainer.classList.contains("active")) {
+    menuContainer.classList.remove("active");
+  }
+}
 
 function showToast(message, duration = 3000, containerId = "toastContainer") {
   const newDiv = document.createElement("div");
@@ -515,51 +569,6 @@ function showToast(message, duration = 3000, containerId = "toastContainer") {
     }, 500); // Wait for animation to finish
   }, duration);
 }
-
-const linkedInBtn = new Button({
-  x: welcomeText.x + Math.cos(0) * menuBtnsCircleRadius,
-  y: welcomeText.y + Math.sin(1) * menuBtnsCircleRadius,
-  headerText: "LinkedIn",
-  headerTextSize: FONT_HEADING.H2,
-  link: "https://www.linkedin.com/in/lukemuehring/",
-  onClick: () => {
-    window.open(
-      "https://www.linkedin.com/in/lukemuehring/",
-      "_blank",
-      "noopener,noreferrer"
-    );
-  },
-});
-linkedInBtn.angle = Math.PI / 2;
-
-const resumeBtn = new Button({
-  x: welcomeText.x + Math.cos(-1) * menuBtnsCircleRadius,
-  y: welcomeText.y + Math.sin(0) * menuBtnsCircleRadius,
-  angle: Math.PI,
-  headerText: "Resume",
-  headerTextSize: FONT_HEADING.H2,
-  link: "",
-  onClick: () => {
-    window.open("./assets/Resume.pdf", "_blank");
-  },
-});
-resumeBtn.angle = Math.PI;
-
-const myProjectsBtn = new Button({
-  x: welcomeText.x + Math.cos(-1) * menuBtnsCircleRadius,
-  y: welcomeText.y + Math.sin(-1) * menuBtnsCircleRadius,
-  angle: (Math.PI * 3) / 2,
-  headerText: "My Projects",
-  headerTextSize: FONT_HEADING.H2,
-  link: "",
-  onClick: () => {
-    movePlayerToScreenCoords(websiteDemo.x, Player.y);
-  },
-});
-myProjectsBtn.angle = (3 * Math.PI) / 2;
-
-menuButtons.push(emailMeBtn, linkedInBtn, resumeBtn, myProjectsBtn);
-// #endregion
 
 // #region Continue story from "Here are some of my projects"
 endX =
@@ -609,7 +618,7 @@ function movePlayerToScreenCoords(x, y) {
       Player.x += 1;
     }
   }
-  (Player.x = x), (Player.y = 0);
+  (Player.x = x), (Player.y = y);
 }
 
 /**
@@ -627,11 +636,11 @@ function checkIfObjectClicked(event) {
   }
 
   // check menu buttons
-  for (let i = 0; i < menuButtons.length; i++) {
-    if (menuButtons[i].hover) {
-      return menuButtons[i];
-    }
-  }
+  // for (let i = 0; i < menuButtons.length; i++) {
+  //   if (menuButtons[i].hover) {
+  //     return menuButtons[i];
+  //   }
+  // }
   return null;
 }
 
@@ -761,34 +770,6 @@ function calculateHeadingFontSize(text, initialFontSize) {
   c.restore();
   return currentFontSize;
 }
-const arrowKeysImage = new Image();
-arrowKeysImage.src = "./images/keys.png";
-const arrowKeys = new imageObject(
-  welcomeText.x - 102,
-  welcomeText.y + 70,
-  arrowKeysImage
-);
-
-arrowKeys.isVisible = false;
-
-const UserGuidance = setInterval(() => {
-  if (!Controller.userInputRegistered) {
-    arrowKeys.isVisible = !arrowKeys.isVisible;
-  } else {
-    arrowKeys.isVisible = false;
-    clearInterval(UserGuidance);
-  }
-}, 1500);
-
-arrowKeys.draw = () => {
-  if (arrowKeys.isVisible && !Controller.userInputRegistered) {
-    c.drawImage(
-      arrowKeys.image,
-      Math.floor(arrowKeys.x - camera.x),
-      Math.floor(arrowKeys.y - camera.y)
-    );
-  }
-};
 
 var welcomeTextArray = [welcomeText];
 
@@ -981,10 +962,6 @@ function loop(timestamp) {
       );
     }
 
-    if (arrowKeys.isVisible) {
-      arrowKeys.draw();
-    }
-
     /*
      * Microsoft Logo Draw
      */
@@ -1028,28 +1005,28 @@ function loop(timestamp) {
     }
 
     // Menu Buttons Draw
-    rotateArrayItemsAroundCircle(
-      menuButtons,
-      welcomeText.x,
-      welcomeText.y,
-      menuBtnsCircleRadius,
-      0.005
-    );
-    for (let i = 0; i < menuButtons.length; i++) {
-      menuButtons[i].draw(c);
+    // rotateArrayItemsAroundCircle(
+    //   menuButtons,
+    //   welcomeText.x,
+    //   welcomeText.y,
+    //   menuBtnsCircleRadius,
+    //   0.005
+    // );
+    // for (let i = 0; i < menuButtons.length; i++) {
+    //   menuButtons[i].draw(c);
 
-      // Hover effect
-      if (menuButtons[i].detectMouseHover()) {
-        drawHoverBox(
-          c,
-          menuButtons[i].x,
-          menuButtons[i].y,
-          menuButtons[i].width,
-          menuButtons[i].height,
-          menuButtons[i].borderColorsTopBottom.length
-        );
-      }
-    }
+    //   // Hover effect
+    //   if (menuButtons[i].detectMouseHover()) {
+    //     drawHoverBox(
+    //       c,
+    //       menuButtons[i].x,
+    //       menuButtons[i].y,
+    //       menuButtons[i].width,
+    //       menuButtons[i].height,
+    //       menuButtons[i].borderColorsTopBottom.length
+    //     );
+    //   }
+    // }
 
     /*
      * Text Draw
@@ -1108,7 +1085,7 @@ function loop(timestamp) {
     }
 
     // Mouse Draw
-    drawMouse(demos, menuButtons);
+    drawMouse(demos);
     if (
       Mouse.x > Player.screenX - Player.width / 2 &&
       Mouse.x < Player.screenX + Player.width / 2
@@ -1174,9 +1151,9 @@ function resizeText(context) {
     demos[i].maxLineWidth = context.canvas.width / 1.3;
   }
 
-  for (let i = 0; i < menuButtons.length; i++) {
-    menuButtons[i].maxLineWidth = context.canvas.width / 1.3;
-  }
+  // for (let i = 0; i < menuButtons.length; i++) {
+  //   menuButtons[i].maxLineWidth = context.canvas.width / 1.3;
+  // }
 
   FONT_HEADING.H1.value = context.canvas.width <= 500 ? 80 : 100;
   FONT_HEADING.H2.value = context.canvas.width <= 500 ? 33 : 38;
@@ -1770,7 +1747,7 @@ function handleTouchMove(evt) {
     if (idx >= 0) {
       if (userInputIsAllowed) {
         Player.xVelocity +=
-          0.3 * (ongoingTouches[idx].clientX - touches[i].clientX);
+          0.3 * (touches[i].clientX - ongoingTouches[idx].clientX);
       }
       ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
     } else {
@@ -1822,13 +1799,4 @@ window.addEventListener("touchmove", handleTouchMove);
 /* CREDITS
  * Free - Adventure Pack - Grassland by Anokolisa
  *
- */
-
-/*  TODO
- * Menu Buttons
- * on click, button is pressed UI
- * on click, something happens
- * toast notification for
- * Responsive Scaling? It's not working properly.
- * add links for resume, github, and linked in (near the front)
  */
