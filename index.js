@@ -425,7 +425,7 @@ class Button {
    * Detects if the mouse is within the box bounds
    * @returns if the mouse is within the box or not
    */
-  detectMouseHover() {
+  detectMouseHover(target) {
     // If modal is open, disable hovering
     if (Button.IsModalOpen) {
       this.hover = false;
@@ -808,53 +808,128 @@ const CircleCenter = {
   x: (textBubbleArray[6].minX + textBubbleArray[6].maxX) / 2,
   y: objectHeight,
 };
+const DEFAULT_RECTSIZE = 150;
+
 let rect1 = {
   x: CircleCenter.x + Math.cos(0),
   y: CircleCenter.y + Math.sin(0),
   angle: 0,
+  width: DEFAULT_RECTSIZE,
+  hover: false,
   color: "243 83 37",
   draw: function (context) {
-    drawColoredRect(context, this.x, this.y, this.color);
+    drawColoredRect(context, this);
+  },
+  detectMouseHover: function (context) {
+    detectRectHover(context, this);
   },
 };
 let rect2 = {
   x: CircleCenter.x + Math.cos(0),
   y: CircleCenter.y + Math.sin(1),
   angle: Math.PI / 2,
+  width: DEFAULT_RECTSIZE,
+  hover: false,
   color: "129 188 6",
   draw: function (context) {
-    drawColoredRect(context, this.x, this.y, this.color);
+    drawColoredRect(context, this);
+  },
+  detectMouseHover: function (context) {
+    detectRectHover(context, this);
   },
 };
 let rect3 = {
   x: CircleCenter.x + Math.cos(-1),
   y: CircleCenter.y + Math.sin(0),
   angle: Math.PI,
+  width: DEFAULT_RECTSIZE,
+  hover: false,
   color: "5 166 240",
   draw: function (context) {
-    drawColoredRect(context, this.x, this.y, this.color);
+    drawColoredRect(context, this);
+  },
+  detectMouseHover: function (context) {
+    detectRectHover(context, this);
   },
 };
 let rect4 = {
   x: CircleCenter.x + Math.cos(-1),
   y: CircleCenter.y + Math.sin(-1),
   angle: (Math.PI * 3) / 2,
+  width: DEFAULT_RECTSIZE,
+  hover: false,
+
   color: "255 186 8",
   draw: function (context) {
-    drawColoredRect(context, this.x, this.y, this.color);
+    drawColoredRect(context, this);
+  },
+  detectMouseHover: function (context) {
+    detectRectHover(context, this);
   },
 };
 
-function drawColoredRect(context, x, y, color) {
+function drawColoredRect(context, rect) {
   context.save();
 
-  context.fillStyle = "rgb(" + color + ")";
-  context.fillRect(Math.floor(x - camera.x), Math.floor(y), 150, 150);
+  context.fillStyle = "rgb(" + rect.color + ")";
+  // console.log(rect.width);
+  if (rect.hover) {
+    console.log("hover true");
+
+    if (rect.width <= 1000) {
+      rect.width += 5;
+    }
+  } else {
+    if (rect.width > 150) {
+      rect.width -= 5;
+      console.log("shrinking");
+    }
+  }
+
+  context.fillRect(
+    Math.floor(rect.x - camera.x),
+    Math.floor(rect.y),
+    rect.width,
+    rect.width
+  );
 
   context.restore();
 }
 
+function detectRectHover(context, rectObj) {
+  // console.log("rect", rect);
+  // console.log("mouse", Mouse.x);
+  // console.log("rect x", rect.x - rect.width / 2 - camera.x);
+  // console.log("rect width", rect.width / 2);
+  // console.log("cam x", camera.x);
+  // console.log(
+  //   "result",
+  //   Mouse.x >= rect.x - rect.width / 2 - camera.x &&
+  //     Mouse.x <= rect.x + rect.width / 2 - camera.x
+  // );
+
+  if (
+    Mouse.x >= rectObj.x - rectObj.width / 2 - camera.x &&
+    Mouse.x <= rectObj.x + rectObj.width / 2 - camera.x
+  ) {
+    console.log("x ninbounds");
+    if (Mouse.y >= rectObj.y && Mouse.y < rectObj.y + rectObj.width) {
+      rectObj.hover = true;
+      console.log("TRUE^^^^^^^^^^^", rectObj.hover, rectObj);
+      return;
+    } else {
+      rectObj.hover = false;
+      return;
+    }
+  }
+  rectObj.hover = false;
+  return;
+  // console.log("hover", rect);
+}
+
 let microsoftRectangles = [rect1, rect2, rect3, rect4];
+console.log(microsoftRectangles, "msfttangles");
+
 // #endregion
 // #region --- Animation Loop ---
 let lastTime = 0;
@@ -973,6 +1048,7 @@ function loop(timestamp) {
       0.01
     );
     for (let rect of microsoftRectangles) {
+      rect.detectMouseHover(c);
       rect.draw(c);
     }
 
