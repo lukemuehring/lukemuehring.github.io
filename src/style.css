@@ -21,7 +21,6 @@ body {
   height: 100%;
   align-content: space-around;
   display: grid;
-  justify-content: center;
   overflow: hidden;
 }
 
@@ -174,6 +173,7 @@ canvas {
 @media (min-width: 640px) {
   #nav {
     height: auto;
+    top: 0;
 
     .ham-menu {
       opacity: 0;
