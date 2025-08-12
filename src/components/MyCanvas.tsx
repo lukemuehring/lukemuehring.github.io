@@ -3,6 +3,7 @@ import "../style.css";
 import { Camera } from "../types/Camera";
 import { GameMap } from "../types/GameMap";
 import { Background } from "../types/Background";
+import { Floor } from "../types/Floor";
 
 export default function MyCanvas() {
   // Singleton global object refs
@@ -12,7 +13,9 @@ export default function MyCanvas() {
   const Bg0Ref = useRef<Background | null>(null);
   const Bg1Ref = useRef<Background | null>(null);
   const CameraRef = useRef<Camera | null>(null);
+  const FloorRef = useRef<Floor | null>(null);
   const MapRef = useRef<GameMap | null>(null);
+  const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
 
   const FrameCountRef = useRef(0);
 
@@ -22,12 +25,6 @@ export default function MyCanvas() {
 
   // runs after the component mounts + renders
   useEffect(() => {
-    const canvas = CanvasRef.current;
-    const c = canvas?.getContext("2d");
-    if (!canvas || !c) {
-      return;
-    }
-
     // #region Preloading Images
     const imageCache: Record<string, HTMLImageElement> = {};
     const imagePathArray = [
@@ -63,6 +60,11 @@ export default function MyCanvas() {
     preloadImages();
     // #endregion
 
+    const canvas = CanvasRef.current;
+    const c = canvas?.getContext("2d");
+    if (!canvas || !c) {
+      return;
+    }
     // Set global singleton refs
     ContextRef.current = c;
     MapRef.current = new GameMap();
@@ -71,6 +73,17 @@ export default function MyCanvas() {
       c.canvas.width,
       c.canvas.height
     );
+    /*
+     * Responsive Scaling
+     * if the canvas default size is not the window's dimensions (which is the case currently, todo change that in the html)
+     * change the canvas size to match the screen's to cover it completely.
+     */
+    if (
+      window.innerWidth != c.canvas.width ||
+      window.innerHeight != c.canvas.height
+    ) {
+      handleCanvasResize(c, MapRef.current, CameraRef.current);
+    }
 
     // #region Background setup
     Bg0Ref.current = new Background({
@@ -107,6 +120,15 @@ export default function MyCanvas() {
     Bg1.currentMaxLocationIndex = Bg1.locations.length - 1;
     // #endregion
 
+    TileSheetImgRef.current = new Image();
+    TileSheetImgRef.current.src = "../../images/tiles.png";
+
+    let floorHeight =
+      c.canvas.height > Bg0.height
+        ? Bg0.height - 1.5 * MapRef.current.tsize
+        : c.canvas.height - 1.5 * MapRef.current.tsize;
+    FloorRef.current = new Floor(floorHeight, 0, -100);
+
     // Cleanup useEffect
     return () => {
       // Remove all event listeners xon images to prevent leaks
@@ -120,14 +142,26 @@ export default function MyCanvas() {
   function loop(timestamp: number) {
     // rename references just for readability
     const c: CanvasRenderingContext2D | null = ContextRef.current;
+
     const Map: GameMap | null = MapRef.current;
     const Bg0: Background | null = Bg0Ref.current;
     const Bg1: Background | null = Bg1Ref.current;
     const Camera: Camera | null = CameraRef.current;
+    const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
+    const Floor: Floor | null = FloorRef.current;
 
     // calculate time elapsed since last frame
     const deltaTime: number = timestamp - prevTimestamp;
-    if (deltaTime >= FRAME_DURATION && c && Map && Camera && Bg0 && Bg1) {
+    if (
+      deltaTime >= FRAME_DURATION &&
+      c &&
+      Map &&
+      Camera &&
+      Bg0 &&
+      Bg1 &&
+      TileSheet &&
+      Floor
+    ) {
       prevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
 
       /*
@@ -203,9 +237,7 @@ export default function MyCanvas() {
 
       Camera.update();
 
-      /*
-       * Background Draw
-       */
+      // Clear the background TODO is this necessary or is it just wasting paint time cycles
       c.save();
       c.fillStyle = "rgb(" + Bg1.color + ")";
       c.fillRect(0, 0, c.canvas.width, c.canvas.height);
@@ -321,32 +353,32 @@ export default function MyCanvas() {
       //   foregroundObjects[i].draw(c);
       // }
 
-      // /*
-      //  * Floor Draw todo next
-      //  */
-      // var startCol = Math.floor(camera.x / Map.tsize);
-      // var endCol = startCol + camera.width / Map.tsize + 2;
-      // var offsetX = -camera.x + startCol * Map.tsize;
+      /*
+       * Floor Draw todo next
+       */
+      var startCol = Math.floor(Camera.x / Map.tsize);
+      var endCol = startCol + Camera.width / Map.tsize + 2;
+      var offsetX = -Camera.x + startCol * Map.tsize;
 
-      // for (let column = startCol; column < endCol; column++) {
-      //   for (let row = 0; row < Map.rows; row++) {
-      //     const tile = Map.getTile(column, row);
-      //     const x = (column - startCol) * Map.tsize + offsetX;
-      //     const y = row * Map.tsize;
+      for (let column = startCol; column < endCol; column++) {
+        for (let row = 0; row < Map.rows; row++) {
+          const tile = Map.getTile(column, row) ?? 0; // tile number (0,1,2)
+          const x = (column - startCol) * Map.tsize + offsetX;
+          const y = row * Map.tsize;
 
-      //     c.drawImage(
-      //       tileSheet, // image
-      //       tile * Map.tsize, // source x
-      //       0, // source y
-      //       Map.tsize, // source width
-      //       Map.tsize, // source height
-      //       Math.floor(x), // target x
-      //       Math.floor(y + Floor.height), // target y
-      //       Map.tsize, // target width
-      //       Map.tsize // target height
-      //     );
-      //   }
-      // }
+          c.drawImage(
+            TileSheet, // image
+            tile * Map.tsize, // source x
+            0, // source y
+            Map.tsize, // source width
+            Map.tsize, // source height
+            Math.floor(x), // target x
+            Math.floor(y + Floor.height), // target y
+            Map.tsize, // target width
+            Map.tsize // target height
+          );
+        }
+      }
 
       // // Mouse Draw
       // drawMouse(demos);
