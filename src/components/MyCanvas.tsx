@@ -1,9 +1,13 @@
 import { useEffect, useRef } from "react";
 import "../style.css";
-import { Camera } from "../types/Camera";
-import { GameMap } from "../types/GameMap";
 import { Background } from "../types/Background";
+import { Camera } from "../types/Camera";
+import { Controller } from "../types/Controller";
 import { Floor } from "../types/Floor";
+import { GameMap } from "../types/GameMap";
+import { Player } from "../types/Player";
+import { PlayerStates } from "../types/Player";
+import { closeMenu, handleCanvasResize } from "../lib/helpers";
 
 export default function MyCanvas() {
   // Singleton global object refs
@@ -13,15 +17,26 @@ export default function MyCanvas() {
   const Bg0Ref = useRef<Background | null>(null);
   const Bg1Ref = useRef<Background | null>(null);
   const CameraRef = useRef<Camera | null>(null);
+  const ControllerRef = useRef<Controller | null>(null);
   const FloorRef = useRef<Floor | null>(null);
-  const MapRef = useRef<GameMap | null>(null);
-  const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
 
   const FrameCountRef = useRef(0);
+  const IsUserInputAllowedRef = useRef(true);
 
+  const MapRef = useRef<GameMap | null>(null);
+  const PlayerRef = useRef<any>(null);
+  const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
+
+  // Game variables
+  let SPAWN_X: number = 0;
   let prevTimestamp = 0;
+
+  const ANIMATION_TIME_BUFFER = 30; // Used to time the animation of sprites
   const FPS_TARGET = 60;
   const FRAME_DURATION = 1000 / FPS_TARGET; // 16.67 per frame, of 60 frames per second
+
+  const JUMP_HEIGHT = 20;
+  const GRAVITY = 1.5;
 
   // runs after the component mounts + renders
   useEffect(() => {
@@ -73,11 +88,8 @@ export default function MyCanvas() {
       c.canvas.width,
       c.canvas.height
     );
-    /*
-     * Responsive Scaling
-     * if the canvas default size is not the window's dimensions (which is the case currently, todo change that in the html)
-     * change the canvas size to match the screen's to cover it completely.
-     */
+
+    // change the canvas size to match the screen's to cover it completely.
     if (
       window.innerWidth != c.canvas.width ||
       window.innerHeight != c.canvas.height
@@ -85,7 +97,11 @@ export default function MyCanvas() {
       handleCanvasResize(c, MapRef.current, CameraRef.current);
     }
 
-    // #region Background setup
+    SPAWN_X = c.canvas.width / 2;
+    PlayerRef.current = new Player(SPAWN_X, imageCache, ANIMATION_TIME_BUFFER);
+    CameraRef.current.follow(PlayerRef.current);
+
+    // #region Stage setup
     Bg0Ref.current = new Background({
       width: 1984,
       height: 1088,
@@ -118,7 +134,6 @@ export default function MyCanvas() {
       (_, index) => index * Bg1.width
     );
     Bg1.currentMaxLocationIndex = Bg1.locations.length - 1;
-    // #endregion
 
     TileSheetImgRef.current = new Image();
     TileSheetImgRef.current.src = "../../images/tiles.png";
@@ -127,14 +142,39 @@ export default function MyCanvas() {
       c.canvas.height > Bg0.height
         ? Bg0.height - 1.5 * MapRef.current.tsize
         : c.canvas.height - 1.5 * MapRef.current.tsize;
-    FloorRef.current = new Floor(floorHeight, 0, -100);
+    FloorRef.current = new Floor(floorHeight, -1000, 1000);
+    // #endregion
 
-    // Cleanup useEffect
+    ControllerRef.current = new Controller(
+      PlayerRef.current,
+      IsUserInputAllowedRef,
+      () => closeMenu(IsUserInputAllowedRef)
+    );
+    // Store stable references for cleanup
+    const keydownListener = (event: KeyboardEvent) => {
+      ControllerRef.current?.keyListener(event);
+    };
+    const keyupListener = (event: KeyboardEvent) => {
+      ControllerRef.current?.keyListener(event);
+    };
+    const scrollListener = (event: WheelEvent) => {
+      ControllerRef.current?.scrollListener(event);
+    };
+
+    // Add listeners
+    window.addEventListener("keydown", keydownListener);
+    window.addEventListener("keyup", keyupListener);
+    window.addEventListener("wheel", scrollListener, { passive: false });
+
+    // Cleanup useEffect runs on component unmount
     return () => {
-      // Remove all event listeners xon images to prevent leaks
+      // Remove all event listeners to prevent memory leaks
       for (const src in imageCache) {
         imageCache[src].removeEventListener("load", trackProgress);
       }
+      window.removeEventListener("keydown", keydownListener);
+      window.removeEventListener("keyup", keyupListener);
+      window.removeEventListener("wheel", scrollListener);
     };
   }, []);
 
@@ -142,13 +182,14 @@ export default function MyCanvas() {
   function loop(timestamp: number) {
     // rename references just for readability
     const c: CanvasRenderingContext2D | null = ContextRef.current;
-
-    const Map: GameMap | null = MapRef.current;
     const Bg0: Background | null = Bg0Ref.current;
     const Bg1: Background | null = Bg1Ref.current;
     const Camera: Camera | null = CameraRef.current;
-    const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
+    const Controller: Controller | null = ControllerRef.current;
     const Floor: Floor | null = FloorRef.current;
+    const Map: GameMap | null = MapRef.current;
+    const Player: Player | null = PlayerRef.current;
+    const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
 
     // calculate time elapsed since last frame
     const deltaTime: number = timestamp - prevTimestamp;
@@ -157,10 +198,12 @@ export default function MyCanvas() {
       c &&
       Map &&
       Camera &&
+      Controller &&
       Bg0 &&
       Bg1 &&
       TileSheet &&
-      Floor
+      Floor &&
+      Player
     ) {
       prevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
 
@@ -174,77 +217,75 @@ export default function MyCanvas() {
         handleCanvasResize(c, Map, Camera);
       }
 
-      // /*
-      //  * Controller Input
-      //  */
-      // if (Player.y > Floor.height && userInputIsAllowed) {
-      //   userInputIsAllowed = false;
-      //   setTimeout(() => {
-      //     Player.x = spawnX;
-      //     Player.y = 0;
-      //     Player.xVelocity = 0;
-      //     Player.yVelocity = 0;
-      //     userInputIsAllowed = true;
-      //   }, 1000);
-      // }
+      // #region Updating game state - Camera, Controller, Player
+      // If player falls below the floor, respawn and disable user input for 1s
+      if (Player.y > Floor.height && IsUserInputAllowedRef.current) {
+        IsUserInputAllowedRef.current = false;
+        setTimeout(() => {
+          Player.x = SPAWN_X;
+          Player.y = 0;
+          Player.xVelocity = 0;
+          Player.yVelocity = 0;
+          IsUserInputAllowedRef.current = true;
+        }, 1000);
+      }
 
-      // if (
-      //   (Controller.up || Controller.left || Controller.right) &&
-      //   userInputIsAllowed
-      // ) {
-      //   Controller.userInputRegistered = true;
-      //   if (Controller.up && Player.state != PlayerStates.Jumping) {
-      //     Player.yVelocity -= JumpHeight;
-      //   }
-      //   if (Controller.left) {
-      //     Player.xVelocity -= 0.5;
-      //   }
+      if (
+        (Controller.up || Controller.left || Controller.right) &&
+        IsUserInputAllowedRef.current
+      ) {
+        Controller.userInputRegistered = true;
+        if (Controller.up && Player.state != PlayerStates.Jumping) {
+          Player.yVelocity -= JUMP_HEIGHT;
+        }
+        if (Controller.left) {
+          Player.xVelocity -= 0.5;
+        }
 
-      //   if (Controller.right) {
-      //     Player.xVelocity += 0.5;
-      //   }
-      // }
+        if (Controller.right) {
+          Player.xVelocity += 0.5;
+        }
+      }
 
-      // /*
-      //  * Gravity and Friction
-      //  */
-      // Player.yVelocity += Gravity;
-      // Player.x += Player.xVelocity;
-      // Player.y += Player.yVelocity;
+      // Gravity and Friction
+      Player.yVelocity += GRAVITY;
+      Player.x += Player.xVelocity;
+      Player.y += Player.yVelocity;
 
-      // Player.xVelocity *= 0.9;
+      Player.xVelocity *= 0.9;
 
-      // // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
-      // if (Player.xVelocity <= 0.2 && Player.xVelocity >= -0.2) {
-      //   Player.xVelocity = 0;
-      // }
-      // Player.yVelocity += 0.9;
+      // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
+      // Todo - the clipping bug might be from the second condition here.
+      if (Player.xVelocity <= 0.2 && Player.xVelocity >= -0.2) {
+        Player.xVelocity = 0;
+      }
+      Player.yVelocity += 0.9;
 
-      // /*
-      //  * Floor Collision
-      //  */
-      // if (
-      //   Player.y > Floor.height &&
-      //   Player.x < Floor.rightX &&
-      //   Player.x > Floor.leftX
-      // ) {
-      //   Player.y = Floor.height;
-      //   Player.yVelocity = 0;
-      // }
+      // Floor Collision
+      if (
+        Player.y > Floor.height &&
+        Player.x < Floor.rightX &&
+        Player.x > Floor.leftX
+      ) {
+        Player.y = Floor.height;
+        Player.yVelocity = 0;
+      }
 
-      // // Constraining Player to x range [0, Map Size]
-      // Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
+      // Constraining Player to x range [0, Map Size]
+      Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
 
       Camera.update();
+      // #endregion Updating game state - Camera, Controller, Player
 
       // Clear the background TODO is this necessary or is it just wasting paint time cycles
-      c.save();
-      c.fillStyle = "rgb(" + Bg1.color + ")";
-      c.fillRect(0, 0, c.canvas.width, c.canvas.height);
-      c.restore();
+      // c.save();
+      // c.fillStyle = "rgb(" + Bg1.color + ")";
+      // c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+      // c.restore();
 
-      drawBackground(c, Bg0);
-      drawBackground(c, Bg1);
+      // #region Drawing
+      Bg0.draw(c);
+      Bg1.draw(c);
 
       // /*
       //  * Background Object Draw
@@ -341,10 +382,7 @@ export default function MyCanvas() {
       // }
       // c.restore();
 
-      // /*
-      //  * Player Draw
-      //  */
-      // drawPlayer(c);
+      Player.draw(c, Floor.height, FrameCountRef.current);
 
       // /*
       //  * Foreground Object Draw
@@ -354,7 +392,7 @@ export default function MyCanvas() {
       // }
 
       /*
-       * Floor Draw todo next
+       * Floor Draw todo make into simple Draw() function, and move into the actual Floor object
        */
       var startCol = Math.floor(Camera.x / Map.tsize);
       var endCol = startCol + Camera.width / Map.tsize + 2;
@@ -393,6 +431,7 @@ export default function MyCanvas() {
       //     scrambleDrawPixelsAtMouse(c);
       //   }
       // }
+      // #endregion Drawing
 
       FrameCountRef.current++;
       if (FrameCountRef.current >= Number.MAX_SAFE_INTEGER) {
@@ -406,96 +445,6 @@ export default function MyCanvas() {
     window.requestAnimationFrame(loop);
   }
   // #endregion Animation Loop
-
-  // #region Standalone Functions
-  // Standalone functions outside of the component
-  // Doesn't depend on React state, not recreated on every rerender
-
-  function drawBackground(
-    context: CanvasRenderingContext2D,
-    background: Background
-  ) {
-    for (let i = 0; i < background.locations.length; i++) {
-      if (background.locations[i] + background.width < 0) {
-        background.locations[i] =
-          background.locations[background.currentMaxLocationIndex] +
-          background.width;
-        background.currentMaxLocationIndex = i;
-      }
-
-      background.locations[i] -= background.moveRate;
-
-      context.drawImage(
-        background.image,
-        Math.floor(background.locations[i]),
-        0
-      );
-    }
-  }
-
-  // #region --- Map and Responsive Scaling ---
-  function handleCanvasResize(
-    context: CanvasRenderingContext2D,
-    Map: GameMap,
-    Camera: Camera
-  ) {
-    context.canvas.width = window.innerWidth;
-    context.canvas.height = window.innerHeight;
-
-    Camera.width = window.innerWidth;
-    Camera.height = window.innerHeight;
-
-    resizeMap(context, Map);
-    resizeText(context);
-  }
-
-  function resizeMap(context: CanvasRenderingContext2D, Map: GameMap) {
-    // if (context.canvas.height >= Floor.height + Map.tsize * 1.5) {
-    //   Map.rows = Math.ceil((context.canvas.height - Floor.height) / Map.tsize);
-    // } else {
-    Map.rows = 2;
-    // }
-
-    Map.tiles = new Array(Map.cols * Map.rows);
-    Map.tiles.fill(0, 0, Map.cols);
-    Map.tiles.fill(1, Map.cols);
-
-    Map.length = Map.cols * Map.tsize;
-
-    cutOffFloorEdgesInMap(Map);
-  }
-
-  function cutOffFloorEdgesInMap(Map: GameMap) {
-    let row = 0;
-    // let rightEndX = textBubbleArray[codingStory.length - 1].maxX; todo text
-    for (
-      // let j = Math.floor(rightEndX / Map.tsize);
-      let j = Math.floor(10000 / Map.tsize);
-      j < Map.tiles.length;
-      j += Map.cols
-    ) {
-      row++;
-      Map.tiles.fill(2, j, Map.cols * row);
-    }
-  }
-
-  // todo text
-  function resizeText(context: CanvasRenderingContext2D) {
-    // for (let i = 0; i < textBubbleArray.length; i++) {
-    //   textBubbleArray[i].maxLineWidth = context.canvas.width / 1.3;
-    // }
-    // for (let i = 0; i < demos.length; i++) {
-    //   demos[i].maxLineWidth = context.canvas.width / 1.3;
-    // }
-    // // for (let i = 0; i < menuButtons.length; i++) {
-    // //   menuButtons[i].maxLineWidth = context.canvas.width / 1.3;
-    // // }
-    // FONT_HEADING.H1.value = context.canvas.width <= 500 ? 80 : 100;
-    // FONT_HEADING.H2.value = context.canvas.width <= 500 ? 33 : 38;
-    // FONT_HEADING.P.value = context.canvas.width <= 500 ? 25 : 30;
-  }
-
-  // #endregion
 
   // #endregion
 

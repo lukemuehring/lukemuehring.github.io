@@ -1,3 +1,4 @@
+import type { GameMap } from "./GameMap";
 import type { Player } from "./Player";
 
 export class Camera {
@@ -12,11 +13,7 @@ export class Camera {
 
   following: Player | null;
 
-  constructor(
-    map: { cols: number; tsize: number }, //Map
-    width: number,
-    height: number
-  ) {
+  constructor(map: GameMap, width: number, height: number) {
     this.x = 0;
     this.y = 0;
     this.width = width;
