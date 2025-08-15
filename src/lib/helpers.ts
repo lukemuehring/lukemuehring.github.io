@@ -31,6 +31,46 @@ export function drawFlippedImage(
   context.restore();
 }
 
+/**
+ * Gets the font string used for setting the CanvasRenderingContext2D.font property.
+ * Checks if the web page has the font VT323 loaded.
+ * If not, we default to sans-serif.
+ * @param {*} fontSize the font size
+ * @returns the font string in the format "{fontSize}px VT323" or "{fontSize}px sans-serif"
+ */
+export function getCanvasFontString(fontSize: number) {
+  if (document.fonts.check("12px 'VT323'")) {
+    return fontSize + "px 'VT323'";
+  } else {
+    return fontSize - 8 + "px sans-serif";
+  }
+}
+
+/**
+ * calculates the font size needed for the heading to fit in the screen
+ */
+export function calculateHeadingFontSize(
+  c: CanvasRenderingContext2D,
+  text: string,
+  initialFontSize: number
+) {
+  c.save();
+
+  let currentFontSize = initialFontSize;
+  c.font = getCanvasFontString(currentFontSize);
+
+  // Scale down font size until it fits the screen.
+  let currentFontWidthInPx = c.measureText(text).width;
+  while (currentFontWidthInPx > c.canvas.width - 50) {
+    currentFontSize -= 10;
+    c.font = getCanvasFontString(currentFontSize);
+    currentFontWidthInPx = c.measureText(text).width;
+  }
+
+  c.restore();
+  return currentFontSize;
+}
+
 // #region --- Map and Responsive Scaling ---
 export function handleCanvasResize(
   context: CanvasRenderingContext2D,

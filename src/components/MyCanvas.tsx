@@ -1,16 +1,20 @@
 import { useEffect, useRef } from "react";
+import {
+  calculateHeadingFontSize,
+  closeMenu,
+  handleCanvasResize,
+} from "../lib/helpers";
 import "../style.css";
 import { Background } from "../types/Background";
 import { Camera } from "../types/Camera";
 import { Controller } from "../types/Controller";
 import { Floor } from "../types/Floor";
 import { GameMap } from "../types/GameMap";
-import { Player } from "../types/Player";
-import { PlayerStates } from "../types/Player";
-import { closeMenu, handleCanvasResize } from "../lib/helpers";
+import { GameText } from "../types/GameText";
+import { Player, PlayerStates } from "../types/Player";
 
 export default function MyCanvas() {
-  // Singleton global object refs
+  // #region Singleton global object refs
   const CanvasRef = useRef<HTMLCanvasElement>(null);
   const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
 
@@ -26,17 +30,30 @@ export default function MyCanvas() {
   const MapRef = useRef<GameMap | null>(null);
   const PlayerRef = useRef<any>(null);
   const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
+  const WelcomeTextArrayRef = useRef<GameText[] | null>(null);
+  const CanShowTextRef = useRef<boolean>(false);
+  // #endregion
 
-  // Game variables
-  let SPAWN_X: number = 0;
-  let prevTimestamp = 0;
+  // #region Game variables
+  let AnimateText = false;
+  let TextAlpha = 0;
 
-  const ANIMATION_TIME_BUFFER = 30; // Used to time the animation of sprites
+  let PrevTimestamp = 0;
+  let SpawnX = 0;
+
+  const ANIMATION_TIME_BUFFER = 30; // Used to time the animation cadence of Player sprite
   const FPS_TARGET = 60;
   const FRAME_DURATION = 1000 / FPS_TARGET; // 16.67 per frame, of 60 frames per second
 
   const JUMP_HEIGHT = 20;
   const GRAVITY = 1.5;
+
+  const FONT_HEADING = {
+    H1: 100,
+    H2: 48,
+    P: 38,
+  };
+  // #endregion
 
   // runs after the component mounts + renders
   useEffect(() => {
@@ -74,7 +91,23 @@ export default function MyCanvas() {
 
     preloadImages();
     // #endregion
+    // #region Fonts
+    const fontInterval = setInterval(() => {
+      if (document.fonts.check("12px 'VT323'")) {
+        CanShowTextRef.current = true;
+        AnimateText = true;
+        clearInterval(fontInterval);
+        clearTimeout(fontTimeout); // stop fallback since font loaded
+      }
+    }, 100);
 
+    const fontTimeout = setTimeout(() => {
+      CanShowTextRef.current = true;
+      AnimateText = true;
+      clearInterval(fontInterval);
+    }, 1000); // fallback after 1s if browser doesn't load the font
+
+    // #endregion
     const canvas = CanvasRef.current;
     const c = canvas?.getContext("2d");
     if (!canvas || !c) {
@@ -97,8 +130,8 @@ export default function MyCanvas() {
       handleCanvasResize(c, MapRef.current, CameraRef.current);
     }
 
-    SPAWN_X = c.canvas.width / 2;
-    PlayerRef.current = new Player(SPAWN_X, imageCache, ANIMATION_TIME_BUFFER);
+    SpawnX = c.canvas.width / 2;
+    PlayerRef.current = new Player(SpawnX, imageCache, ANIMATION_TIME_BUFFER);
     CameraRef.current.follow(PlayerRef.current);
 
     // #region Stage setup
@@ -145,6 +178,7 @@ export default function MyCanvas() {
     FloorRef.current = new Floor(floorHeight, -1000, 1000);
     // #endregion
 
+    // #region Controller setup
     ControllerRef.current = new Controller(
       PlayerRef.current,
       IsUserInputAllowedRef,
@@ -165,6 +199,24 @@ export default function MyCanvas() {
     window.addEventListener("keydown", keydownListener);
     window.addEventListener("keyup", keyupListener);
     window.addEventListener("wheel", scrollListener, { passive: false });
+    // #endregion
+
+    // #region Text setup
+    if (c.canvas.width <= 500) {
+      FONT_HEADING.H1 = 80;
+      FONT_HEADING.H2 = 33;
+      FONT_HEADING.P = 25;
+    }
+    const welcomeStr = "HEY, I'M LUKE";
+    const welcomeText = new GameText(
+      welcomeStr,
+      Math.floor(c.canvas.width / 2),
+      c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
+      calculateHeadingFontSize(c, welcomeStr, FONT_HEADING.H1),
+      CanShowTextRef
+    );
+    WelcomeTextArrayRef.current = [welcomeText];
+    // #endregion
 
     // Cleanup useEffect runs on component unmount
     return () => {
@@ -172,6 +224,8 @@ export default function MyCanvas() {
       for (const src in imageCache) {
         imageCache[src].removeEventListener("load", trackProgress);
       }
+      clearInterval(fontInterval);
+      clearTimeout(fontTimeout);
       window.removeEventListener("keydown", keydownListener);
       window.removeEventListener("keyup", keyupListener);
       window.removeEventListener("wheel", scrollListener);
@@ -190,9 +244,10 @@ export default function MyCanvas() {
     const Map: GameMap | null = MapRef.current;
     const Player: Player | null = PlayerRef.current;
     const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
+    const WelcomeTextArray: GameText[] | null = WelcomeTextArrayRef.current;
 
     // calculate time elapsed since last frame
-    const deltaTime: number = timestamp - prevTimestamp;
+    const deltaTime: number = timestamp - PrevTimestamp;
     if (
       deltaTime >= FRAME_DURATION &&
       c &&
@@ -203,9 +258,10 @@ export default function MyCanvas() {
       Bg1 &&
       TileSheet &&
       Floor &&
-      Player
+      Player &&
+      WelcomeTextArray
     ) {
-      prevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
+      PrevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
 
       /*
        * Responsive Scaling
@@ -222,7 +278,7 @@ export default function MyCanvas() {
       if (Player.y > Floor.height && IsUserInputAllowedRef.current) {
         IsUserInputAllowedRef.current = false;
         setTimeout(() => {
-          Player.x = SPAWN_X;
+          Player.x = SpawnX;
           Player.y = 0;
           Player.xVelocity = 0;
           Player.yVelocity = 0;
@@ -313,15 +369,15 @@ export default function MyCanvas() {
       //   rect.draw(c);
       // }
 
-      // // ??? fade in text based off boolean
-      // c.save();
-      // if (animateText) {
-      //   c.globalAlpha = 100 * textAlpha ** 3;
-      //   textAlpha += 0.01;
-      //   if (c.globalAlpha >= 1) {
-      //     animateText = false;
-      //   }
-      // }
+      // fade in text based off boolean
+      c.save();
+      if (AnimateText) {
+        c.globalAlpha = 100 * TextAlpha ** 3;
+        TextAlpha += 0.01;
+        if (c.globalAlpha >= 1) {
+          AnimateText = false;
+        }
+      }
 
       // /*
       //  * Demos Draw
@@ -365,12 +421,12 @@ export default function MyCanvas() {
       //   }
       // }
 
-      // /*
-      //  * Text Draw
-      //  */
-      // for (let i = 0; i < welcomeTextArray.length; i++) {
-      //   welcomeTextArray[i].draw(c, welcomeTextArray[i]);
-      // }
+      /*
+       * Text Draw
+       */
+      for (let i = 0; i < WelcomeTextArray.length; i++) {
+        WelcomeTextArray[i].draw(c, Camera.x, Camera.y);
+      }
 
       // for (let i = 0; i < textBubbleArray.length; i++) {
       //   if (
@@ -380,7 +436,7 @@ export default function MyCanvas() {
       //     textBubbleArray[i].draw(c);
       //   }
       // }
-      // c.restore();
+      c.restore();
 
       Player.draw(c, Floor.height, FrameCountRef.current);
 
