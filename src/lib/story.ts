@@ -1,0 +1,15 @@
+export const CodingStory = [
+  "Welcome! I’m Luke Muehring — a full-stack software engineer with over 3 years of experience and an avid adventurer based in Salt Lake City.",
+  "If I'm talking too slowly, feel free to use the scroll wheel.",
+  "Here's what I've been working on recently.",
+  "Let me tell you a little bit about myself:",
+  "For the past three years, I’ve been building SPAs with React and Angular, and developing APIs with C#. I’ve also enjoyed diving into UI design with Figma and managing complex front-end state using Redux.",
+  "I was born and raised in Atlanta, Georgia. There, I graduated from Georgia Tech with a B.S. in Computational Media (and also Chinese).",
+  "After graduating, I moved to Seattle to begin my first job as a software engineer at Microsoft under the M365 organization.",
+  "In 2023, I made the US Team for competitive rock climbing. It was a hard decision, but I decided to give my professional athlete career a shot and moved to Salt Lake City.",
+  "During that year, I trained full-time for elite climbing competitons and explored my own interests with coding. I explored front-end design by creating RestAndRelaxVacation.com, and the website you're looking at. Currently, I'm building full stack applications for Utah's largest physician group, Revere Health.",
+  "Outside of work, I spend most of my time climbing, exploring Utah's epic mountains, and creating new things with code.",
+  "Besides full-stack development and system design, I'm exploring how to make iOS and VisionOS apps with Swift and XCode. Outside of my career, my current outdoor project is training for a sub-24 hour WURL, a 36-mile alpine traverse with 18,000+ feet of elevation gain.",
+  "If you have an idea to create something cool or just want to chat, I’d love to get to know you better, so feel free to reach me at muehring.luke@gmail.com",
+  "Thanks for getting to know me a little.",
+];

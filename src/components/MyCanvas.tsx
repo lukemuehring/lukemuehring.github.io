@@ -1,8 +1,23 @@
 import { useEffect, useRef } from "react";
 import {
+  ANIMATION_TIME_BUFFER,
+  FONT_HEADING,
+  FRAME_DURATION,
+  GRAVITY,
+  JUMP_HEIGHT,
+} from "../lib/constants";
+import {
   calculateHeadingFontSize,
+  checkIfObjectClicked,
   closeMenu,
+  drawMouse,
   handleCanvasResize,
+  resizeCamera,
+  resizeCanvas,
+  resizeMap,
+  resizeText,
+  scrambleDrawPixelsAtMouse,
+  setupTextBubblesObjectsAndDemos,
 } from "../lib/helpers";
 import "../style.css";
 import { Background } from "../types/Background";
@@ -11,27 +26,34 @@ import { Controller } from "../types/Controller";
 import { Floor } from "../types/Floor";
 import { GameMap } from "../types/GameMap";
 import { GameText } from "../types/GameText";
+import type { ImageObject } from "../types/ImageObject";
 import { Player, PlayerStates } from "../types/Player";
+import type { TextBubble } from "../types/TextBubble";
+import type { Button } from "../types/Button";
+import { CodingStory } from "../lib/story";
+import { Mouse } from "../types/Mouse";
 
 export default function MyCanvas() {
   // #region Singleton global object refs
-  const CanvasRef = useRef<HTMLCanvasElement>(null);
-  const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
-
+  const BackgroundObjectsRef = useRef<ImageObject[] | null>(null);
   const Bg0Ref = useRef<Background | null>(null);
   const Bg1Ref = useRef<Background | null>(null);
   const CameraRef = useRef<Camera | null>(null);
+  const CanShowTextRef = useRef<boolean>(false);
+  const CanvasRef = useRef<HTMLCanvasElement>(null);
+  const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
   const ControllerRef = useRef<Controller | null>(null);
+  const DemosRef = useRef<Button[] | null>(null);
+  const ForegroundObjectsRef = useRef<ImageObject[] | null>(null);
   const FloorRef = useRef<Floor | null>(null);
-
   const FrameCountRef = useRef(0);
   const IsUserInputAllowedRef = useRef(true);
-
   const MapRef = useRef<GameMap | null>(null);
-  const PlayerRef = useRef<any>(null);
+  const MouseRef = useRef<Mouse | null>(null);
+  const PlayerRef = useRef<Player | null>(null);
+  const TextBubbleArrayRef = useRef<TextBubble[] | null>(null);
   const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
   const WelcomeTextArrayRef = useRef<GameText[] | null>(null);
-  const CanShowTextRef = useRef<boolean>(false);
   // #endregion
 
   // #region Game variables
@@ -40,19 +62,7 @@ export default function MyCanvas() {
 
   let PrevTimestamp = 0;
   let SpawnX = 0;
-
-  const ANIMATION_TIME_BUFFER = 30; // Used to time the animation cadence of Player sprite
-  const FPS_TARGET = 60;
-  const FRAME_DURATION = 1000 / FPS_TARGET; // 16.67 per frame, of 60 frames per second
-
-  const JUMP_HEIGHT = 20;
-  const GRAVITY = 1.5;
-
-  const FONT_HEADING = {
-    H1: 100,
-    H2: 48,
-    P: 38,
-  };
+  let MapMaxX = 0;
   // #endregion
 
   // runs after the component mounts + renders
@@ -108,9 +118,9 @@ export default function MyCanvas() {
     }, 1000); // fallback after 1s if browser doesn't load the font
 
     // #endregion
-    const canvas = CanvasRef.current;
-    const c = canvas?.getContext("2d");
-    if (!canvas || !c) {
+    const CANVAS_DOM_ELEMENT = CanvasRef.current;
+    const c = CANVAS_DOM_ELEMENT?.getContext("2d");
+    if (!CANVAS_DOM_ELEMENT || !c) {
       return;
     }
     // Set global singleton refs
@@ -127,7 +137,7 @@ export default function MyCanvas() {
       window.innerWidth != c.canvas.width ||
       window.innerHeight != c.canvas.height
     ) {
-      handleCanvasResize(c, MapRef.current, CameraRef.current);
+      resizeCanvas(c);
     }
 
     SpawnX = c.canvas.width / 2;
@@ -178,27 +188,16 @@ export default function MyCanvas() {
     FloorRef.current = new Floor(floorHeight, -1000, 1000);
     // #endregion
 
+    // #region Mouse
+    MouseRef.current = new Mouse();
+
+    // #endregion Mouse
     // #region Controller setup
     ControllerRef.current = new Controller(
       PlayerRef.current,
       IsUserInputAllowedRef,
       () => closeMenu(IsUserInputAllowedRef)
     );
-    // Store stable references for cleanup
-    const keydownListener = (event: KeyboardEvent) => {
-      ControllerRef.current?.keyListener(event);
-    };
-    const keyupListener = (event: KeyboardEvent) => {
-      ControllerRef.current?.keyListener(event);
-    };
-    const scrollListener = (event: WheelEvent) => {
-      ControllerRef.current?.scrollListener(event);
-    };
-
-    // Add listeners
-    window.addEventListener("keydown", keydownListener);
-    window.addEventListener("keyup", keyupListener);
-    window.addEventListener("wheel", scrollListener, { passive: false });
     // #endregion
 
     // #region Text setup
@@ -216,11 +215,80 @@ export default function MyCanvas() {
       CanShowTextRef
     );
     WelcomeTextArrayRef.current = [welcomeText];
-    // #endregion
 
-    // Cleanup useEffect runs on component unmount
+    // Text Bubbles (above player), objects, and demos
+    const cornerImage = new Image();
+    cornerImage.src = "./images/DialogCorners.png";
+
+    const triangleImage = new Image();
+    triangleImage.src = "./images/DialogTriangle.png";
+
+    const textBubbleArray: TextBubble[] = [];
+    const backgroundObjects: ImageObject[] = [];
+    const foregroundObjects: ImageObject[] = [];
+    const demos: Button[] = [];
+
+    setupTextBubblesObjectsAndDemos(
+      c,
+      CANVAS_DOM_ELEMENT,
+      FloorRef.current,
+      PlayerRef.current,
+      MapRef.current,
+      CanShowTextRef,
+      IsUserInputAllowedRef,
+      cornerImage,
+      triangleImage,
+      textBubbleArray,
+      backgroundObjects,
+      foregroundObjects,
+      demos
+    );
+
+    TextBubbleArrayRef.current = textBubbleArray;
+    BackgroundObjectsRef.current = backgroundObjects;
+    ForegroundObjectsRef.current = foregroundObjects;
+    DemosRef.current = demos;
+
+    // #endregion
+    MapMaxX = textBubbleArray[CodingStory.length - 1].maxX;
+    resizeCamera(c, CameraRef.current);
+    resizeMap(c, MapRef.current, FloorRef.current, MapMaxX);
+    resizeText(c, DemosRef.current, TextBubbleArrayRef.current);
+
+    // Store stable references for cleanup
+    const keydownListener = (event: KeyboardEvent) => {
+      ControllerRef.current?.keyListener(event);
+    };
+    const keyupListener = (event: KeyboardEvent) => {
+      ControllerRef.current?.keyListener(event);
+    };
+    const scrollListener = (event: WheelEvent) => {
+      ControllerRef.current?.scrollListener(event);
+    };
+    const mousemoveListener = (event: MouseEvent) => {
+      MouseRef.current?.updatePosition(event.clientX, event.clientY);
+    };
+    const onClickListener = (event: MouseEvent) => {
+      const obj = checkIfObjectClicked(DemosRef.current ?? []);
+      if (obj) {
+        obj.onClick(obj);
+      }
+
+      // if (!wasLinkClicked) {
+      //   movePlayerToScreenCoords(event.screenX, event.screenY);
+      // }
+    };
+
+    // Add listeners
+    window.addEventListener("keydown", keydownListener);
+    window.addEventListener("keyup", keyupListener);
+    window.addEventListener("wheel", scrollListener, { passive: false });
+    window.addEventListener("mousemove", mousemoveListener);
+    window.addEventListener("click", onClickListener);
+
+    // Cleanup useEffect - runs on component unmount
+    // Remove all event listeners to prevent memory leaks
     return () => {
-      // Remove all event listeners to prevent memory leaks
       for (const src in imageCache) {
         imageCache[src].removeEventListener("load", trackProgress);
       }
@@ -229,20 +297,30 @@ export default function MyCanvas() {
       window.removeEventListener("keydown", keydownListener);
       window.removeEventListener("keyup", keyupListener);
       window.removeEventListener("wheel", scrollListener);
+      window.removeEventListener("mousemove", mousemoveListener);
+      window.removeEventListener("click", onClickListener);
     };
   }, []);
 
   // #region --- Animation Loop ---
   function loop(timestamp: number) {
     // rename references just for readability
-    const c: CanvasRenderingContext2D | null = ContextRef.current;
+    const BackgroundObjects: ImageObject[] | null =
+      BackgroundObjectsRef.current;
     const Bg0: Background | null = Bg0Ref.current;
     const Bg1: Background | null = Bg1Ref.current;
+    const c: CanvasRenderingContext2D | null = ContextRef.current;
+    const Canvas: HTMLCanvasElement | null = CanvasRef.current;
     const Camera: Camera | null = CameraRef.current;
     const Controller: Controller | null = ControllerRef.current;
+    const Demos: Button[] | null = DemosRef.current;
+    const ForegroundObjects: ImageObject[] | null =
+      ForegroundObjectsRef.current;
     const Floor: Floor | null = FloorRef.current;
     const Map: GameMap | null = MapRef.current;
+    const Mouse: Mouse | null = MouseRef.current;
     const Player: Player | null = PlayerRef.current;
+    const TextBubbleArray: TextBubble[] | null = TextBubbleArrayRef.current;
     const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
     const WelcomeTextArray: GameText[] | null = WelcomeTextArrayRef.current;
 
@@ -250,15 +328,21 @@ export default function MyCanvas() {
     const deltaTime: number = timestamp - PrevTimestamp;
     if (
       deltaTime >= FRAME_DURATION &&
-      c &&
-      Map &&
-      Camera &&
-      Controller &&
+      BackgroundObjects &&
       Bg0 &&
       Bg1 &&
-      TileSheet &&
+      c &&
+      Canvas &&
+      Camera &&
+      Controller &&
+      Demos &&
+      ForegroundObjects &&
       Floor &&
+      Map &&
+      Mouse &&
       Player &&
+      TextBubbleArray &&
+      TileSheet &&
       WelcomeTextArray
     ) {
       PrevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
@@ -270,7 +354,15 @@ export default function MyCanvas() {
         window.innerWidth != c.canvas.width ||
         window.innerHeight != c.canvas.height
       ) {
-        handleCanvasResize(c, Map, Camera);
+        handleCanvasResize(
+          c,
+          Camera,
+          Demos,
+          Map,
+          Floor,
+          TextBubbleArray,
+          MapMaxX
+        );
       }
 
       // #region Updating game state - Camera, Controller, Player
@@ -303,6 +395,9 @@ export default function MyCanvas() {
         }
       }
 
+      // todo just make an update function for the player
+      // like how you do for the camera
+      // and make one for the controller too
       // Gravity and Friction
       Player.yVelocity += GRAVITY;
       Player.x += Player.xVelocity;
@@ -329,15 +424,9 @@ export default function MyCanvas() {
 
       // Constraining Player to x range [0, Map Size]
       Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
-
+      Player.screenY = Player.y;
       Camera.update();
       // #endregion Updating game state - Camera, Controller, Player
-
-      // Clear the background TODO is this necessary or is it just wasting paint time cycles
-      // c.save();
-      // c.fillStyle = "rgb(" + Bg1.color + ")";
-      // c.fillRect(0, 0, c.canvas.width, c.canvas.height);
-      // c.restore();
 
       // #region Drawing
       Bg0.draw(c);
@@ -379,47 +468,23 @@ export default function MyCanvas() {
         }
       }
 
-      // /*
-      //  * Demos Draw
-      //  */
-      // for (let i = 0; i < demos.length; i++) {
-      //   demos[i].draw(c);
-      //   // Hover Effect
-      //   if (demos[i].detectMouseHover()) {
-      //     drawHoverBox(
-      //       c,
-      //       demos[i].x,
-      //       demos[i].y,
-      //       demos[i].width,
-      //       demos[i].height,
-      //       demos[i].borderColorsTopBottom.length
-      //     );
-      //   }
-      // }
-
-      // Menu Buttons Draw
-      // rotateArrayItemsAroundCircle(
-      //   menuButtons,
-      //   welcomeText.x,
-      //   welcomeText.y,
-      //   menuBtnsCircleRadius,
-      //   0.005
-      // );
-      // for (let i = 0; i < menuButtons.length; i++) {
-      //   menuButtons[i].draw(c);
-
-      //   // Hover effect
-      //   if (menuButtons[i].detectMouseHover()) {
-      //     drawHoverBox(
-      //       c,
-      //       menuButtons[i].x,
-      //       menuButtons[i].y,
-      //       menuButtons[i].width,
-      //       menuButtons[i].height,
-      //       menuButtons[i].borderColorsTopBottom.length
-      //     );
-      //   }
-      // }
+      /*
+       * Demos Draw
+       */
+      for (let i = 0; i < Demos.length; i++) {
+        Demos[i].draw(c, Camera.x);
+        if (Demos[i].detectMouseHover(Mouse.x, Mouse.y, Camera.x)) {
+          //todocurr - hover box
+          // drawHoverBox(
+          //   c,
+          //   Demos[i].x,
+          //   Demos[i].y,
+          //   Demos[i].width,
+          //   Demos[i].height,
+          //   Demos[i].borderColorsTopBottom.length
+          // );
+        }
+      }
 
       /*
        * Text Draw
@@ -428,24 +493,25 @@ export default function MyCanvas() {
         WelcomeTextArray[i].draw(c, Camera.x, Camera.y);
       }
 
-      // for (let i = 0; i < textBubbleArray.length; i++) {
-      //   if (
-      //     textBubbleArray[i].minX < Player.x &&
-      //     textBubbleArray[i].maxX > Player.x
-      //   ) {
-      //     textBubbleArray[i].draw(c);
-      //   }
-      // }
+      for (let i = 0; i < TextBubbleArray.length; i++) {
+        // only draw if within player x bounds
+        if (
+          TextBubbleArray[i].minX < Player.x &&
+          TextBubbleArray[i].maxX > Player.x
+        ) {
+          TextBubbleArray[i].draw(c);
+        }
+      }
       c.restore();
 
       Player.draw(c, Floor.height, FrameCountRef.current);
 
-      // /*
-      //  * Foreground Object Draw
-      //  */
-      // for (let i = 0; i < foregroundObjects.length; i++) {
-      //   foregroundObjects[i].draw(c);
-      // }
+      /*
+       * Foreground Object Draw
+       */
+      for (let i = 0; i < ForegroundObjects.length; i++) {
+        ForegroundObjects[i].draw(c, Camera.x);
+      }
 
       /*
        * Floor Draw todo make into simple Draw() function, and move into the actual Floor object
@@ -474,19 +540,19 @@ export default function MyCanvas() {
         }
       }
 
-      // // Mouse Draw
-      // drawMouse(demos);
-      // if (
-      //   Mouse.x > Player.screenX - Player.width / 2 &&
-      //   Mouse.x < Player.screenX + Player.width / 2
-      // ) {
-      //   if (
-      //     Mouse.y > Player.screenY - Player.height &&
-      //     Mouse.y < Player.screenY
-      //   ) {
-      //     scrambleDrawPixelsAtMouse(c);
-      //   }
-      // }
+      // Mouse Draw
+      drawMouse(Canvas, Demos);
+      if (
+        Mouse.x > Player.screenX - Player.width / 2 &&
+        Mouse.x < Player.screenX + Player.width / 2
+      ) {
+        if (
+          Mouse.y > Player.screenY - Player.height &&
+          Mouse.y < Player.screenY
+        ) {
+          scrambleDrawPixelsAtMouse(c, Mouse);
+        }
+      }
       // #endregion Drawing
 
       FrameCountRef.current++;

@@ -1,7 +1,7 @@
 import { getCanvasFontString } from "../lib/helpers";
 
 export class GameText {
-  words: string;
+  text: string;
   x: number;
   y: number;
   fontSize: number;
@@ -9,13 +9,13 @@ export class GameText {
   canShowText: React.RefObject<boolean>;
 
   constructor(
-    words: string,
+    text: string,
     x: number,
     y: number,
     fontSize: number,
     canShowText: React.RefObject<boolean>
   ) {
-    this.words = words;
+    this.text = text;
     this.x = x;
     this.y = y;
     this.fontSize = fontSize;
@@ -27,9 +27,9 @@ export class GameText {
     if (!this.isVisible || !this.canShowText.current) return;
     context.save();
     context.font = getCanvasFontString(this.fontSize);
-    const textWidth = context.measureText(this.words).width;
+    const textWidth = context.measureText(this.text).width;
     context.fillText(
-      this.words,
+      this.text,
       this.x - cameraX - textWidth / 2,
       this.y - cameraY
     );
