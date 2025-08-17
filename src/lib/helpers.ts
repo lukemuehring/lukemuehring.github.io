@@ -176,9 +176,14 @@ function injectDemoModal(
     "background: linear-gradient(#F1F4FD 0%, #F1F4FD 50%, #FFF 80%);" +
     "z-index: 10;";
 
-  // add the newly created element and its content into the DOM
-  document.body.insertBefore(newDiv, CANVAS_DOM_ELEMENT);
+  console.log("newDiv", newDiv);
+  console.log("CANVAS_DOM_ELEMENT", CANVAS_DOM_ELEMENT);
 
+  // add the newly created element and its content into the DOM
+  const root = document.getElementById("root");
+  if (root) {
+    root.appendChild(newDiv);
+  }
   Button.IsModalOpen = true;
   IsUserInputAllowedRef.current = false;
 }
