@@ -67,127 +67,6 @@ export function drawMouse(canvas: HTMLCanvasElement, ...objArrays: any[][]) {
   canvas.style.cursor = isSomeElementHovered ? "pointer" : "default";
 }
 
-// injects HTML modal into the DOM for project demos
-function injectDemoModal(
-  demo: Button,
-  IsUserInputAllowedRef: React.RefObject<boolean>,
-  CANVAS_DOM_ELEMENT: HTMLElement
-) {
-  console.log("inject demo modal");
-
-  // create a new div element
-  const newDiv = document.createElement("div");
-
-  // Header
-  const headerElement = document.createElement("p");
-  const headerTextNode = document.createTextNode(demo.headerText);
-  headerElement.appendChild(headerTextNode);
-  headerElement.style.cssText =
-    "width: fit-content;" +
-    "font-size: var(--font-size-xxl);" +
-    "margin: 2rem;";
-
-  // X to close modal
-  const xButtonElement = document.createElement("button");
-  xButtonElement.innerHTML = "&times";
-  xButtonElement.setAttribute("class", "xModal");
-  xButtonElement.addEventListener("click", () => {
-    document.body.removeChild(newDiv);
-    Button.IsModalOpen = false;
-    IsUserInputAllowedRef.current = true;
-  });
-
-  //Images
-  let imageContainer = null;
-
-  if (demo.images?.length) {
-    imageContainer = document.createElement("div");
-    imageContainer.setAttribute("class", "container");
-
-    const sliderWrapper = document.createElement("div");
-    sliderWrapper.setAttribute("class", "slider-wrapper");
-
-    const imageList = document.createElement("div");
-    imageList.setAttribute("class", "image-list");
-
-    const imageElements = [];
-    for (let i = 0; i < demo.images.length; i++) {
-      let currentImageElement = document.createElement("img");
-      currentImageElement.setAttribute("class", "image-item");
-      currentImageElement.src = demo.images[i].src;
-      imageList.appendChild(currentImageElement);
-    }
-
-    let imageListContent = Array.from(imageList.children) as HTMLElement[];
-    imageListContent.forEach((item) => {
-      const duplicatedItem = item.cloneNode(true) as HTMLElement;
-      duplicatedItem.setAttribute("aria-hidden", "true");
-      imageList.appendChild(duplicatedItem);
-    });
-    sliderWrapper.appendChild(imageList);
-    imageContainer.appendChild(sliderWrapper);
-  }
-
-  // Text Div
-  const textDiv = document.createElement("div");
-  textDiv.style.cssText =
-    "height: fit-content;" +
-    "width: 100%;" +
-    "position: relative;" +
-    "padding: 1rem;" +
-    "text-align: center;";
-
-  const textElement = document.createElement("p");
-  const textNode = document.createTextNode(demo.text);
-  textElement.style.cssText =
-    "font-size: var(--font-size-lg);" + "white-space: pre-line;";
-  textElement.appendChild(textNode);
-
-  const linkElement = document.createElement("a");
-  linkElement.setAttribute("href", demo.link);
-  linkElement.setAttribute("target", "_blank");
-  linkElement.innerHTML = "See it live!";
-  linkElement.style.cssText =
-    "display: inline-block;" +
-    "margin-top: 2rem;" +
-    "font-size: var(--font-size-lg);";
-
-  textDiv.appendChild(textElement);
-  textDiv.appendChild(linkElement);
-
-  newDiv.appendChild(headerElement);
-  newDiv.appendChild(xButtonElement);
-  if (imageContainer) {
-    newDiv.appendChild(imageContainer);
-  }
-  newDiv.appendChild(textDiv);
-
-  newDiv.style.cssText =
-    "display:flex;" +
-    "flex-direction: column;" +
-    "align-items: center;" +
-    "justify-content: center;" +
-    "position:absolute;top:10%;left:50%;" +
-    "transform: translateX(-50%);" +
-    "width:80%;height:70%;" +
-    "max-width:90%;" +
-    "overflow: hidden;" +
-    "border-radius: 8px;" +
-    "background: linear-gradient(#F1F4FD 0%, #F1F4FD 50%, #FFF 80%);" +
-    "z-index: 10;";
-
-  console.log("newDiv", newDiv);
-  console.log("CANVAS_DOM_ELEMENT", CANVAS_DOM_ELEMENT);
-
-  // add the newly created element and its content into the DOM
-  const root = document.getElementById("root");
-  if (root) {
-    root.appendChild(newDiv);
-  }
-  Button.IsModalOpen = true;
-  IsUserInputAllowedRef.current = false;
-}
-
 // #region --- Map and Responsive Scaling ---
 export function handleCanvasResize(
   context: CanvasRenderingContext2D,
@@ -586,7 +465,8 @@ export function setupTextBubblesObjectsAndDemos(
   textBubbleArray: TextBubble[],
   backgroundObjects: ImageObject[],
   foregroundObjects: ImageObject[],
-  demos: Button[]
+  demos: Button[],
+  demosOpenHandler: (demo: any) => void
 ) {
   let startX: number =
     context.canvas.width - Math.floor(context.canvas.width * 0.4);
@@ -661,9 +541,7 @@ export function setupTextBubblesObjectsAndDemos(
     CanShowTextRef,
     cornerImage,
     () => {
-      console.log("inside callback");
-
-      injectDemoModal(websiteDemo, IsUserInputAllowedRef, CANVAS_DOM_ELEMENT);
+      demosOpenHandler(websiteDemo);
     }
   );
   websiteDemo.initializeDimensions(context);

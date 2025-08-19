@@ -1,0 +1,113 @@
+.demo-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 70%;
+  max-width: 90%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: linear-gradient(#f1f4fd 0%, #f1f4fd 50%, #fff 80%);
+  z-index: 10;
+  padding: 1rem;
+}
+
+.demo-modal__header {
+  width: fit-content;
+  font-size: var(--font-size-xxl);
+  margin: 2rem;
+  color: black;
+}
+
+.demo-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 2rem;
+  background: black;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.demo-modal__close:hover {
+  background-color: red;
+}
+
+.demo-modal__image-container {
+  max-width: 100%;
+  width: 95%;
+  height: 50%;
+  overflow-x: hidden;
+}
+
+.demo-modal__slider-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  -webkit-mask: linear-gradient(
+    90deg,
+    transparent,
+    white 5%,
+    white 95%,
+    transparent
+  );
+  mask: linear-gradient(90deg, transparent, white 5%, white 95%, transparent);
+}
+
+.demo-modal__image-list {
+  width: max-content;
+  height: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  justify-content: flex-start;
+  animation: scroll 30s linear infinite;
+}
+
+.demo-modal__image-item {
+  height: 100%;
+  padding-block: 1rem;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.demo-modal__content {
+  width: 100%;
+  text-align: center;
+  margin-top: 1rem;
+  color: black;
+}
+
+.demo-modal__text {
+  font-size: var(--font-size-lg);
+  white-space: pre-line;
+}
+
+.demo-modal__link {
+  display: inline-block;
+  margin-top: 2rem;
+  font-size: var(--font-size-lg);
+  color: blue;
+  text-decoration: underline;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
+  }
+}

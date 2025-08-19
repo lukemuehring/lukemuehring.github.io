@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ANIMATION_TIME_BUFFER,
   FONT_HEADING,
@@ -19,21 +19,35 @@ import {
   scrambleDrawPixelsAtMouse,
   setupTextBubblesObjectsAndDemos,
 } from "../lib/helpers";
+import { CodingStory } from "../lib/story";
 import "../style.css";
 import { Background } from "../types/Background";
+import { Button } from "../types/Button";
 import { Camera } from "../types/Camera";
 import { Controller } from "../types/Controller";
 import { Floor } from "../types/Floor";
 import { GameMap } from "../types/GameMap";
 import { GameText } from "../types/GameText";
 import type { ImageObject } from "../types/ImageObject";
+import { Mouse } from "../types/Mouse";
 import { Player, PlayerStates } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
-import type { Button } from "../types/Button";
-import { CodingStory } from "../lib/story";
-import { Mouse } from "../types/Mouse";
+import DemoModal from "./DemoModal/DemoModal";
 
 export default function MyCanvas() {
+  const [demoModal, setDemoModal] = useState<any | null>(null);
+  const handleOpenModal = (demo: any) => {
+    setDemoModal(demo);
+    IsUserInputAllowedRef.current = false;
+    Button.IsModalOpen = true;
+  };
+
+  const handleCloseModal = () => {
+    setDemoModal(null);
+    IsUserInputAllowedRef.current = true;
+    Button.IsModalOpen = false;
+  };
+
   // #region Singleton global object refs
   const BackgroundObjectsRef = useRef<ImageObject[] | null>(null);
   const Bg0Ref = useRef<Background | null>(null);
@@ -241,7 +255,8 @@ export default function MyCanvas() {
       textBubbleArray,
       backgroundObjects,
       foregroundObjects,
-      demos
+      demos,
+      handleOpenModal
     );
 
     TextBubbleArrayRef.current = textBubbleArray;
@@ -571,18 +586,29 @@ export default function MyCanvas() {
   // #endregion
 
   return (
-    <canvas id="canvas" ref={CanvasRef}>
-      <header>
-        <h1>ʟᴜᴋᴇ ᴍᴜᴇʜʀɪɴɢ</h1>
-      </header>
-      <main>
-        <p>climbing, coding & creating</p>
-      </main>
-      <p>This canvas displays a 2-D platformer I coded to tell my story.</p>
-      <noscript>
-        <p>Please enable JavaScript to view this content.</p>
-      </noscript>
-      <footer>2025 LM</footer>
-    </canvas>
+    <>
+      <canvas id="canvas" ref={CanvasRef}>
+        <header>
+          <h1>ʟᴜᴋᴇ ᴍᴜᴇʜʀɪɴɢ</h1>
+        </header>
+        <main>
+          <p>climbing, coding & creating</p>
+        </main>
+        <p>This canvas displays a 2-D platformer I coded to tell my story.</p>
+        <noscript>
+          <p>Please enable JavaScript to view this content.</p>
+        </noscript>
+        <footer>2025 LM</footer>
+      </canvas>
+      {demoModal && (
+        <DemoModal
+          headerText={demoModal.headerText}
+          images={demoModal.images}
+          text={demoModal.text}
+          link={demoModal.link}
+          onClose={handleCloseModal}
+        />
+      )}
+    </>
   );
 }
