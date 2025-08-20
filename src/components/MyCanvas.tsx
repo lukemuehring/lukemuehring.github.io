@@ -3,13 +3,11 @@ import {
   ANIMATION_TIME_BUFFER,
   FONT_HEADING,
   FRAME_DURATION,
-  GRAVITY,
   JUMP_HEIGHT,
 } from "../lib/constants";
 import {
   calculateHeadingFontSize,
   checkIfObjectClicked,
-  closeMenu,
   drawMouse,
   handleCanvasResize,
   handleTouchCancel,
@@ -38,18 +36,34 @@ import { Player, PlayerStates } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
 
-export default function MyCanvas() {
+export default function MyCanvas({
+  IsUserInputAllowedRef,
+  IsDemoModalOpenRef,
+  onRefChange,
+  PlayerRef,
+  DemosRef,
+}: {
+  IsUserInputAllowedRef: React.RefObject<boolean>;
+  IsDemoModalOpenRef: React.RefObject<boolean>;
+  onRefChange: () => void;
+  PlayerRef: React.RefObject<Player | null>;
+  DemosRef: React.RefObject<Button[] | null>;
+}) {
   const [demoModal, setDemoModal] = useState<any | null>(null);
   const handleOpenModal = (demo: any) => {
     setDemoModal(demo);
     IsUserInputAllowedRef.current = false;
+    IsDemoModalOpenRef.current = true;
     Button.IsModalOpen = true;
+    onRefChange();
   };
 
   const handleCloseModal = () => {
     setDemoModal(null);
     IsUserInputAllowedRef.current = true;
+    IsDemoModalOpenRef.current = false;
     Button.IsModalOpen = false;
+    onRefChange();
   };
 
   // #region Singleton global object refs
@@ -61,14 +75,11 @@ export default function MyCanvas() {
   const CanvasRef = useRef<HTMLCanvasElement>(null);
   const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
   const ControllerRef = useRef<Controller | null>(null);
-  const DemosRef = useRef<Button[] | null>(null);
   const ForegroundObjectsRef = useRef<ImageObject[] | null>(null);
   const FloorRef = useRef<Floor | null>(null);
   const FrameCountRef = useRef(0);
-  const IsUserInputAllowedRef = useRef(true);
   const MapRef = useRef<GameMap | null>(null);
   const MouseRef = useRef<Mouse | null>(null);
-  const PlayerRef = useRef<Player | null>(null);
   const TextBubbleArrayRef = useRef<TextBubble[] | null>(null);
   const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
   const WelcomeTextArrayRef = useRef<GameText[] | null>(null);
@@ -215,8 +226,7 @@ export default function MyCanvas() {
     // #region Controller setup
     ControllerRef.current = new Controller(
       PlayerRef.current,
-      IsUserInputAllowedRef,
-      () => closeMenu(IsUserInputAllowedRef)
+      IsUserInputAllowedRef
     );
     // #endregion
 
@@ -449,36 +459,8 @@ export default function MyCanvas() {
         }
       }
 
-      // todo just make an update function for the player
-      // like how you do for the camera
-      // and make one for the controller too
-      // Gravity and Friction
-      Player.yVelocity += GRAVITY;
-      Player.x += Player.xVelocity;
-      Player.y += Player.yVelocity;
+      Player.update(Floor, Map);
 
-      Player.xVelocity *= 0.9;
-
-      // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
-      // Todo - the clipping bug might be from the second condition here.
-      if (Player.xVelocity <= 0.2 && Player.xVelocity >= -0.2) {
-        Player.xVelocity = 0;
-      }
-      Player.yVelocity += 0.9;
-
-      // Floor Collision
-      if (
-        Player.y > Floor.height &&
-        Player.x < Floor.rightX &&
-        Player.x > Floor.leftX
-      ) {
-        Player.y = Floor.height;
-        Player.yVelocity = 0;
-      }
-
-      // Constraining Player to x range [0, Map Size]
-      Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
-      Player.screenY = Player.y;
       Camera.update();
       // #endregion Updating game state - Camera, Controller, Player
 

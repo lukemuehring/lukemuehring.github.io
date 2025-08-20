@@ -1,32 +1,43 @@
+import { useRef } from "react";
 import "./App.css";
 import MyCanvas from "./components/MyCanvas";
 import "./style.css";
+import Nav from "./components/Nav/Nav";
+import type { Player } from "./types/Player";
+import type { Button } from "./types/Button";
 
 export default function App() {
+  const IsUserInputAllowedRef = useRef(true);
+  const IsNavMenuOpenRef = useRef(false);
+  const IsDemoModalOpenRef = useRef(false);
+  const PlayerRef = useRef<Player | null>(null);
+  const DemosRef = useRef<Button[] | null>(null);
+
+  const updateDerivedRef = () => {
+    IsUserInputAllowedRef.current =
+      !IsNavMenuOpenRef.current && !IsDemoModalOpenRef.current;
+  };
+
   return (
     <>
+      {/* this is used to load the fonts as soon as possible */}
       <div aria-hidden="true" className="hidden">
         &nbsp;
       </div>
 
-      <MyCanvas />
-
-      <nav id="nav">
-        {/* todo: replace with accessible component for ham-menu button */}
-        <div className="ham-menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div className="menu-container">
-          <div className="menu">
-            <button data-target="resume">Resume</button>
-            <button data-target="contact">Contact</button>
-            <button data-target="work">My Work</button>
-            <button data-target="linkedIn">LinkedIn</button>
-          </div>
-        </div>
-      </nav>
+      <MyCanvas
+        IsUserInputAllowedRef={IsUserInputAllowedRef}
+        IsDemoModalOpenRef={IsDemoModalOpenRef}
+        onRefChange={updateDerivedRef}
+        PlayerRef={PlayerRef}
+        DemosRef={DemosRef}
+      />
+      <Nav
+        IsNavMenuOpenRef={IsNavMenuOpenRef}
+        onRefChange={updateDerivedRef}
+        PlayerRef={PlayerRef}
+        DemosRef={DemosRef}
+      />
 
       <div id="toastContainer" className="toast-container"></div>
     </>

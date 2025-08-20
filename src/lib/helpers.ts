@@ -26,8 +26,11 @@ export function checkIfObjectClicked(demos: Button[]) {
   return null;
 }
 
-// closes the hamburger menu and enables user input again
-export function closeMenu(IsUserInputAllowedRef: React.RefObject<boolean>) {
+// closes the hamburger menu
+export function closeMenu(
+  IsDemoModalOpenRef: React.RefObject<boolean>,
+  onRefChange: () => void
+) {
   const hamMenu = document.querySelector(".ham-menu");
   if (hamMenu && hamMenu.classList.contains("active")) {
     hamMenu.classList.remove("active");
@@ -38,7 +41,8 @@ export function closeMenu(IsUserInputAllowedRef: React.RefObject<boolean>) {
     menuContainer.classList.remove("active");
   }
 
-  IsUserInputAllowedRef.current = true;
+  IsDemoModalOpenRef.current = false;
+  onRefChange();
 }
 
 // draws the image but flips it horizontally
@@ -129,6 +133,16 @@ function cutOffFloorEdgesInMap(Map: GameMap, maxX: number) {
     row++;
     Map.tiles.fill(2, j, Map.cols * row);
   }
+}
+
+// todo make smooth
+export function movePlayerToScreenCoords(Player: Player, x: number, y: number) {
+  if (x < Player.x) {
+    while (Player.x < x) {
+      Player.x += 1;
+    }
+  }
+  (Player.x = x), (Player.y = y);
 }
 // #endregion
 

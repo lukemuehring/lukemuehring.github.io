@@ -1,4 +1,7 @@
+import { GRAVITY } from "../lib/constants";
 import { drawFlippedImage } from "../lib/helpers";
+import type { Floor } from "./Floor";
+import type { GameMap } from "./GameMap";
 
 export const PlayerStates = {
   Idle: "Idle",
@@ -48,6 +51,37 @@ export class Player {
     this.isGoingToTheRight = true;
     this.imageCache = imageCache;
     this.animationTimeBuffer = animationTimeBuffer;
+  }
+
+  // todo add platforms to method to have platform detection i guess
+  update(Floor: Floor, Map: GameMap) {
+    // Gravity and Friction
+    this.yVelocity += GRAVITY;
+    this.x += this.xVelocity;
+    this.y += this.yVelocity;
+
+    this.xVelocity *= 0.9;
+
+    // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
+    // Todo - the clipping bug might be from the second condition here.
+    if (this.xVelocity <= 0.2 && this.xVelocity >= -0.2) {
+      this.xVelocity = 0;
+    }
+    this.yVelocity += 0.9;
+
+    // Floor Collision
+    if (
+      this.y > Floor.height &&
+      this.x < Floor.rightX &&
+      this.x > Floor.leftX
+    ) {
+      this.y = Floor.height;
+      this.yVelocity = 0;
+    }
+
+    // Constraining Player to x range [0, Map Size]
+    this.x = Math.max(0, Math.min(this.x, Map.cols * Map.tsize));
+    this.screenY = this.y;
   }
 
   // todo: change 1st floorHeight check to yVelocity so that we can implement platforms

@@ -7,20 +7,14 @@ export class Controller {
   right: boolean;
   up: boolean;
   userInputRegistered: boolean;
-  closeMenuCallback?: () => void; // passed in function to handle 'esc' key presses
 
-  constructor(
-    player: Player,
-    isUserInputAllowed: React.RefObject<boolean>,
-    closeMenuCallback?: () => void
-  ) {
+  constructor(player: Player, isUserInputAllowed: React.RefObject<boolean>) {
     this.player = player;
     this.isUserInputAllowed = isUserInputAllowed;
     this.left = false;
     this.right = false;
     this.up = false;
     this.userInputRegistered = false;
-    this.closeMenuCallback = closeMenuCallback;
 
     // Bind 'this' to be this Controller instance
     this.keyListener = this.keyListener.bind(this);
@@ -39,11 +33,6 @@ export class Controller {
       case "ArrowRight":
         this.right = keyState;
         break;
-      case "Escape":
-        if (keyState && this.closeMenuCallback) {
-          this.closeMenuCallback();
-        }
-        break;
     }
   };
 
@@ -52,7 +41,7 @@ export class Controller {
   scrollListener(event: WheelEvent) {
     this.userInputRegistered = true;
     event.preventDefault();
-    if (this.isUserInputAllowed) {
+    if (this.isUserInputAllowed.current) {
       this.player.xVelocity += event.deltaY * 0.1;
     }
   }
