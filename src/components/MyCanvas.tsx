@@ -12,6 +12,10 @@ import {
   closeMenu,
   drawMouse,
   handleCanvasResize,
+  handleTouchCancel,
+  handleTouchEnd,
+  handleTouchMove,
+  handleTouchStart,
   resizeCamera,
   resizeCanvas,
   resizeMap,
@@ -133,7 +137,9 @@ export default function MyCanvas() {
 
     // #endregion
     const CANVAS_DOM_ELEMENT = CanvasRef.current;
-    const c = CANVAS_DOM_ELEMENT?.getContext("2d");
+    const c = CANVAS_DOM_ELEMENT?.getContext("2d", {
+      willReadFrequently: true,
+    });
     if (!CANVAS_DOM_ELEMENT || !c) {
       return;
     }
@@ -294,12 +300,40 @@ export default function MyCanvas() {
       // }
     };
 
+    const touchStartListener = (evt: TouchEvent) => {
+      if (ControllerRef.current && MouseRef.current) {
+        handleTouchStart(evt, ControllerRef.current, MouseRef.current);
+      }
+    };
+    const touchMoveListener = (evt: TouchEvent) => {
+      if (PlayerRef.current) {
+        handleTouchMove(
+          evt,
+          IsUserInputAllowedRef.current ?? true,
+          PlayerRef.current
+        );
+      }
+    };
+    const touchEndListener = (evt: TouchEvent) => {
+      handleTouchEnd(evt);
+    };
+    const touchCancelListener = (evt: TouchEvent) => {
+      handleTouchCancel(evt);
+    };
+
     // Add listeners
     window.addEventListener("keydown", keydownListener);
     window.addEventListener("keyup", keyupListener);
     window.addEventListener("wheel", scrollListener, { passive: false });
     window.addEventListener("mousemove", mousemoveListener);
     window.addEventListener("click", onClickListener);
+
+    window.addEventListener("touchstart", touchStartListener); // passive by default
+    window.addEventListener("touchmove", touchMoveListener, { passive: false });
+    window.addEventListener("touchend", touchEndListener); // passive by default
+    window.addEventListener("touchcancel", touchCancelListener, {
+      passive: false,
+    });
 
     // Cleanup useEffect - runs on component unmount
     // Remove all event listeners to prevent memory leaks
@@ -314,6 +348,11 @@ export default function MyCanvas() {
       window.removeEventListener("wheel", scrollListener);
       window.removeEventListener("mousemove", mousemoveListener);
       window.removeEventListener("click", onClickListener);
+
+      window.removeEventListener("touchstart", touchStartListener);
+      window.removeEventListener("touchmove", touchMoveListener);
+      window.removeEventListener("touchend", touchEndListener);
+      window.removeEventListener("touchcancel", touchCancelListener);
     };
   }, []);
 
@@ -489,15 +528,7 @@ export default function MyCanvas() {
       for (let i = 0; i < Demos.length; i++) {
         Demos[i].draw(c, Camera.x);
         if (Demos[i].detectMouseHover(Mouse.x, Mouse.y, Camera.x)) {
-          //todocurr - hover box
-          // drawHoverBox(
-          //   c,
-          //   Demos[i].x,
-          //   Demos[i].y,
-          //   Demos[i].width,
-          //   Demos[i].height,
-          //   Demos[i].borderColorsTopBottom.length
-          // );
+          Demos[i].drawHoverBox(c, Camera.x, Camera.y);
         }
       }
 

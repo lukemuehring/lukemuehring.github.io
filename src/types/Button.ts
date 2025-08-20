@@ -132,6 +132,7 @@ export class Button {
       return false;
     }
 
+    this.hover = false;
     if (
       mouseX >= this.x - this.width / 2 - cameraX &&
       mouseX <= this.x + this.width / 2 - cameraX
@@ -139,9 +140,25 @@ export class Button {
       if (mouseY >= this.y && mouseY < this.y + this.height) {
         this.hover = true;
       }
-    } else {
-      this.hover = false;
     }
+
     return this.hover;
+  }
+
+  // "on:hover" overlay effect for demos
+  drawHoverBox(
+    context: CanvasRenderingContext2D,
+    cameraX: number,
+    cameraY: number
+  ) {
+    context.save();
+    context.fillStyle = "rgb(0 0 0 / .2)"; //dark mode flip this
+    context.fillRect(
+      Math.floor(this.x - cameraX) - this.width / 2,
+      Math.floor(this.y - cameraY - this.borderColorsTopBottom.length),
+      this.width,
+      this.height + this.borderColorsTopBottom.length * 2
+    );
+    context.restore();
   }
 }

@@ -1,9 +1,10 @@
 import { Button } from "../types/Button";
 import type { Camera } from "../types/Camera";
+import type { Controller } from "../types/Controller";
 import type { Floor } from "../types/Floor";
 import type { GameMap } from "../types/GameMap";
 import { ImageObject } from "../types/ImageObject";
-import type { Mouse } from "../types/Mouse";
+import { Mouse } from "../types/Mouse";
 import type { Player } from "../types/Player";
 import { TextBubble } from "../types/TextBubble";
 import type { TextLinesData } from "../types/TextLinesData";
@@ -605,6 +606,88 @@ export function setupTextBubblesObjectsAndDemos(
   // #endregion
 }
 
+// #endregion
+
+// #region Touch
+export const ongoingTouches: any[] = [];
+
+export function copyTouch({ identifier, clientX, clientY }: any) {
+  return { identifier, clientX, clientY };
+}
+
+function ongoingTouchIndexById(idToFind: number) {
+  for (let i = 0; i < ongoingTouches.length; i++) {
+    const id = ongoingTouches[i].identifier;
+
+    if (id === idToFind) {
+      return i;
+    }
+  }
+  return -1; // not found
+}
+
+export function handleTouchStart(
+  evt: TouchEvent,
+  Controller: Controller,
+  Mouse: Mouse
+) {
+  Controller.userInputRegistered = true;
+
+  const touches: TouchList = evt.changedTouches;
+  Mouse.x = touches[0].clientX;
+  Mouse.y = touches[0].clientY;
+
+  for (let i = 0; i < touches.length; i++) {
+    ongoingTouches.push(copyTouch(touches[i]));
+  }
+}
+
+export function handleTouchMove(
+  evt: TouchEvent,
+  userInputIsAllowed: boolean,
+  Player: Player
+) {
+  evt.preventDefault();
+  const touches: TouchList = evt.changedTouches;
+
+  for (let i = 0; i < touches.length; i++) {
+    const idx = ongoingTouchIndexById(touches[i].identifier);
+
+    if (idx >= 0) {
+      if (userInputIsAllowed) {
+        Player.xVelocity +=
+          0.3 * (touches[i].clientX - ongoingTouches[idx].clientX);
+      }
+      ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
+    } else {
+      console.error("can't figure out which touch to continue");
+    }
+  }
+}
+
+export function handleTouchEnd(evt: TouchEvent) {
+  const touches = evt.changedTouches;
+
+  for (let i = 0; i < touches.length; i++) {
+    let idx = ongoingTouchIndexById(touches[i].identifier);
+
+    if (idx >= 0) {
+      ongoingTouches.splice(idx, 1); // remove it; we're done
+    } else {
+      console.error("can't figure out which touch to end");
+    }
+  }
+}
+
+export function handleTouchCancel(evt: TouchEvent) {
+  evt.preventDefault();
+  const touches = evt.changedTouches;
+
+  for (let i = 0; i < touches.length; i++) {
+    let idx = ongoingTouchIndexById(touches[i].identifier);
+    ongoingTouches.splice(idx, 1); // remove it; we're done
+  }
+}
 // #endregion
 
 // #region --- Other ---
