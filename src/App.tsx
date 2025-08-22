@@ -5,6 +5,9 @@ import "./style.css";
 import Nav from "./components/Nav/Nav";
 import type { Player } from "./types/Player";
 import type { Button } from "./types/Button";
+import { Route, Routes } from "react-router-dom";
+import BlogList from "./components/Blog/BlogList";
+import Blog from "./components/Blog/Blog";
 
 export default function App() {
   const IsUserInputAllowedRef = useRef(true);
@@ -19,27 +22,37 @@ export default function App() {
   };
 
   return (
-    <>
-      {/* this is used to load the fonts as soon as possible */}
-      <div aria-hidden="true" className="hidden">
-        &nbsp;
-      </div>
+    <Routes>
+      {/* Main "Home" route */}
+      <Route
+        path="/"
+        element={
+          <>
+            {/* this is used to load the fonts as soon as possible */}
+            <div aria-hidden="true" className="hidden">
+              &nbsp;
+            </div>
 
-      <MyCanvas
-        IsUserInputAllowedRef={IsUserInputAllowedRef}
-        IsDemoModalOpenRef={IsDemoModalOpenRef}
-        onRefChange={updateDerivedRef}
-        PlayerRef={PlayerRef}
-        DemosRef={DemosRef}
-      />
-      <Nav
-        IsNavMenuOpenRef={IsNavMenuOpenRef}
-        onRefChange={updateDerivedRef}
-        PlayerRef={PlayerRef}
-        DemosRef={DemosRef}
+            <MyCanvas
+              IsUserInputAllowedRef={IsUserInputAllowedRef}
+              IsDemoModalOpenRef={IsDemoModalOpenRef}
+              onRefChange={updateDerivedRef}
+              PlayerRef={PlayerRef}
+              DemosRef={DemosRef}
+            />
+            <Nav
+              IsNavMenuOpenRef={IsNavMenuOpenRef}
+              onRefChange={updateDerivedRef}
+              PlayerRef={PlayerRef}
+              DemosRef={DemosRef}
+            />
+
+            <div id="toastContainer" className="toast-container"></div>
+          </>
+        }
       />
 
-      <div id="toastContainer" className="toast-container"></div>
-    </>
+      <Route path="/blog/*" element={<Blog />} />
+    </Routes>
   );
 }

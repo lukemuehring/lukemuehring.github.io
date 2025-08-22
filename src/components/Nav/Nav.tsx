@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { movePlayerToScreenCoords } from "../../lib/helpers";
 import type { Player } from "../../types/Player";
 import type { Button } from "../../types/Button";
+import { useNavigate } from "react-router-dom";
 
 type NavProps = {
-  IsNavMenuOpenRef: React.RefObject<boolean>;
-  onRefChange: () => void;
-  PlayerRef: React.RefObject<Player | null>;
-  DemosRef: React.RefObject<Button[] | null>;
+  IsNavMenuOpenRef?: React.RefObject<boolean>;
+  onRefChange?: () => void;
+  PlayerRef?: React.RefObject<Player | null>;
+  DemosRef?: React.RefObject<Button[] | null>;
 };
 
 export default function Nav({
@@ -18,17 +19,19 @@ export default function Nav({
 }: NavProps) {
   const [isActive, setIsActive] = useState(false);
 
+  const navigate = useNavigate();
+
   const onClose = () => {
     setIsActive(false); // update local state
-    IsNavMenuOpenRef.current = false; // update the parent ref
-    onRefChange(); // update derived ref
+    if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = false; // update the parent ref
+    if (onRefChange) onRefChange(); // update derived ref
   };
 
   const handleMenuToggle = () => {
     setIsActive((prev) => {
       const newState = !prev;
-      IsNavMenuOpenRef.current = newState;
-      onRefChange();
+      if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = newState;
+      if (onRefChange) onRefChange();
       return newState;
     });
   };
@@ -50,6 +53,12 @@ export default function Nav({
   }, []);
 
   // handlers for each menu item
+
+  const handleBlog = () => {
+    navigate("/blog");
+    onClose();
+  };
+
   const handleResume = () => {
     window.open("../../assets/Resume.pdf", "_blank");
     onClose();
@@ -62,7 +71,7 @@ export default function Nav({
   };
 
   const handleWork = () => {
-    if (PlayerRef.current && DemosRef.current) {
+    if (PlayerRef && PlayerRef.current && DemosRef && DemosRef.current) {
       movePlayerToScreenCoords(PlayerRef.current, DemosRef.current[0].x, 0);
     }
     onClose();
@@ -113,10 +122,11 @@ export default function Nav({
 
       <div className={`menu-container ${isActive ? "active" : ""}`}>
         <div className="menu">
-          <button onClick={handleResume}>Resume</button>
+          <button onClick={handleBlog}>Blog</button>
           <button onClick={handleContact}>Contact</button>
-          <button onClick={handleWork}>My Work</button>
           <button onClick={handleLinkedIn}>LinkedIn</button>
+          <button onClick={handleWork}>My Work</button>
+          <button onClick={handleResume}>Resume</button>
         </div>
       </div>
     </nav>
