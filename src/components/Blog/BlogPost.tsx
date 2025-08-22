@@ -8,7 +8,7 @@ export default function BlogPost() {
 
   if (!post) {
     return (
-      <div style={{ padding: "2rem" }}>
+      <div className="" style={{ padding: "2rem" }}>
         <h1>Post not found</h1>
         <Link to="/blog">← Back to Blog</Link>
       </div>
@@ -18,15 +18,17 @@ export default function BlogPost() {
   const PostContent = post.component;
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>{post.title}</h1>
-      <div style={{ fontSize: "0.8rem", color: "gray" }}>{post.date}</div>
-      <div style={{ marginTop: "1rem", color: "pink" }}>
-        <PostContent />
+    <div className="flex flex-col items-center justify-center px-4 py-12">
+      <div className="w-full max-w-3xl markdown">
+        <h1>{post.title}</h1>
+        <div className="text-gray-500 text-sm">{post.date}</div>
+        <div className="mt-4 w-full  text-pink-500 mx-auto">
+          <PostContent />
+        </div>
+        <Link to="/blog" className="block mt-8">
+          ← Back to Blog
+        </Link>
       </div>
-      <Link to="/blog" style={{ display: "block", marginTop: "2rem" }}>
-        ← Back to Blog
-      </Link>
     </div>
   );
 }

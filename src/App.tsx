@@ -1,13 +1,13 @@
 import { useRef } from "react";
-import "./App.css";
-import MyCanvas from "./components/MyCanvas";
-import "./style.css";
-import Nav from "./components/Nav/Nav";
-import type { Player } from "./types/Player";
-import type { Button } from "./types/Button";
 import { Route, Routes } from "react-router-dom";
-import BlogList from "./components/Blog/BlogList";
+import "./App.css";
 import Blog from "./components/Blog/Blog";
+import MyCanvas from "./components/MyCanvas";
+import Nav from "./components/Nav/Nav";
+import "./style.css";
+import "./tailwind.css";
+import type { Button } from "./types/Button";
+import type { Player } from "./types/Player";
 
 export default function App() {
   const IsUserInputAllowedRef = useRef(true);

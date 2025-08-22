@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+.blog * {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.markdown ul {
+  @apply list-disc ml-5;
+}
+.markdown ol {
+  @apply list-decimal ml-5;
+}

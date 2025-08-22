@@ -1,0 +1,20 @@
+export const date = "2025-08-21";
+export const title =
+  "Building a static 2-D platformer website with React, deployed using GitHub Pages";
+
+I built this website as a 2-D game platformer to have a creative outlet for my coding. In the beginning, I kept it simple with plain old vanilla HTML / CSS / JS.
+This approach was nice to focus on creating fun features, learning the fundamentals of the web again, and not wasting time worrying about problems with npm packages and SPA frameworks.
+My website consisted of:
+
+- a simple HTML template that contained a single &lt;canvas&gt; element
+- an index.js file that contained all of the game logic
+
+However, this approach became exponentially more difficult to manage as the website grew. My index.js became a monolith, ballooning to almost 2,000 lines of spaghetti code. Having everything in one file sucked for many reasons:
+1. Any change involved scrolling between distant parts of the file.
+
+    The length of the file made it harder to keep context on what inputs / outputs a function needs and what I'm trying to accomplish. I would constantly be scrolling back and forth, or using a split screen to make changes.
+
+2. CTRL + F works better when code is broken up 
+
+    Since everything was defined in index.js, I would get 30+ matches when CTRL+F-ing a common keyword. If files were broken up, I'd usually only have less than ten matches to sift through, which is much more manageable.
+    github pages only serves static html css js.
