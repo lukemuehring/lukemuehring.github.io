@@ -1,7 +1,9 @@
-import { GRAVITY } from "../lib/constants";
+import { GRAVITY, JUMP_HEIGHT } from "../lib/constants";
 import { drawFlippedImage } from "../lib/helpers";
+import type { Camera } from "./Camera";
 import type { Floor } from "./Floor";
 import type { GameMap } from "./GameMap";
+import type { Mouse } from "./Mouse";
 
 export const PlayerStates = {
   Idle: "Idle",
@@ -29,11 +31,19 @@ export class Player {
   isGoingToTheRight: boolean;
   imageCache: Record<string, HTMLImageElement>;
   animationTimeBuffer: number;
+  hover: boolean;
+
+  isDragging: boolean = false;
+  dragOffsetX: number = 0;
+  dragOffsetY: number = 0;
+
+  IsUserInputAllowedRef: React.RefObject<boolean>;
 
   constructor(
     spawnX: number,
     imageCache: Record<string, HTMLImageElement>,
-    animationTimeBuffer: number
+    animationTimeBuffer: number,
+    IsUserInputAllowedRef: React.RefObject<boolean>
   ) {
     this.x = spawnX;
     this.screenX = spawnX;
@@ -51,23 +61,65 @@ export class Player {
     this.isGoingToTheRight = true;
     this.imageCache = imageCache;
     this.animationTimeBuffer = animationTimeBuffer;
+    this.hover = false;
+    this.IsUserInputAllowedRef = IsUserInputAllowedRef;
   }
 
   // todo add platforms to method to have platform detection i guess
-  update(Floor: Floor, Map: GameMap) {
+  update(Floor: Floor, Map: GameMap, Mouse: Mouse, Camera: Camera) {
     // Gravity and Friction
-    this.yVelocity += GRAVITY;
-    this.x += this.xVelocity;
-    this.y += this.yVelocity;
+    if (!this.isDragging) {
+      this.yVelocity += GRAVITY;
+      this.x += this.xVelocity;
+      this.y += this.yVelocity;
 
-    this.xVelocity *= 0.9;
+      this.xVelocity *= 0.9;
+      this.yVelocity += 0.9;
 
-    // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
-    // Todo - the clipping bug might be from the second condition here.
-    if (this.xVelocity <= 0.2 && this.xVelocity >= -0.2) {
-      this.xVelocity = 0;
+      // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
+      // Todo - the clipping bug might be from the second condition here.
+      if (this.xVelocity <= 0.2 && this.xVelocity >= -0.2) {
+        this.xVelocity = 0;
+      }
     }
-    this.yVelocity += 0.9;
+
+    // update hover
+    this.hover = false;
+
+    // console.log(" PLAYA (", this.screenX, ",", this.screenY, ")");
+    // console.log("MOUSE (", Mouse.x, ",", Mouse.y, ")");
+
+    if (
+      Mouse.x > this.screenX - this.width / 2 &&
+      Mouse.x < this.screenX + this.width / 2
+    ) {
+      if (Mouse.y > this.screenY - this.height && Mouse.y < this.screenY) {
+        this.hover = true;
+      }
+    }
+
+    // --- Handle dragging ---
+    if (this.isDragging) {
+      // follow mouse when dragging
+      this.screenX = Mouse.x - this.dragOffsetX;
+      this.screenY = Math.min(Mouse.y - this.dragOffsetY, Floor.height);
+      this.x = Camera.x + (Mouse.x - this.dragOffsetX);
+      // this.y = Math.min(Camera.y + (Mouse.y - this.dragOffsetY), Floor.height);
+      this.y = Camera.y + (Mouse.y - this.dragOffsetY);
+    } else if (
+      this.hover &&
+      Mouse.isPressedDown &&
+      this.IsUserInputAllowedRef.current
+    ) {
+      // Start dragging only if mouse is over player
+      this.isDragging = true;
+      this.dragOffsetX = Mouse.x - this.screenX;
+      this.dragOffsetY = Mouse.y - this.screenY;
+    }
+
+    if (!Mouse.isPressedDown) {
+      this.isDragging = false;
+    }
 
     // Floor Collision
     if (
@@ -81,7 +133,13 @@ export class Player {
 
     // Constraining Player to x range [0, Map Size]
     this.x = Math.max(0, Math.min(this.x, Map.cols * Map.tsize));
+
+    this.screenX = Camera.getScreenX(this.x);
+    // this.screenY = Camera.getScreenY(this.y); todo camera y
     this.screenY = this.y;
+
+    // todo this fixes random respawns from the mouse but also now player cant "die" by falling off the edge
+    // this.y = Math.min(this.y, Floor.height); // Prevent player from going below the floor
   }
 
   // todo: change 1st floorHeight check to yVelocity so that we can implement platforms
@@ -144,14 +202,18 @@ export class Player {
         c,
         this.image,
         this.screenX - this.width / 2,
-        this.y - this.image.naturalHeight
+        this.screenY - this.image.naturalHeight
       );
     } else {
       c.drawImage(
         this.image,
         Math.floor(this.screenX - this.width / 2),
-        Math.floor(this.y - this.image.naturalHeight)
+        Math.floor(this.screenY - this.image.naturalHeight)
       );
     }
+  }
+
+  onClick() {
+    // this.yVelocity -= JUMP_HEIGHT;
   }
 }

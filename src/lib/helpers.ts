@@ -5,7 +5,7 @@ import type { Floor } from "../types/Floor";
 import type { GameMap } from "../types/GameMap";
 import { ImageObject } from "../types/ImageObject";
 import { Mouse } from "../types/Mouse";
-import type { Player } from "../types/Player";
+import { Player } from "../types/Player";
 import { TextBubble } from "../types/TextBubble";
 import type { TextLinesData } from "../types/TextLinesData";
 import { FONT_HEADING } from "./constants";
@@ -16,13 +16,18 @@ import { CodingStory } from "./story";
  * if so, we call the object's onClick function
  * @returns the object that was clicked
  */
-export function checkIfObjectClicked(demos: Button[]) {
+export function checkIfObjectClicked(demos: Button[], Player: Player | null) {
   // check project demos
   for (let i = 0; i < demos.length; i++) {
     if (demos[i].hover && !Button.IsModalOpen) {
       return demos[i];
     }
   }
+
+  if (Player && Player.hover) {
+    return Player;
+  }
+
   return null;
 }
 
@@ -58,18 +63,6 @@ export function drawFlippedImage(
   context.translate(-(x + image.width / 2), 0);
   context.drawImage(image, Math.floor(x), Math.floor(y));
   context.restore();
-}
-
-/**
- * updates the cursor style if an object is hovered
- * @param  {...any} objArrays array of arrays containing objects that could be hovered
- */
-export function drawMouse(canvas: HTMLCanvasElement, ...objArrays: any[][]) {
-  let isSomeElementHovered: boolean = objArrays.some(
-    (arr) => Array.isArray(arr) && arr.some((el) => el && el.hover === true)
-  );
-
-  canvas.style.cursor = isSomeElementHovered ? "pointer" : "default";
 }
 
 // #region --- Map and Responsive Scaling ---
@@ -705,46 +698,5 @@ export function handleTouchCancel(evt: TouchEvent) {
 // #endregion
 
 // #region --- Other ---
-/*
- * Scrambles the pixels around the mouse as a visual effect
- * https://developer.mozilla.org/en-US/docs/Web/API/ImageData
- * imageData gives back a one-dimensional array containing the data in the RGBA order,
- * which is why we skip by 4 in the for loop.
- */
-export function scrambleDrawPixelsAtMouse(
-  c: CanvasRenderingContext2D,
-  Mouse: Mouse
-) {
-  c.save();
-
-  let mouseSquareLength = 32;
-  let imageData = c.getImageData(
-    Mouse.x - mouseSquareLength / 2,
-    Mouse.y - mouseSquareLength / 2,
-    mouseSquareLength,
-    mouseSquareLength
-  ).data;
-  for (let i = 0; i < imageData.length; i += 4) {
-    c.fillStyle = `rgb(
-      ${imageData[i]}
-      ${imageData[i + 1]}
-      ${imageData[i + 2]})`;
-
-    let pixelIndex = i / 4;
-    let rowToFlip, colToFlip;
-    rowToFlip = colToFlip = 0;
-    rowToFlip += Math.floor(pixelIndex / mouseSquareLength);
-    colToFlip += pixelIndex % mouseSquareLength;
-
-    c.fillRect(
-      Mouse.x + 0.5 * Mouse.dx - mouseSquareLength / 2 + colToFlip,
-      Mouse.y + 0.5 * Mouse.dy - mouseSquareLength / 2 + rowToFlip,
-      1,
-      1
-    );
-  }
-
-  c.restore();
-}
 
 // #endregion

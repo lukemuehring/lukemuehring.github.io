@@ -8,7 +8,6 @@ import {
 import {
   calculateHeadingFontSize,
   checkIfObjectClicked,
-  drawMouse,
   handleCanvasResize,
   handleTouchCancel,
   handleTouchEnd,
@@ -18,7 +17,6 @@ import {
   resizeCanvas,
   resizeMap,
   resizeText,
-  scrambleDrawPixelsAtMouse,
   setupTextBubblesObjectsAndDemos,
 } from "../lib/helpers";
 import { CodingStory } from "../lib/story";
@@ -172,7 +170,12 @@ export default function MyCanvas({
     }
 
     SpawnX = c.canvas.width / 2;
-    PlayerRef.current = new Player(SpawnX, imageCache, ANIMATION_TIME_BUFFER);
+    PlayerRef.current = new Player(
+      SpawnX,
+      imageCache,
+      ANIMATION_TIME_BUFFER,
+      IsUserInputAllowedRef
+    );
     CameraRef.current.follow(PlayerRef.current);
 
     // #region Stage setup
@@ -220,7 +223,7 @@ export default function MyCanvas({
     // #endregion
 
     // #region Mouse
-    MouseRef.current = new Mouse();
+    MouseRef.current = new Mouse(IsDemoModalOpenRef);
 
     // #endregion Mouse
     // #region Controller setup
@@ -296,18 +299,28 @@ export default function MyCanvas({
     const scrollListener = (event: WheelEvent) => {
       ControllerRef.current?.scrollListener(event);
     };
-    const mousemoveListener = (event: MouseEvent) => {
-      MouseRef.current?.updatePosition(event.clientX, event.clientY);
+    const mouseDownListener = (event: MouseEvent) => {
+      if (MouseRef.current) {
+        MouseRef.current.startDrag();
+      }
     };
+    const mouseMoveListener = (event: MouseEvent) => {
+      MouseRef.current?.update(event.clientX, event.clientY);
+    };
+    const mouseUpListener = (event: MouseEvent) => {
+      if (MouseRef.current) {
+        MouseRef.current.stopDrag();
+      }
+    };
+
     const onClickListener = (event: MouseEvent) => {
-      const obj = checkIfObjectClicked(DemosRef.current ?? []);
+      const obj = checkIfObjectClicked(
+        DemosRef.current ?? [],
+        PlayerRef.current
+      );
       if (obj) {
         obj.onClick(obj);
       }
-
-      // if (!wasLinkClicked) {
-      //   movePlayerToScreenCoords(event.screenX, event.screenY);
-      // }
     };
 
     const touchStartListener = (evt: TouchEvent) => {
@@ -335,7 +348,10 @@ export default function MyCanvas({
     window.addEventListener("keydown", keydownListener);
     window.addEventListener("keyup", keyupListener);
     window.addEventListener("wheel", scrollListener, { passive: false });
-    window.addEventListener("mousemove", mousemoveListener);
+    window.addEventListener("mousedown", mouseDownListener);
+    window.addEventListener("mousemove", mouseMoveListener);
+    window.addEventListener("mouseup", mouseUpListener);
+
     window.addEventListener("click", onClickListener);
 
     window.addEventListener("touchstart", touchStartListener); // passive by default
@@ -356,7 +372,9 @@ export default function MyCanvas({
       window.removeEventListener("keydown", keydownListener);
       window.removeEventListener("keyup", keyupListener);
       window.removeEventListener("wheel", scrollListener);
-      window.removeEventListener("mousemove", mousemoveListener);
+      window.removeEventListener("mousedown", mouseDownListener);
+      window.removeEventListener("mousemove", mouseMoveListener);
+      window.removeEventListener("mouseup", mouseUpListener);
       window.removeEventListener("click", onClickListener);
 
       window.removeEventListener("touchstart", touchStartListener);
@@ -431,6 +449,7 @@ export default function MyCanvas({
 
       // #region Updating game state - Camera, Controller, Player
       // If player falls below the floor, respawn and disable user input for 1s
+      // todo move to PLayer file
       if (Player.y > Floor.height && IsUserInputAllowedRef.current) {
         IsUserInputAllowedRef.current = false;
         setTimeout(() => {
@@ -459,8 +478,7 @@ export default function MyCanvas({
         }
       }
 
-      Player.update(Floor, Map);
-
+      Player.update(Floor, Map, Mouse, Camera);
       Camera.update();
       // #endregion Updating game state - Camera, Controller, Player
 
@@ -569,18 +587,8 @@ export default function MyCanvas({
       }
 
       // Mouse Draw
-      drawMouse(Canvas, Demos);
-      if (
-        Mouse.x > Player.screenX - Player.width / 2 &&
-        Mouse.x < Player.screenX + Player.width / 2
-      ) {
-        if (
-          Mouse.y > Player.screenY - Player.height &&
-          Mouse.y < Player.screenY
-        ) {
-          scrambleDrawPixelsAtMouse(c, Mouse);
-        }
-      }
+      Mouse.draw(c, Canvas, Demos, [Player]);
+
       // #endregion Drawing
 
       FrameCountRef.current++;

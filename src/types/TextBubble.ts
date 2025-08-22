@@ -80,7 +80,7 @@ export class TextBubble extends GameText {
 
     this.x = this.player.screenX;
     this.y =
-      this.player.y -
+      this.player.screenY -
       this.player.image.naturalHeight -
       whiteBoxHeight -
       paddingBetweenDialogAndPlayer;
