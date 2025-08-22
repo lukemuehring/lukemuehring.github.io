@@ -1,9 +1,10 @@
 import { useParams, Link } from "react-router-dom";
 import { posts } from "./posts";
+import type { Post } from "../../types/Post";
 
 export default function BlogPost() {
   const { id } = useParams();
-  const post = posts.find((p) => p.id === id);
+  const post: Post | undefined = posts.find((p) => p.id === id);
 
   if (!post) {
     return (
@@ -20,7 +21,7 @@ export default function BlogPost() {
     <div style={{ padding: "2rem" }}>
       <h1>{post.title}</h1>
       <div style={{ fontSize: "0.8rem", color: "gray" }}>{post.date}</div>
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: "1rem", color: "pink" }}>
         <PostContent />
       </div>
       <Link to="/blog" style={{ display: "block", marginTop: "2rem" }}>
