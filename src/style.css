@@ -1,7 +1,4 @@
 * {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
   font-family: "VT323", sans-serif;
 }
 
@@ -19,9 +16,6 @@ html,
 body {
   width: 100%;
   height: 100%;
-  align-content: space-around;
-  display: grid;
-  overflow: hidden;
 }
 
 body {
@@ -268,7 +262,7 @@ canvas {
 }
 
 .xModal:hover {
-  background-color: red;
+  background-color: magenta;
 }
 
 @keyframes scroll {

@@ -1,20 +1,82 @@
 export const date = "2025-08-21";
 export const title =
-  "Building a static 2-D platformer website with React, deployed using GitHub Pages";
+  "Migrating my 2-D platformer HTML/CSS/JS website to React";
 
-I built this website as a 2-D game platformer to have a creative outlet for my coding. In the beginning, I kept it simple with plain old vanilla HTML / CSS / JS.
-This approach was nice to focus on creating fun features, learning the fundamentals of the web again, and not wasting time worrying about problems with npm packages and SPA frameworks.
+For me (and probably many others), coding started out as a souless necessity for the promise of financial security. I realize that doesn't sound great. I blame Georgia Tech for taking out the fun. And while financial security is nice, my monkey brain has a funny habit of the jumping rungs of Maslow's hierarchy of needs. I wanted to make coding more creative and build something I actually was psyched on, so I designed [this website as a 2-D game platformer](https://lukemuehring.github.io/) loosely based on this game called MapleStory I played growing up. In the beginning, I kept it simple with plain old HTML / CSS / JS.
+This approach was simple and easy. I could focus on creating fun features and learning web fundamentals, rather than wasting time worrying about tooling problems with npm packages and SPA frameworks.\
+\
 My website consisted of:
+- a simple HTML template using a `<canvas>` element to paint graphics
+- a CSS file that just made the canvas the size of the screen
+- a JavaScript file that powered all of the game logic
 
-- a simple HTML template that contained a single &lt;canvas&gt; element
-- an index.js file that contained all of the game logic
+## Simple does not scale
+However, as the website grew, this approach became exponentially more difficult to manage. My index.js became a monolith and ballooned to almost 2,000 lines of spaghetti code. This sucked for many reasons:
+1. *Constant scrolling between distant parts of the file*
 
-However, this approach became exponentially more difficult to manage as the website grew. My index.js became a monolith, ballooning to almost 2,000 lines of spaghetti code. Having everything in one file sucked for many reasons:
-1. Any change involved scrolling between distant parts of the file.
+    When making a change, the length of the file made it harder to keep mental context on function inputs, outputs, and what I'm trying to accomplish. I would constantly be scrolling up and down the file. Using a split screen to view different parts of the file helped alleviate this, but would prevent me from using the split screen with another file. I work on my laptop most of the time, and screen real estate is a limited resource.
 
-    The length of the file made it harder to keep context on what inputs / outputs a function needs and what I'm trying to accomplish. I would constantly be scrolling back and forth, or using a split screen to make changes.
+2. *CTRL + F works better when code is broken up*
 
-2. CTRL + F works better when code is broken up 
+    I would get 30+ matches when CTRL+F-ing a common keyword, since everything was defined in `index.js`. If my project files were broken up, I'd have around 10 or less matches to sift through. But with so many matches, it takes me longer to find the exact spot I'm looking for in the file.
+    
+3. *Abusing global context and technical debt*
+    
+    Since everything was in one file, I didn't worry about the scope when defining variables. In the beginning, this was awesome. I would create a variable, and instantly be able to access it wherever I needed. It's very convenient to not worry about defining function inputs just to grab some data. For example, if I was updating the `Camera` object to follow the `Player`, I could simply say `Player.x`. I did the same thing for many other objects, like defining where to draw a `Speech Bubble` above the `Player`. However, as the logic passed ~1k lines, I began to see that lots of my game objects had tight couplings that weren't obvious. A simple change to one variable cascaded into many side effects. Without explicitly defining function parameters to pass in a shared variable, like the `Player` object, it was hard to tell where it was being used. I would have to CTRL+F to find the references and parse through the functions' logic. Good thing everything was in one file 👍
 
-    Since everything was defined in index.js, I would get 30+ matches when CTRL+F-ing a common keyword. If files were broken up, I'd usually only have less than ten matches to sift through, which is much more manageable.
-    github pages only serves static html css js.
+On top of that, I was using plain JavaScript instead of TypeScript. As I created more objects like the `Camera`, `Map`, `Player`, etc. I began to see the need to encapsulate each object's logic with its class, instead of flooding the same file with unrelated functions.\
+The more spaghetti I had, the harder it was to untangle. And if I wanted to keep adding features, I would inevitably have to bring order to the chaos.
+## The Great Migration
+I chose to migrate to Vite + React because:
+- Unspaghettification: React's component based architecture would help me better organize the building blocks of my website.
+- Experience: I wanted to use `npm` [UI component libraries](https://react-spectrum.adobe.com/react-spectrum/index.html) to create features on my website (like this blog). Even though I'm currently developing with Angular for work, I had some previous experience with React at Microsoft and making [restandrelaxvacation.com](https://restandrelaxvacation.com/) and wanted to refresh those skills.
+
+<small>There are some cons to using React though - besides more complex tooling, React adds ~40kb+ of overhead to the website's bundle size. According to my current coffee shop's wifi speed of 70 Mbps, that would take an additional 4ms to download. For reference, it takes 100ms to blink.</small>
+
+\
+Migrating from vanilla HTML / CSS / JS to a React SPA involves three steps:
+1. Updating the HTML to use React's `main.tsx` and organizing HTML elements into individual React component files
+2. Organizing the CSS styles into individual component files
+3. Migrating the JavaScript game logic in the old `index.js` to a React component's `useEffect`
+
+### Updating the HTML
+I changed index.html to point to React's main entry point: `main.tsx`.\
+\
+Old `index.html`:
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- metadata, favicon, stylesheet and font stuff -->
+  </head>
+  <body>
+    <canvas id="canvas">
+    </canvas>
+    <nav id="nav">
+    </nav>
+    <div id="toastContainer" class="toast-container"></div>
+    <script src="index.js"></script>
+  </body>
+</html>
+```
+\
+New `index.html`:
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+       <!-- metadata, favicon, stylesheet and font stuff -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+I also moved the `<canvas>` and `nav` elements into their own React components.
+
+Then, I moved the HTML I had before into their own components.
+
+
+

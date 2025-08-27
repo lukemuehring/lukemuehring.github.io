@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { Route, Routes } from "react-router-dom";
-import "./App.css";
 import Blog from "./components/Blog/Blog";
 import MyCanvas from "./components/MyCanvas";
 import Nav from "./components/Nav/Nav";

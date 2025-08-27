@@ -1,7 +1,65 @@
 @import "tailwindcss";
+@import "./prism-code.css";
 
 .blog * {
+  --text-color: rgb(24, 24, 24);
+  --text-color-secondary: #6a7282;
   font-family: Helvetica, Arial, sans-serif;
+  color: --text-color;
+
+  h2 {
+    @apply text-lg font-bold mt-4;
+  }
+
+  h3 {
+    @apply font-bold mt-4;
+  }
+
+  a {
+    text-decoration: underline;
+    color: rgb(21, 92, 162);
+  }
+
+  a:hover {
+    text-decoration: none;
+  }
+
+  ul,
+  ol {
+    @apply mt-4 mb-4;
+  }
+
+  ol > li > p {
+    @apply mb-4;
+  }
+
+  code {
+    font-family: var(
+      --default-mono-font-family,
+      ui-monospace,
+      SFMono-Regular,
+      Menlo,
+      Monaco,
+      Consolas,
+      "Liberation Mono",
+      "Courier New",
+      monospace
+    );
+    color: rgb(151, 0, 0);
+  }
+
+  .blog-h1 {
+    @apply md:text-4xl text-xl;
+  }
+
+  .blog-link {
+    @apply md:text-3xl text-xl font-bold;
+  }
+
+  .blog-date {
+    @apply text-sm;
+    color: var(--text-color-secondary);
+  }
 }
 
 .markdown ul {
