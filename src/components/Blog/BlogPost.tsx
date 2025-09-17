@@ -2,6 +2,13 @@ import { Link, useParams } from "react-router-dom";
 import type { Post } from "../../types/Post";
 import { posts } from "./posts";
 import Prism from "prismjs";
+// core languages
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-typescript";
+
+// TSX support
+import "prismjs/components/prism-tsx";
+
 import { useEffect } from "react";
 
 export default function BlogPost() {

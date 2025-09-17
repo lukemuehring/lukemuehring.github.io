@@ -54,7 +54,7 @@ Old `index.html`:
     </canvas>
     <nav id="nav">
     </nav>
-    <div id="toastContainer" class="toast-container"></div>
+    <div class="toast-container"></div>
     <script src="index.js"></script>
   </body>
 </html>
@@ -73,10 +73,465 @@ New `index.html`:
   </body>
 </html>
 ```
+\
+I moved the `<canvas>` and `nav` elements into `App.tsx`, which React references when bootstrapping the front end in `main.tsx` by convention. 
+\
+\
+`main.tsx`
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App.tsx";
 
-I also moved the `<canvas>` and `nav` elements into their own React components.
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode> 
+);
+```
+\
+\
+`App.tsx`
+```tsx
+import MyCanvas from "./components/MyCanvas";
+import "./style.css";
 
-Then, I moved the HTML I had before into their own components.
+export default function App() {
+  return (
+    <>
+      <MyCanvas />
+      <nav id="nav">
+      </nav>
+      <div className="toast-container"></div>
+    </>
+  );
+}
+```
+You can move your styles to the generated `App.css`, but in my case I just kept my `style.css` file and imported it here.
+\
+\
+Now let's take a deep dive into `MyCanvas.tsx`, where we migrate the Javascript game logic.
+
+## Migrating index.js game logic
+I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated it into three general sections:
+1. Global object refs
+    \
+    Here we initialize  are objects that are the main actors in the game like the Canvas + 2D Context, Player, and Map objects. They need to be shared across the game.
+    \
+    \
+    `MyCanvas.tsx` 
+    ```tsx
+    export default function MyCanvas() {
+      const CanvasRef = useRef<HTMLCanvasElement>(null);
+      const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
+
+      const Bg0Ref = useRef<Background | null>(null);
+      const Bg1Ref = useRef<Background | null>(null);
+      const CameraRef = useRef<Camera | null>(null);
+      const MapRef = useRef<GameMap | null>(null);
+
+      //... the rest of MyCanvas.tsx
+    }
+    ```
+    Here I am using React's `useRef` to have a way to store and remember global objects. By storing global objects in `useRef`, and not just simply using pure Javascript objects (which are pass by reference), the value of the global objects persists for the lifetime of the component. Most importantly, rerenders of the component won't affect my global objects.
+
+2. useEffect()
+    \
+    React's `useEffect` runs after the main render function executes:
+    ```tsx
+    // main render function
+    return (
+        <canvas id="canvas" ref={CanvasRef}>
+          <!-- accessibility stuff goes inside here if the client has Javascript disabled -->
+        </canvas>
+      );
+
+    /*
+    * Note - the ref={CanvasRef} on the <canvas> element is the React way of doing the following:
+    * const CANVAS_DOM_ELEMENT = document.getElementById("canvas");
+    */
+    ```
+    \
+    Since the `useEffect`'s code runs after the `<canvas>` mounts in the DOM, it's the perfect place to initialize canvas drawing objects,  attach event listeners, and kick off the game loop. But before we can initialize the game objects, we have to define them. So I created classes for each major entity in my game. Here's an example for the `GameMap`:
+    ```tsx
+    // ./Components/GameMap.tsx
+    export class GameMap {
+      tsize: number;
+      cols: number;
+      rows: number;
+      tiles: number[];
+      length: number; // horizontal length of the map in Tiles
+
+      constructor(tsize: number = 64, cols: number = 888, rows: number = 2) {
+        this.tsize = tsize;
+        this.cols = cols;
+        this.rows = rows;
+
+        this.tiles = new Array(this.cols * this.rows);
+        this.tiles.fill(0, 0, this.cols);
+        this.tiles.fill(1, this.cols);
+        this.length = cols * tsize;
+      }
+
+      // You can also define instance methods:
+
+      // getTile
+      // Gets the tile index number (0,1,2...?) at the specified column and row
+      // Returns undefined if the coordinates are out of bounds
+      getTile(col: number, row: number): number | undefined {
+        if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) {
+          return undefined;
+        } 
+        return this.tiles[row * this.cols + col];
+      }
+    }
+    ```
+    \
+    Now that I have a class, I can call its constructor to initialize a new instance in the `useEffect`:
+    ```tsx
+        MapRef.current = new GameMap();
+    ```
+    \
+    `useEffect` takes in a setup function to run after component mount. This setup function also returns a cleanup function that runs when the component unmounts. I used the cleanup function for removing event listeners. The `useEffect` also takes in an optional list of dependencies for rerenders as its second argument, but I left it empty. I make the call to get the first frame of the game once sprite images are finished preloading.
+    ```tsx
+    useEffect(() => {
+        // Initialize the CanvasRef.current for rendering 2D graphics and init
+        const canvas = CanvasRef.current;
+        const c = canvas?.getContext("2d");
+        if (!canvas || !c) {
+          return;
+        }
+
+        // #region Preloading Images
+        const imageCache: Record<string, HTMLImageElement> = {};
+        const imagePathArray = [
+          "./images/player/jump_0.png",
+          "./images/player/stand1_0.png",
+          "./images/player/stand1_1.png",
+          "./images/player/stand1_2.png",
+          "./images/player/walk1_0.png",
+          "./images/player/walk1_1.png",
+          "./images/player/walk1_2.png",
+          "./images/player/walk1_3.png",
+          "./images/grass1.png",
+        ];
+
+        let loadedImages = 0;
+
+        function trackProgress() {
+          loadedImages++;
+          if (loadedImages === imagePathArray.length) {
+            // Once all images are loaded, start the game loop with this call to window.requestAnimationFrame
+            window.requestAnimationFrame(loop);
+          }
+        }
+
+        function preloadImages() {
+          for (let i = 0; i < imagePathArray.length; i++) {
+            const tempImage = new Image();
+            tempImage.addEventListener("load", trackProgress);
+            tempImage.src = imagePathArray[i];
+            imageCache[imagePathArray[i]] = tempImage;
+          }
+        }
+
+        preloadImages();
+        // #endregion
+
+        // Set global singleton refs
+        ContextRef.current = c;
+        MapRef.current = new GameMap();
+        CameraRef.current = new Camera(
+          MapRef.current,
+          c.canvas.width,
+          c.canvas.height
+        );
+
+        // #region Background setup
+        Bg0Ref.current = new Background({
+          width: 1984,
+          height: 1088,
+          imageSrc: "./images/bg_0.png",
+          moveRate: 0.3,
+        });
+        const Bg0 = Bg0Ref.current;
+        // #endregion
+
+        // Cleanup useEffect
+        return () => {
+          // Remove all event listeners on images to prevent leaks
+          for (const src in imageCache) {
+            imageCache[src].removeEventListener("load", trackProgress);
+          }
+        };
+      }, []);
+    ```
+    \
+    **One question I had: Why is `CanvasRef.current` defined in `useEffect`, and not at the top of the component?**
+    \
+    When React first calls the MyCanvas() component, the CanvasRef.current is still null because the JSX `<canvas ref={CanvasRef}>` hasn’t been mounted into the DOM yet.
+
+    That means if you call `canvasRef.current.getContext("2d")` **outside of** `useEffect`, you’ll just get null or get an error thrown.
+
+3. main game loop()
+  \
+  For the main game loop logic, I just defined it as a function in the React component, above the render function. I commented most of the code out and only re-implemented the most basic parts of the game to get it working.
+    ```tsx
+    // #region --- Animation Loop ---
+    function loop(timestamp: number) {
+      // rename references just for readability
+      const c: CanvasRenderingContext2D | null = ContextRef.current;
+      const Map: GameMap | null = MapRef.current;
+      const Bg0: Background | null = Bg0Ref.current;
+      const Bg1: Background | null = Bg1Ref.current;
+      const Camera: Camera | null = CameraRef.current;
+
+      // calculate time elapsed since last frame
+      const deltaTime: number = timestamp - prevTimestamp;
+      if (deltaTime >= FRAME_DURATION && c && Map && Camera && Bg0 && Bg1) {
+        prevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
+
+        /*
+        * Responsive Scaling
+        */
+        if (
+          window.innerWidth != c.canvas.width ||
+          window.innerHeight != c.canvas.height
+        ) {
+          handleCanvasResize(c, Map, Camera);
+        }
+
+        // /*
+        //  * Controller Input
+        //  */
+        // if (Player.y > Floor.height && userInputIsAllowed) {
+        //   userInputIsAllowed = false;
+        //   setTimeout(() => {
+        //     Player.x = spawnX;
+        //     Player.y = 0;
+        //     Player.xVelocity = 0;
+        //     Player.yVelocity = 0;
+        //     userInputIsAllowed = true;
+        //   }, 1000);
+        // }
+
+        // if (
+        //   (Controller.up || Controller.left || Controller.right) &&
+        //   userInputIsAllowed
+        // ) {
+        //   Controller.userInputRegistered = true;
+        //   if (Controller.up && Player.state != PlayerStates.Jumping) {
+        //     Player.yVelocity -= JumpHeight;
+        //   }
+        //   if (Controller.left) {
+        //     Player.xVelocity -= 0.5;
+        //   }
+
+        //   if (Controller.right) {
+        //     Player.xVelocity += 0.5;
+        //   }
+        // }
+
+        // /*
+        //  * Gravity and Friction
+        //  */
+        // Player.yVelocity += Gravity;
+        // Player.x += Player.xVelocity;
+        // Player.y += Player.yVelocity;
+
+        // Player.xVelocity *= 0.9;
+
+        // // If the xVelocity is close enough to 0, we set it to 0 for animation purposes.
+        // if (Player.xVelocity <= 0.2 && Player.xVelocity >= -0.2) {
+        //   Player.xVelocity = 0;
+        // }
+        // Player.yVelocity += 0.9;
+
+        // /*
+        //  * Floor Collision
+        //  */
+        // if (
+        //   Player.y > Floor.height &&
+        //   Player.x < Floor.rightX &&
+        //   Player.x > Floor.leftX
+        // ) {
+        //   Player.y = Floor.height;
+        //   Player.yVelocity = 0;
+        // }
+
+        // // Constraining Player to x range [0, Map Size]
+        // Player.x = Math.max(0, Math.min(Player.x, Map.cols * Map.tsize));
+
+        Camera.update();
+
+        /*
+        * Background Draw
+        */
+        c.save();
+        c.fillStyle = "rgb(" + Bg1.color + ")";
+        c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+        c.restore();
+
+        drawBackground(c, Bg0);
+        drawBackground(c, Bg1);
+
+        // more commented out code...
+
+        FrameCountRef.current++;
+        if (FrameCountRef.current >= Number.MAX_SAFE_INTEGER) {
+          FrameCountRef.current = 0;
+        }
+      }
+
+      // Call next frame of animation
+      window.requestAnimationFrame(loop);
+    }
+    // #endregion Animation Loop
+      ```
+    \
+    I migrated the commented out features later. Progressively upgrading the game made the whole migration more manageable and put it into bite-sized chunks, which helped a lot with maintainability. For example, I had a bunch of utility functions sitting in my `index.js` that I just moved into the body of `MyCanvas.tsx`, so I created a `helpers.ts` file for these functions:
+    ```tsx
+    // helpers.ts
+
+    // draws the image but flips it horizontally
+    export function drawFlippedImage(
+      context: CanvasRenderingContext2D,
+      image: HTMLImageElement,
+      x: number,
+      y: number
+    ) {
+      context.save();
+      context.translate(x + image.width / 2, 0);
+      context.scale(-1, 1);
+      context.translate(-(x + image.width / 2), 0);
+      context.drawImage(image, Math.floor(x), Math.floor(y));
+      context.restore();
+    }
+    ```
+    \
+    It was fine to move these functions outside of the component since they were pure and didn't depend on React state.
+    \
+    And that's essentially how I performed the migration of my game website from Javascript to React + TypeScript!
+    \
+## Additional React and JavaScript learnings from this migration
+### When to use `useRef`
+Let's say I have a boolean variable and I'm not sure how to store it. 
+\
+\
+If the boolean is UI-related, and changes to the boolean's value should cause a rerender → `useState`
+\
+Ex. a modal open/close flag. 
+```tsx
+const [isOpen, setIsOpen] = useState(false);
+```
+\
+If the boolean is specific to the component instance, but should not cause a rerender on value changes → `useRef`
+\
+Ex. the Player object
+```tsx
+PlayerRef: React.RefObject<Player | null>;
+```
+\
+If the boolean is truly global (not specific to a React component) and non-reactive → plain global `let`
+\
+Ex. a feature flag, or a debugging toggle used across modules.
+```tsx
+let debugMode = false;
+```
+### Note about Javascript bindings and `this`
+In JavaScript there are two different kinds of functions you can put on a class:
+1. A Normal Method
+    ```tsx
+    class Controller {
+      keyListener(event: KeyboardEvent): void {
+        console.log(this);
+      }
+    }
+    ```
+    Normal methods are stored on the prototype of the `Controller`. When `controller.keyListener(event)` is called, Javascript looks up `keyListener` on the prototype, then calls function with `this` set to the `controller` object. However, In Javascript, methods lose their `this` binding when they are passed as callbacks.
+    \
+    If you were to use the function as a callback, like so:
+    ```tsx
+    const fn = controller.keyListener;
+    fn(event);
+    ```
+    \
+    the `keyListener` callback is no longer associated with an object. So when the `console.log(this)` in the method body runs, `this` points to the global `window` (or in strict mode, is just `undefined`). This is bad if you are trying to access some instance data like `this.isUserInputAllowed`.
+    \
+    If you wanted the `keyListener`'s `this` to always be bound to the `controller` object, you would need to bind it explicitly in the `Controller` constructor:
+    ```tsx
+    export class Controller {
+      constructor() {
+        // ... constructor stuff ...
+        this.keyListener = this.keyListener.bind(this);
+      }
+
+      keyListener(event: KeyboardEvent) {
+        // ... method logic ...
+      }
+    }
+    ```
+\
+The code makes sure that the function's `this` will always point to the specific instance that did `.bind`.
 
 
+
+I created a `Controller` object to listen for keyboard `keydown` and `keyup` events so that I can react to a user's inputs. The `Controller` has a `keyListener` function that I pass as a callback to the event listener. With this setup, every `keydown` event triggers the `Controller.keyListener` function.
+```tsx
+// in useEffect()
+const keydownListener = (event: KeyboardEvent) => {
+      ControllerRef.current?.keyListener(event);
+    };
+
+window.addEventListener("keydown", keydownListener);
+```
+\
+And here is the `Controller` class for user input, where we define the `keyListener` callback:
+```tsx
+export class Controller {
+  left: boolean;
+  right: boolean;
+  up: boolean;
+  userInputRegistered: boolean;
+  closeMenuCallback?: () => void; // passed in function to handle 'esc' key presses
+
+  constructor(closeMenuCallback?: () => void) {
+    this.left = false;
+    this.right = false;
+    this.up = false;
+    this.userInputRegistered = false;
+    this.closeMenuCallback = closeMenuCallback;
+
+    // Bind 'this' to be this Controller instance
+    this.keyListener = this.keyListener.bind(this);
+  }
+
+  keyListener(event: KeyboardEvent): void {
+    const keyState = event.type === "keydown";
+    switch (event.key) {
+      case "ArrowLeft":
+        this.left = keyState;
+        break;
+      case "ArrowUp":
+        this.up = keyState;
+        break;
+      case "ArrowRight":
+        this.right = keyState;
+        break;
+      case "Escape":
+        if (keyState) {
+          this.closeMenuCallback?.();
+        }
+        break;
+    }
+  }
+}
+```
+\
+Arrow functions behave differently. Arrow functions don't have their own `this`, they "close over" whatever `this` was in the surrounding context where the arrow function was created. 
+
+## Performance Optimizations and Benchmarking
 

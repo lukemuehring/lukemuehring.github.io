@@ -366,7 +366,7 @@ export function getCanvasFontString(fontSize: number) {
   if (document.fonts.check("12px 'VT323'")) {
     return fontSize + "px 'VT323'";
   } else {
-    return fontSize - 8 + "px sans-serif";
+    return fontSize - 8 + "px monospace";
   }
 }
 

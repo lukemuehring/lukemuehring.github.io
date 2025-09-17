@@ -17,7 +17,7 @@ export class Controller {
     this.userInputRegistered = false;
 
     // Bind 'this' to be this Controller instance
-    this.keyListener = this.keyListener.bind(this);
+    // this.keyListener = this.keyListener.bind(this);
   }
 
   // Arrow function keeps "this" automatically

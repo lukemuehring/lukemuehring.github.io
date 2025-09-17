@@ -33,18 +33,14 @@
     @apply mb-4;
   }
 
+  pre > code * {
+    font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
+  }
+
   code {
-    font-family: var(
-      --default-mono-font-family,
-      ui-monospace,
-      SFMono-Regular,
-      Menlo,
-      Monaco,
-      Consolas,
-      "Liberation Mono",
-      "Courier New",
-      monospace
-    );
+    font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
     color: rgb(151, 0, 0);
   }
 
