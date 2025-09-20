@@ -28,11 +28,14 @@ import { Controller } from "../types/Controller";
 import { Floor } from "../types/Floor";
 import { GameMap } from "../types/GameMap";
 import { GameText } from "../types/GameText";
-import type { ImageObject } from "../types/ImageObject";
+import { ImageObject } from "../types/ImageObject";
 import { Mouse } from "../types/Mouse";
 import { Player, PlayerStates } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
+import RecordingVisualizerMock, {
+  type RecordingVisualizerHandle,
+} from "./RecordingPopup/RecordingVisualizerMock";
 
 export default function MyCanvas({
   IsUserInputAllowedRef,
@@ -47,6 +50,8 @@ export default function MyCanvas({
   PlayerRef: React.RefObject<Player | null>;
   DemosRef: React.RefObject<Button[] | null>;
 }) {
+  const visualizerRef = useRef<RecordingVisualizerHandle>(null);
+
   const [demoModal, setDemoModal] = useState<any | null>(null);
   const handleOpenModal = (demo: any) => {
     setDemoModal(demo);
@@ -81,6 +86,8 @@ export default function MyCanvas({
   const TextBubbleArrayRef = useRef<TextBubble[] | null>(null);
   const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
   const WelcomeTextArrayRef = useRef<GameText[] | null>(null);
+  const RecordingVisualizerRef = useRef<ImageObject | null>(null);
+
   // #endregion
 
   // #region Game variables
@@ -589,6 +596,12 @@ export default function MyCanvas({
       // Mouse Draw
       Mouse.draw(c, Canvas, Demos, [Player]);
 
+      // Waveform Vizualizer draw
+      const RecVizCanvas = RecordingVisualizerRef.current;
+      if (RecVizCanvas) {
+        RecVizCanvas.draw(c, Camera.x);
+      }
+
       // #endregion Drawing
 
       FrameCountRef.current++;
@@ -604,6 +617,15 @@ export default function MyCanvas({
   }
   // #endregion Animation Loop
 
+  function setRecordingVisualzer(el: HTMLCanvasElement | null): void {
+    const demos = DemosRef.current;
+
+    if (!el || !demos) return;
+    el.width = demos[1].width;
+    const destX = demos[1].x - el.width / 2;
+    const destY = demos[1].y - el.height / 2;
+    RecordingVisualizerRef.current = new ImageObject(destX, destY, el, "hue");
+  }
   // #endregion
 
   return (
@@ -623,6 +645,7 @@ export default function MyCanvas({
       </canvas>
       {demoModal && (
         <DemoModal
+          content={demoModal.content}
           headerText={demoModal.headerText}
           images={demoModal.images}
           text={demoModal.text}
@@ -630,6 +653,25 @@ export default function MyCanvas({
           onClose={handleCloseModal}
         />
       )}
+      <div className="hidden">
+        <RecordingVisualizerMock
+          ref={visualizerRef}
+          isActive={true}
+          managed={false}
+          onCanvasReady={setRecordingVisualzer}
+        />
+      </div>
+      {/* <div className="absolute top-48 right-0 z-[50000]">
+        <button
+          className=" text-white"
+          onClick={() => visualizerRef.current?.start()}
+        >
+          Start
+        </button>
+        <button className="z-50" onClick={() => visualizerRef.current?.stop()}>
+          Stop
+        </button>
+      </div> */}
     </>
   );
 }

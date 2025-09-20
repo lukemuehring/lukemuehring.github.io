@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import "./DemoModal.css";
 
 type DemoModalProps = {
+  content?: React.ReactNode;
   headerText: string;
   images?: { src: string }[];
   text: string;
@@ -10,6 +11,7 @@ type DemoModalProps = {
 };
 
 export default function DemoModal({
+  content,
   headerText,
   images = [],
   text,
@@ -67,6 +69,9 @@ export default function DemoModal({
           See it live!
         </a>
       </div>
+
+      {/* Content */}
+      {content}
     </div>
   );
 }

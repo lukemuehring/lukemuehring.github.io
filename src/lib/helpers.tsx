@@ -1,3 +1,4 @@
+import RecordingWrapper from "../components/RecordingPopup/RecordingWrapper";
 import { Button } from "../types/Button";
 import type { Camera } from "../types/Camera";
 import type { Controller } from "../types/Controller";
@@ -556,6 +557,36 @@ export function setupTextBubblesObjectsAndDemos(
   websiteDemo.x += Math.floor(websiteDemo.width / 2);
 
   demos.push(websiteDemo);
+
+  // waveform recording demo
+  let voiceDictHeader: string = "AI Powered Voice Dictation";
+  let fontSize2 = calculateHeadingFontSize(
+    context,
+    voiceDictHeader,
+    FONT_HEADING.H1
+  );
+
+  const voiceDictDemo = new Button(
+    websiteDemo.x + BTN_MAX_LINE_WIDTH,
+    Math.floor(Floor.height / 2) - 100,
+    [], // todo images
+    voiceDictHeader,
+    fontSize2,
+    "I built a webcomponent that transcribes speech to text using the OpenAI Whisper model, with retroactive transcript edits powered by GPT-3.5-turbo (Vite + React frontend, Python FastAPI backend)",
+    "NO LINK",
+    BTN_MAX_LINE_WIDTH,
+    CanShowTextRef,
+    cornerImage,
+    () => {
+      demosOpenHandler(voiceDictDemo);
+    }
+  );
+  voiceDictDemo.initializeDimensions(context);
+  voiceDictDemo.x += Math.floor(voiceDictDemo.width / 2);
+
+  voiceDictDemo.content = <RecordingWrapper />;
+
+  demos.push(voiceDictDemo);
   // #endregion Demo setup
 
   // #region Continue story from "Here are some of my projects"

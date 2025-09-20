@@ -28,7 +28,7 @@ export default function App() {
         element={
           <>
             {/* this is used to load the fonts as soon as possible */}
-            <div aria-hidden="true" className="hidden">
+            <div aria-hidden="true" className="hidden-font-loader">
               &nbsp;
             </div>
 

@@ -1,0 +1,46 @@
+@keyframes fade-blur-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+@keyframes fade-blur-out {
+  from {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    filter: blur(8px);
+  }
+}
+
+.animate-fade-blur-in {
+  animation: fade-blur-in 0.15s ease-out forwards;
+}
+
+.animate-fade-blur-out {
+  animation: fade-blur-out 0.15s ease-in forwards;
+}
+
+/* for the red recording circle */
+@keyframes pulseFade {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-fade {
+  animation: pulseFade 1.5s ease-in-out infinite;
+}

@@ -22,7 +22,10 @@ body {
   position: relative;
 }
 
-.hidden {
+.hide {
+  display: none;
+}
+.hidden-font-loader {
   position: absolute;
   overflow: hidden;
   clip: rect(0 0 0 0);
@@ -34,7 +37,6 @@ body {
 }
 
 canvas {
-  background-color: black;
   display: block;
 }
 

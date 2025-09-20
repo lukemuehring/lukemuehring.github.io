@@ -34,6 +34,8 @@ export class Button {
 
   cornerImage: HTMLImageElement;
 
+  content?: React.ReactNode;
+
   constructor(
     x: number,
     y: number,
@@ -45,7 +47,8 @@ export class Button {
     maxLineWidth: number,
     canShowTextRef: React.RefObject<boolean>,
     cornerImage: HTMLImageElement,
-    onClick: (...args: any[]) => void
+    onClick: (...args: any[]) => void,
+    content?: React.ReactNode
   ) {
     this.x = x;
     this.y = y;
@@ -66,6 +69,9 @@ export class Button {
     this.borderColorsLeftRight = colors2;
 
     this.hover = false;
+    if (content) {
+      this.content = content;
+    }
   }
 
   // initializes the width and height based on the header dimensions
