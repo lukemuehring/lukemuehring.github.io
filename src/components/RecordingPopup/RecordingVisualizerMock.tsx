@@ -23,7 +23,7 @@ const RecordingVisualizerMock = forwardRef<RecordingVisualizerHandle, Props>(
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const animationFrameRef = useRef<number | null>(null);
     const dataArrayRef = useRef<Uint8Array>(new Uint8Array(128));
-    const [visible, setVisible] = useState(false);
+    const [_visible, setVisible] = useState(false);
 
     const generateSineWave = (
       data: Uint8Array,

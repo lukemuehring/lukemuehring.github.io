@@ -88,7 +88,7 @@ export function resizeCanvas(context: CanvasRenderingContext2D) {
 }
 
 export function resizeCamera(
-  context: CanvasRenderingContext2D,
+  _context: CanvasRenderingContext2D,
   Camera: Camera
 ) {
   Camera.width = window.innerWidth;
@@ -222,8 +222,8 @@ export function drawWhiteBoxWithText(
   leading: number,
   borderColorsLeftRight: string[],
   borderColorsTopBottom: string[],
-  padding: number,
-  lineWidths: number[],
+  _padding: number,
+  _lineWidths: number[],
   cornerImage: HTMLImageElement
 ) {
   context.save();
@@ -463,16 +463,16 @@ export function resizeText(
 // sets up the text bubbles for the story, the background objects and foreground objects
 export function setupTextBubblesObjectsAndDemos(
   context: CanvasRenderingContext2D,
-  CANVAS_DOM_ELEMENT: HTMLElement,
+  _CANVAS_DOM_ELEMENT: HTMLElement,
   Floor: Floor,
   Player: Player,
   Map: GameMap,
   CanShowTextRef: React.RefObject<boolean>,
-  IsUserInputAllowedRef: React.RefObject<boolean>,
+  _IsUserInputAllowedRef: React.RefObject<boolean>,
   cornerImage: HTMLImageElement,
   triangleImage: HTMLImageElement,
   textBubbleArray: TextBubble[],
-  backgroundObjects: ImageObject[],
+  _backgroundObjects: ImageObject[],
   foregroundObjects: ImageObject[],
   demos: Button[],
   demosOpenHandler: (demo: any) => void

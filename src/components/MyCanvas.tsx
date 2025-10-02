@@ -306,7 +306,7 @@ export default function MyCanvas({
     const scrollListener = (event: WheelEvent) => {
       ControllerRef.current?.scrollListener(event);
     };
-    const mouseDownListener = (event: MouseEvent) => {
+    const mouseDownListener = (_event: MouseEvent) => {
       if (MouseRef.current) {
         MouseRef.current.startDrag();
       }
@@ -314,13 +314,13 @@ export default function MyCanvas({
     const mouseMoveListener = (event: MouseEvent) => {
       MouseRef.current?.update(event.clientX, event.clientY);
     };
-    const mouseUpListener = (event: MouseEvent) => {
+    const mouseUpListener = (_event: MouseEvent) => {
       if (MouseRef.current) {
         MouseRef.current.stopDrag();
       }
     };
 
-    const onClickListener = (event: MouseEvent) => {
+    const onClickListener = (_event: MouseEvent) => {
       const obj = checkIfObjectClicked(
         DemosRef.current ?? [],
         PlayerRef.current

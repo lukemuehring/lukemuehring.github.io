@@ -1,4 +1,4 @@
-import { GRAVITY, JUMP_HEIGHT } from "../lib/constants";
+import { GRAVITY } from "../lib/constants";
 import { drawFlippedImage } from "../lib/helpers";
 import type { Camera } from "./Camera";
 import type { Floor } from "./Floor";

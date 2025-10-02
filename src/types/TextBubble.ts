@@ -54,7 +54,11 @@ export class TextBubble extends GameText {
     this.borderColorsLeftRight = colors2;
   }
 
-  draw(context: CanvasRenderingContext2D, cameraX?: number, cameraY?: number) {
+  draw(
+    context: CanvasRenderingContext2D,
+    _cameraX?: number,
+    _cameraY?: number
+  ) {
     if (!this.canShowText.current) {
       return;
     }
