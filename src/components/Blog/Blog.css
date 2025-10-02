@@ -1,66 +1,72 @@
-@import "tailwindcss";
+@reference "../../tailwind.css";
 @import "./prism-code.css";
 
 .blog * {
   --text-color: rgb(24, 24, 24);
   --text-color-secondary: #6a7282;
   font-family: Helvetica, Arial, sans-serif;
-  color: --text-color;
-
-  h2 {
-    @apply text-lg font-bold mt-4;
-  }
-
-  h3 {
-    @apply font-bold mt-4;
-  }
-
-  a {
-    text-decoration: underline;
-    color: rgb(21, 92, 162);
-  }
-
-  a:hover {
-    text-decoration: none;
-  }
-
-  ul,
-  ol {
-    @apply mt-4 mb-4;
-  }
-
-  ol > li > p {
-    @apply mb-4;
-  }
-
-  pre > code * {
-    font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
-      "Liberation Mono", "Courier New", monospace;
-  }
-
-  code {
-    font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
-      "Liberation Mono", "Courier New", monospace;
-    color: rgb(151, 0, 0);
-  }
-
-  .blog-h1 {
-    @apply md:text-4xl text-xl;
-  }
-
-  .blog-link {
-    @apply md:text-3xl text-xl font-bold;
-  }
-
-  .blog-date {
-    @apply text-sm;
-    color: var(--text-color-secondary);
-  }
+  color: var(--text-color);
 }
 
-.markdown ul {
-  @apply list-disc ml-5;
+/* headings inside blog */
+.blog-h1 {
+  @apply md:text-4xl text-xl font-bold mt-4;
 }
-.markdown ol {
-  @apply list-decimal ml-5;
+
+.blog-date {
+  @apply text-sm;
+  color: var(--text-color-secondary);
+}
+
+.blog h2 {
+  @apply text-lg font-bold mt-4;
+}
+
+.blog h3 {
+  @apply font-bold mt-4;
+}
+
+.blog ul,
+.blog ol {
+  @apply mt-4 mb-4;
+}
+
+.blog ol > li > p {
+  @apply mb-4;
+}
+
+.blog-link {
+  @apply md:text-3xl text-2xl font-bold !text-inherit !no-underline;
+}
+
+.blog-link > span:hover {
+  @apply !underline;
+}
+.blog a {
+  text-decoration: underline;
+  color: rgb(21, 92, 162);
+}
+.blog a:hover {
+  text-decoration: none;
+}
+
+.blog pre > code * {
+  font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+.blog code {
+  font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  color: rgb(151, 0, 0);
+}
+
+/* Lists in markdown content */
+@layer components {
+  .markdown ul {
+    @apply !list-disc !ml-5;
+  }
+  .markdown ol {
+    @apply !list-decimal !ml-5;
+  }
 }

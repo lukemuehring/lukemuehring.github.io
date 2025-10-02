@@ -1,7 +1,11 @@
 {
   "livePreview.defaultPreviewPath": "/index.html",
   "[mdx]": {
-    "editor.quickSuggestions": false,
-    "github.copilot.enable": false
-  }
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+  "tailwindCSS.trace.server": "verbose"
 }

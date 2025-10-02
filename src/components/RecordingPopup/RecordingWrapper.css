@@ -1,0 +1,20 @@
+@reference "../../tailwind.css"; /* path to your global tailwind.css */
+
+@layer base {
+  button.shaf-btn {
+    /* Base utilities */
+    @apply bg-amber-500 cursor-pointer border-2 p-2 border-black rounded-lg transition-transform duration-100;
+  }
+
+  button.shaf-btn:hover {
+    @apply bg-black/5;
+  }
+
+  button.shaf-btn:active {
+    @apply bg-black/10;
+  }
+
+  button.shaf-btn:focus {
+    @apply outline-none ring-2 ring-blue-300;
+  }
+}

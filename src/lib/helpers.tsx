@@ -530,7 +530,7 @@ export function setupTextBubblesObjectsAndDemos(
     images[i].src = imageURLS[i];
   }
 
-  let websiteDemoHeader: string = "restandrelaxvacation.com";
+  let websiteDemoHeader: string = "Rest and Relax Vacation .com";
   let fontSize = calculateHeadingFontSize(
     context,
     websiteDemoHeader,
@@ -566,14 +566,15 @@ export function setupTextBubblesObjectsAndDemos(
     FONT_HEADING.H1
   );
 
+  let gap = 50;
   const voiceDictDemo = new Button(
-    websiteDemo.x + BTN_MAX_LINE_WIDTH,
+    websiteDemo.x + websiteDemo.width / 2 + gap,
     Math.floor(Floor.height / 2) - 100,
     [], // todo images
     voiceDictHeader,
     fontSize2,
-    "I built a webcomponent that transcribes speech to text using the OpenAI Whisper model, with retroactive transcript edits powered by GPT-3.5-turbo (Vite + React frontend, Python FastAPI backend)",
-    "NO LINK",
+    "",
+    "",
     BTN_MAX_LINE_WIDTH,
     CanShowTextRef,
     cornerImage,

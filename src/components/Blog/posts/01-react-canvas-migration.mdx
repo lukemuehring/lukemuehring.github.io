@@ -2,47 +2,51 @@ export const date = "2025-08-21";
 export const title =
   "Migrating my 2-D platformer HTML/CSS/JS website to React";
 
-For me (and probably many others), coding started out as a souless necessity for the promise of financial security. I realize that doesn't sound great. I blame Georgia Tech for taking out the fun. And while financial security is nice, my monkey brain has a funny habit of the jumping rungs of Maslow's hierarchy of needs. I wanted to make coding more creative and build something I actually was psyched on, so I designed [this website as a 2-D game platformer](https://lukemuehring.github.io/) loosely based on this game called MapleStory I played growing up. In the beginning, I kept it simple with plain old HTML / CSS / JS.
-This approach was simple and easy. I could focus on creating fun features and learning web fundamentals, rather than wasting time worrying about tooling problems with npm packages and SPA frameworks.\
+I wanted to make coding more creative and build something I was excited about, so I designed [my personal website as a 2-D game platformer](https://lukemuehring.github.io/). It's loosely based on MapleStory, a 2-D platformer MMORPG. Rebuilding the game’s movement, animation, and collision mechanics brought back the nostalgia of a favorite childhood game.
+\
+In the beginning, I kept it simple with plain old HTML, CSS, and JS.
+This approach was simple and easy. I could focus on creating fun features and learning fundamentals, rather than wasting time worrying about tooling problems with npm packages, CSS compiling order, and build configuration. 😖\
 \
 My website consisted of:
-- a simple HTML template using a `<canvas>` element to paint graphics
-- a CSS file that just made the canvas the size of the screen
-- a JavaScript file that powered all of the game logic
+- a simple HTML template with a `<canvas>` element for graphics
+- a CSS file that stretched the `<canvas>` to the screen's size
+- a JavaScript file containing the game logic
+
+This worked for a while, but I ran into problems...
 
 ## Simple does not scale
-However, as the website grew, this approach became exponentially more difficult to manage. My index.js became a monolith and ballooned to almost 2,000 lines of spaghetti code. This sucked for many reasons:
-1. *Constant scrolling between distant parts of the file*
+As my website gained more features, the simple HTML CSS JS approach became exponentially more difficult to manage. My index.js became a monolith file that ballooned to almost 2,000 lines of spaghetti code. This sucked for many reasons:
+1. *Constant scrolling between distant parts of the file*\
+The sheer length of my 2,000 line `index.js` forced me to scroll a lot when making changes. This made it harder to keep mental context on function inputs, outputs, and what I'm trying to accomplish. I mitigated this problem by using a split screen to view different sections of the same file, but this approach prevented me from split screening with another file (like the styles). I like to work on my laptop most of the time, so the limited screen real estate didn't help either.
 
-    When making a change, the length of the file made it harder to keep mental context on function inputs, outputs, and what I'm trying to accomplish. I would constantly be scrolling up and down the file. Using a split screen to view different parts of the file helped alleviate this, but would prevent me from using the split screen with another file. I work on my laptop most of the time, and screen real estate is a limited resource.
-
-2. *CTRL + F works better when code is broken up*
-
-    I would get 30+ matches when CTRL+F-ing a common keyword, since everything was defined in `index.js`. If my project files were broken up, I'd have around 10 or less matches to sift through. But with so many matches, it takes me longer to find the exact spot I'm looking for in the file.
+2. *CTRL + F works better when code is broken up*\
+I would get 30+ matches with CTRL+F, since everything was defined in one file. If my project files were broken up, I'd have 10 or less matches to sift through. But with so many matches, it took me longer to find the exact spot I'm looking for.
     
-3. *Abusing global context and technical debt*
-    
-    Since everything was in one file, I didn't worry about the scope when defining variables. In the beginning, this was awesome. I would create a variable, and instantly be able to access it wherever I needed. It's very convenient to not worry about defining function inputs just to grab some data. For example, if I was updating the `Camera` object to follow the `Player`, I could simply say `Player.x`. I did the same thing for many other objects, like defining where to draw a `Speech Bubble` above the `Player`. However, as the logic passed ~1k lines, I began to see that lots of my game objects had tight couplings that weren't obvious. A simple change to one variable cascaded into many side effects. Without explicitly defining function parameters to pass in a shared variable, like the `Player` object, it was hard to tell where it was being used. I would have to CTRL+F to find the references and parse through the functions' logic. Good thing everything was in one file 👍
+3. *Abusing global context and technical debt*\
+Since everything was in one file, I didn't worry about scope when defining variables. Which was awesome in the beginning! I would create a variable, and instantly be able to access it wherever I needed. It's very convenient. For example, if I was updating the `Camera` object to follow the `Player`, I could simply say `Player.x` anywhere in the code. I did the same thing for many other objects.
+\
+However, as the logic passed 1,000 lines, the game's objects became tightly coupled with hidden dependencies. A simple change to one variable cascaded into many side effects. Without explicitly defining dependencies in method headers and object constructors, it was hard to tell what, where and how things were being used. I would have to CTRL+F to find the references and parse through the functions' logic. Good thing everything was in one file 👍 (I'm kidding).
 
-On top of that, I was using plain JavaScript instead of TypeScript. As I created more objects like the `Camera`, `Map`, `Player`, etc. I began to see the need to encapsulate each object's logic with its class, instead of flooding the same file with unrelated functions.\
-The more spaghetti I had, the harder it was to untangle. And if I wanted to keep adding features, I would inevitably have to bring order to the chaos.
+On top of that, I was using plain JavaScript instead of TypeScript. As I created more objects like the `Camera`, `Map`, `Player`, etc. I began to see the need to encapsulate each object's logic, instead of flooding the same file with unrelated functions for every type of object.
+\
+\
+The more spaghetti I had, the harder it was to untangle. And if I wanted to keep adding features, I had to bring order to the chaos.
 ## The Great Migration
 I chose to migrate to Vite + React because:
-- Unspaghettification: React's component based architecture would help me better organize the building blocks of my website.
-- Experience: I wanted to use `npm` [UI component libraries](https://react-spectrum.adobe.com/react-spectrum/index.html) to create features on my website (like this blog). Even though I'm currently developing with Angular for work, I had some previous experience with React at Microsoft and making [restandrelaxvacation.com](https://restandrelaxvacation.com/) and wanted to refresh those skills.
+- Unspaghettification: React components would help me organize the building blocks of my website into individual files.
+- Experience: I wanted to use `npm` UI component [libraries](https://react-spectrum.adobe.com/react-spectrum/index.html) and deepen my experience with React. I felt that I had reinvented the wheel enough times when building my own UI components for [restandrelaxvacation.com](https://restandrelaxvacation.com/), and I wanted to create new features faster for my website (like this blog). Even though I develop with Angular for my current job, I had some previous experience with React at Microsoft, so I wanted to refresh those skills.
 
-<small>There are some cons to using React though - besides more complex tooling, React adds ~40kb+ of overhead to the website's bundle size. According to my current coffee shop's wifi speed of 70 Mbps, that would take an additional 4ms to download. For reference, it takes 100ms to blink.</small>
+<small>There are some cons to using React though - besides more complex tooling, React adds around 40 kilobytes of code to the website's bundle size. According to my current wifi speed of 70 Mbps, that would take an additional 4ms to download. For reference, it takes 100ms to blink.</small>
 
 \
-Migrating from vanilla HTML / CSS / JS to a React SPA involves three steps:
-1. Updating the HTML to use React's `main.tsx` and organizing HTML elements into individual React component files
-2. Organizing the CSS styles into individual component files
-3. Migrating the JavaScript game logic in the old `index.js` to a React component's `useEffect`
+Migrating from vanilla HTML / CSS / JS to React involved three steps:
+1. Updating the HTML to use React's `main.tsx` and organizing the HTML and CSS into their own React component files.
+2. Migrating the JavaScript game logic from the old `index.js` to a React component's `useEffect`
 
-### Updating the HTML
+### 1. Updating the HTML
 I changed index.html to point to React's main entry point: `main.tsx`.\
 \
-Old `index.html`:
+Old `index.html`: We get rid of DOM elements and move them into React components. 
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +64,7 @@ Old `index.html`:
 </html>
 ```
 \
-New `index.html`:
+New `index.html`: Just references the main entry point of the React app, `main.tsx`.
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -74,7 +78,7 @@ New `index.html`:
 </html>
 ```
 \
-I moved the `<canvas>` and `nav` elements into `App.tsx`, which React references when bootstrapping the front end in `main.tsx` by convention. 
+I moved the `<canvas>` and `nav` elements into `App.tsx`, which React references when  `main.tsx` by convention. 
 \
 \
 `main.tsx`
@@ -93,7 +97,6 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 \
-\
 `App.tsx`
 ```tsx
 import MyCanvas from "./components/MyCanvas";
@@ -110,16 +113,16 @@ export default function App() {
   );
 }
 ```
-You can move your styles to the generated `App.css`, but in my case I just kept my `style.css` file and imported it here.
+In my case I just kept my old `style.css` file and imported it here to keep the global styles.
 \
 \
-Now let's take a deep dive into `MyCanvas.tsx`, where we migrate the Javascript game logic.
+Now I'll do a deep dive into `MyCanvas.tsx`, where we migrate the Javascript game logic.
 
-## Migrating index.js game logic
+## 2. Migrating index.js game logic
 I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated it into three general sections:
-1. Global object refs
+1. Initializing global object refs
     \
-    Here we initialize  are objects that are the main actors in the game like the Canvas + 2D Context, Player, and Map objects. They need to be shared across the game.
+    Here we initialize objects that are the main actors in the game. These are the Canvas, 2D Context for drawing, Player, and Map objects. They need to be shared across the game.
     \
     \
     `MyCanvas.tsx` 
@@ -136,11 +139,11 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
       //... the rest of MyCanvas.tsx
     }
     ```
-    Here I am using React's `useRef` to have a way to store and remember global objects. By storing global objects in `useRef`, and not just simply using pure Javascript objects (which are pass by reference), the value of the global objects persists for the lifetime of the component. Most importantly, rerenders of the component won't affect my global objects.
+    Here I am using React's `useRef` to store and remember global objects. By storing global objects in `useRef`, and not simply using pure Javascript objects, the global objects persist for the lifetime of the component, and rerenders of the component won't clear out the global objects.
 
-2. useEffect()
+2. Moving setup logic to useEffect()
     \
-    React's `useEffect` runs after the main render function executes:
+    React's `useEffect` runs after the main render function executes, after the `<canvas>` mounts in the DOM:
     ```tsx
     // main render function
     return (
@@ -155,7 +158,7 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
     */
     ```
     \
-    Since the `useEffect`'s code runs after the `<canvas>` mounts in the DOM, it's the perfect place to initialize canvas drawing objects,  attach event listeners, and kick off the game loop. But before we can initialize the game objects, we have to define them. So I created classes for each major entity in my game. Here's an example for the `GameMap`:
+   It's the perfect place to initialize canvas drawing objects,  attach event listeners, and kick off the game loop. But before we can initialize the game objects, we have to define their object shapes. So I created classes for each major entity in my game. Here's an example for the `GameMap`:
     ```tsx
     // ./Components/GameMap.tsx
     export class GameMap {
@@ -163,7 +166,7 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
       cols: number;
       rows: number;
       tiles: number[];
-      length: number; // horizontal length of the map in Tiles
+      length: number;
 
       constructor(tsize: number = 64, cols: number = 888, rows: number = 2) {
         this.tsize = tsize;
@@ -175,8 +178,6 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
         this.tiles.fill(1, this.cols);
         this.length = cols * tsize;
       }
-
-      // You can also define instance methods:
 
       // getTile
       // Gets the tile index number (0,1,2...?) at the specified column and row
@@ -195,7 +196,7 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
         MapRef.current = new GameMap();
     ```
     \
-    `useEffect` takes in a setup function to run after component mount. This setup function also returns a cleanup function that runs when the component unmounts. I used the cleanup function for removing event listeners. The `useEffect` also takes in an optional list of dependencies for rerenders as its second argument, but I left it empty. I make the call to get the first frame of the game once sprite images are finished preloading.
+    `useEffect` takes in a setup function to run after the component mounts. We can also define a clean up function that runs when the component unmounts, passed in the `return` of the `useEffect`. I used the cleanup function for removing event listeners. The `useEffect` also takes in an optional list of dependencies for rerenders as its second argument, but I left it empty. I make the call to get the first frame of the game once sprite images are finished preloading in `trackProgress`.
     ```tsx
     useEffect(() => {
         // Initialize the CanvasRef.current for rendering 2D graphics and init
@@ -270,15 +271,15 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
       }, []);
     ```
     \
-    **One question I had: Why is `CanvasRef.current` defined in `useEffect`, and not at the top of the component?**
+    **Question: Why don't we just define `CanvasRef.current` at the top of the component? Why do we need `useEffect` at all?**
     \
     When React first calls the MyCanvas() component, the CanvasRef.current is still null because the JSX `<canvas ref={CanvasRef}>` hasn’t been mounted into the DOM yet.
 
-    That means if you call `canvasRef.current.getContext("2d")` **outside of** `useEffect`, you’ll just get null or get an error thrown.
+    That means if you call `canvasRef.current.getContext("2d")` **outside of** `useEffect`, you’ll just get null.
 
-3. main game loop()
+3. Migrating the main game loop() function
   \
-  For the main game loop logic, I just defined it as a function in the React component, above the render function. I commented most of the code out and only re-implemented the most basic parts of the game to get it working.
+  I defined the main game loop logic as a function in the React component. To begin the migration, I commented most of the code out and re-implemented the most basic parts to get it working step-by-step.
     ```tsx
     // #region --- Animation Loop ---
     function loop(timestamp: number) {
@@ -392,8 +393,8 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
     // #endregion Animation Loop
       ```
     \
-    I migrated the commented out features later. Progressively upgrading the game made the whole migration more manageable and put it into bite-sized chunks, which helped a lot with maintainability. For example, I had a bunch of utility functions sitting in my `index.js` that I just moved into the body of `MyCanvas.tsx`, so I created a `helpers.ts` file for these functions:
-    ```tsx
+    Progressively upgrading the game made the whole migration more manageable and put it into bite-sized chunks, which helped a lot with maintainability. For example, I had a bunch of utility functions sitting in my `index.js` and didn't want to clutter my `MyCanvas.tsx`, so I created a `helpers.ts` file for these functions:
+    ```tsx 
     // helpers.ts
 
     // draws the image but flips it horizontally
@@ -414,9 +415,11 @@ I migrated the Javascript logic from `index.js` to `MyCanvas.tsx` and separated 
     \
     It was fine to move these functions outside of the component since they were pure and didn't depend on React state.
     \
-    And that's essentially how I performed the migration of my game website from Javascript to React + TypeScript!
     \
-## Additional React and JavaScript learnings from this migration
+    That's essentially how I performed the migration of my game website from Javascript to React + TypeScript!
+    If you made it this far, thanks for reading!
+
+{/* ## Additional React and JavaScript learnings from this migration
 ### When to use `useRef`
 Let's say I have a boolean variable and I'm not sure how to store it. 
 \
@@ -534,4 +537,4 @@ export class Controller {
 Arrow functions behave differently. Arrow functions don't have their own `this`, they "close over" whatever `this` was in the surrounding context where the arrow function was created. 
 
 ## Performance Optimizations and Benchmarking
-
+ */}

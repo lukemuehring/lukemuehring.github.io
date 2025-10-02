@@ -1,3 +1,5 @@
+@reference "./tailwind.css";
+
 * {
   font-family: "VT323", sans-serif;
 }
@@ -44,7 +46,7 @@ canvas {
   position: relative;
 }
 
-/* MOBILE-FIRST STYLES */
+/* NAV MOBILE */
 #nav {
   display: flex;
   position: absolute;
@@ -168,7 +170,7 @@ canvas {
   }
 }
 
-/* DESKTOP NAV */
+/* NAV DESKTOP */
 @media (min-width: 640px) {
   #nav {
     height: auto;
@@ -346,4 +348,32 @@ canvas {
     transform: translateY(20px);
     filter: contrast(200%);
   }
+}
+
+.shaf-btn {
+  @apply bg-white md:text-xl text-2xl flex w-fit cursor-pointer border-2 p-2 border-black rounded-lg transition-transform duration-100;
+}
+
+.shaf-btn:hover {
+  @apply bg-black/5;
+}
+
+.shaf-btn:active {
+  @apply bg-black/10;
+}
+
+.shaf-btn:focus {
+  @apply outline-none ring-2 ring-blue-300;
+}
+
+.shaf-btn-muted {
+  @apply bg-white !text-inherit !no-underline md:text-xl text-2xl flex w-fit cursor-pointer p-0.5 transition-transform rounded-lg duration-100;
+}
+
+.shaf-btn-muted:hover {
+  @apply !underline;
+}
+
+.shaf-btn-muted:focus {
+  @apply outline-none ring-2 ring-blue-300;
 }

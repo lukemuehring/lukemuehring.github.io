@@ -101,7 +101,6 @@ const RecordingVisualizerMock = forwardRef<RecordingVisualizerHandle, Props>(
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         const voiceBins = arr.slice(minIndex, maxIndex);
-        console.log(arr);
 
         const gap = 2;
         const barWidth =
@@ -118,7 +117,7 @@ const RecordingVisualizerMock = forwardRef<RecordingVisualizerHandle, Props>(
 
           // hue cycles across bars; add a small time offset so the rainbow drifts
           const hueBase = (i / Math.max(1, voiceBins.length)) * 360;
-          const timeOffset = (now * 30) % 360; // degrees per second
+          const timeOffset = (now * 300) % 360; // degrees per second
           const hue = (hueBase + timeOffset) % 360;
           const color = `hsl(${hue.toFixed(1)}, 100%, 50%)`;
 

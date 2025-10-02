@@ -163,7 +163,7 @@ function RecordingPopup({ isRecording }: Props) {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex justify-center pointer-events-none">
+    <div className="flex justify-center pointer-events-none bg-red">
       <div
         className={`mb-2 px-3 py-2 bg-black/80 rounded-xl shadow-lg transition-all duration-150 flex items-center gap-2 ${
           isRecording ? "animate-fade-blur-in" : "animate-fade-blur-out"

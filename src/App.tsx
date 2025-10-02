@@ -3,8 +3,8 @@ import { Route, Routes } from "react-router-dom";
 import Blog from "./components/Blog/Blog";
 import MyCanvas from "./components/MyCanvas";
 import Nav from "./components/Nav/Nav";
-import "./style.css";
 import "./tailwind.css";
+import "./style.css";
 import type { Button } from "./types/Button";
 import type { Player } from "./types/Player";
 

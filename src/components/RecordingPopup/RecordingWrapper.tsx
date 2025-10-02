@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import RecordingPopup from "./RecordingPopup";
+import "./RecordingWrapper.css";
 
 function RecordingWrapper() {
   const [isRecording, setIsRecording] = useState(false);
@@ -18,46 +19,42 @@ function RecordingWrapper() {
 
   // Listeners for keyboard shortcuts
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && e.ctrlKey && e.shiftKey && !isRecording) {
-        e.preventDefault(); // Prevents page scrolling when Space is pressed
-        start();
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (isRecording) {
-        if (e.code === "Space" || !e.ctrlKey || !e.shiftKey) {
-          stop();
-        }
-      }
-    };
-
     const handleVisibilityChange = () => {
       if (isRecording && document.visibilityState === "hidden") {
         stop();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isRecording, start, stop]);
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center mx-auto mb-8">
-        <div className="text-xl">
-          Hold Control + Shift + Space to test the component.
+      <div className="flex flex-col items-center justify-center mx-auto overflow-scroll mb-8">
+        <p className="md:text-3xl text-2xl w-3/4">
+          I built an app that transcribes speech to text using the OpenAI
+          Whisper model, with retroactive transcript edits powered by
+          GPT-3.5-turbo. Here's waveform component I made from scratch below.
+        </p>
+        <div className="mt-4">
+          {isRecording ? (
+            <button className="shaf-btn" onClick={stop}>
+              close the component
+            </button>
+          ) : (
+            <button className="shaf-btn" onClick={start}>
+              see the component
+            </button>
+          )}
+        </div>
+        <div className="mt-2">
+          <RecordingPopup isRecording={isRecording} />
         </div>
       </div>
-      <RecordingPopup isRecording={isRecording} />
     </>
   );
 }

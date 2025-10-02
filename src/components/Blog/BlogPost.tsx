@@ -1,15 +1,12 @@
+import Prism from "prismjs";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-typescript";
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Post } from "../../types/Post";
+import "./Blog.css";
 import { posts } from "./posts";
-import Prism from "prismjs";
-// core languages
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-typescript";
-
-// TSX support
-import "prismjs/components/prism-tsx";
-
-import { useEffect } from "react";
 
 export default function BlogPost() {
   const { id } = useParams();
@@ -23,7 +20,9 @@ export default function BlogPost() {
     return (
       <div className="" style={{ padding: "2rem" }}>
         <h1>Post not found</h1>
-        <Link to="/blog">← Back to Blog</Link>
+        <Link to="/blog" className="shaf-btn-muted">
+          ← Back to Blog
+        </Link>
       </div>
     );
   }
@@ -33,7 +32,7 @@ export default function BlogPost() {
   return (
     <div className="flex flex-col items-center justify-center p-2 md:p-8">
       <div className="w-full md:max-w-4xl markdown">
-        <Link to="/blog" className="block mb-8">
+        <Link to="/blog" className="shaf-btn-muted mb-8">
           ← Back to Blog
         </Link>
         <h1 className="blog-link">{post.title}</h1>

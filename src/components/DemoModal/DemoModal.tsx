@@ -65,9 +65,12 @@ export default function DemoModal({
       {/* Text + Link */}
       <div className="demo-modal__content">
         <p className="demo-modal__text">{text}</p>
-        <a href={link} target="_blank" className="demo-modal__link">
-          See it live!
-        </a>
+
+        {link.length > 0 && (
+          <a href={link} target="_blank" className="demo-modal__link">
+            See it live!
+          </a>
+        )}
       </div>
 
       {/* Content */}

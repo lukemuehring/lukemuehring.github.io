@@ -20,7 +20,7 @@
 .demo-modal__header {
   width: fit-content;
   font-size: var(--font-size-xxl);
-  margin: 2rem;
+  margin: 1rem;
   color: black;
 }
 
