@@ -686,7 +686,6 @@ export function handleTouchMove(
   userInputIsAllowed: boolean,
   Player: Player
 ) {
-  evt.preventDefault();
   const touches: TouchList = evt.changedTouches;
 
   for (let i = 0; i < touches.length; i++) {
