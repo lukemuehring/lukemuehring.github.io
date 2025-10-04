@@ -139,7 +139,7 @@ const RecordingVisualizerMock = forwardRef<RecordingVisualizerHandle, Props>(
       radius = 4,
       color = "#aaaaaa"
     ) => {
-      // Draw top bar (magenta)
+      // Draw top bar
       ctx.save();
       ctx.fillStyle = color;
       const topY = centerY - height;
@@ -155,7 +155,7 @@ const RecordingVisualizerMock = forwardRef<RecordingVisualizerHandle, Props>(
       ctx.fill();
       ctx.restore();
 
-      // Draw bottom bar (magenta)
+      // Draw bottom bar
       ctx.save();
       ctx.fillStyle = color;
       const bottomY = centerY + height;

@@ -454,6 +454,12 @@ export default function MyCanvas({
         );
       }
 
+      // default background is bg_1 cloud color
+      c.save();
+      c.fillStyle = "#cbf0ff";
+      c.fillRect(0, 0, c.canvas.width, c.canvas.height);
+      c.restore();
+
       // #region Updating game state - Camera, Controller, Player
       // If player falls below the floor, respawn and disable user input for 1s
       // todo move to PLayer file
@@ -468,23 +474,7 @@ export default function MyCanvas({
         }, 1000);
       }
 
-      if (
-        (Controller.up || Controller.left || Controller.right) &&
-        IsUserInputAllowedRef.current
-      ) {
-        Controller.userInputRegistered = true;
-        if (Controller.up && Player.state != PlayerStates.Jumping) {
-          Player.yVelocity -= JUMP_HEIGHT;
-        }
-        if (Controller.left) {
-          Player.xVelocity -= 0.5;
-        }
-
-        if (Controller.right) {
-          Player.xVelocity += 0.5;
-        }
-      }
-
+      Controller.update();
       Player.update(Floor, Map, Mouse, Camera);
       Camera.update();
       // #endregion Updating game state - Camera, Controller, Player
@@ -618,6 +608,8 @@ export default function MyCanvas({
   // #endregion Animation Loop
 
   function setRecordingVisualzer(el: HTMLCanvasElement | null): void {
+    console.log("setRecordingVisualizer");
+
     const demos = DemosRef.current;
 
     if (!el || !demos) return;

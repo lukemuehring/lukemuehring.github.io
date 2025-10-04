@@ -134,9 +134,19 @@ export class Player {
     // Constraining Player to x range [0, Map Size]
     this.x = Math.max(0, Math.min(this.x, Map.cols * Map.tsize));
 
-    this.screenX = Camera.getScreenX(this.x);
-    // this.screenY = Camera.getScreenY(this.y); todo camera y
+    // Center player in the screen
+    this.screenX = Camera.width / 2;
     this.screenY = this.y;
+
+    // Allow player to move from center if at edges of the map
+    if (this.x < Camera.width / 2 || this.x > Camera.maxX + Camera.width / 2) {
+      this.screenX = this.x - Camera.x;
+      this.screenY = this.y - Camera.y;
+    }
+
+    console.log(`x,y : ${this.x}, ${this.y}`);
+    console.log(`screen: ${this.screenX}, ${this.screenY}`);
+    console.log(`camera ${Camera.y}`);
 
     // todo this fixes random respawns from the mouse but also now player cant "die" by falling off the edge
     // this.y = Math.min(this.y, Floor.height); // Prevent player from going below the floor

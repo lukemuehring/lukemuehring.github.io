@@ -37,7 +37,7 @@ function RecordingWrapper() {
       <div className="flex flex-col items-center justify-center mx-auto   mt-8 mb-8">
         <p className="md:text-3xl text-2xl w-3/4 p-4">
           I built an app that transcribes speech to text using the OpenAI
-          Whisper model Here's waveform component I made from scratch below.
+          Whisper model. Here's a waveform component I made from scratch below.
         </p>
         <div className="mt-4">
           {isRecording ? (

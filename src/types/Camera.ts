@@ -31,7 +31,6 @@ export class Camera {
   update() {
     if (!this.following) return;
 
-    // Camera tries to center on the player
     this.x = this.following.x - this.width / 2;
     // this.y = this.following.y - this.height / 2;
 
@@ -59,8 +58,6 @@ export class Camera {
   }
 
   getScreenY(worldY: number) {
-    // console.log("CAMERA (", this.x, ",", this.y, ")");
-
     return worldY - this.y;
   }
 }

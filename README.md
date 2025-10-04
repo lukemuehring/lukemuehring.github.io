@@ -12,3 +12,16 @@ Credits
 - [This MDN guide](https://developer.mozilla.org/en-US/docs/Games/Techniques/Tilemaps/Square_tilemaps_implementation:_Scrolling_maps) also helped explain scrolling tilemaps and camera movement
 - Thanks you to Anokolsia for the pixel art for floor tiles at [this website](https://anokolisa.itch.io/basic-140-tiles-grassland-and-mines)
 - Player sprite created using [maples.im](https://maples.im/)
+
+# dev notes
+
+## starting local dev
+
+npm run start
+
+## deploying
+
+npm run build
+
+checkout deploy branch
+copy over assets/ images/ and the .html files
