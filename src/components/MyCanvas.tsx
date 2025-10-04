@@ -3,7 +3,6 @@ import {
   ANIMATION_TIME_BUFFER,
   FONT_HEADING,
   FRAME_DURATION,
-  JUMP_HEIGHT,
 } from "../lib/constants";
 import {
   calculateHeadingFontSize,
@@ -30,7 +29,7 @@ import { GameMap } from "../types/GameMap";
 import { GameText } from "../types/GameText";
 import { ImageObject } from "../types/ImageObject";
 import { Mouse } from "../types/Mouse";
-import { Player, PlayerStates } from "../types/Player";
+import { Player } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
 import RecordingVisualizerMock, {
