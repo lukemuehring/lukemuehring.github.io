@@ -144,10 +144,6 @@ export class Player {
       this.screenY = this.y - Camera.y;
     }
 
-    console.log(`x,y : ${this.x}, ${this.y}`);
-    console.log(`screen: ${this.screenX}, ${this.screenY}`);
-    console.log(`camera ${Camera.y}`);
-
     // todo this fixes random respawns from the mouse but also now player cant "die" by falling off the edge
     // this.y = Math.min(this.y, Floor.height); // Prevent player from going below the floor
   }

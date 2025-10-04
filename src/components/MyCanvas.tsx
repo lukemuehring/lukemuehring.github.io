@@ -607,8 +607,6 @@ export default function MyCanvas({
   // #endregion Animation Loop
 
   function setRecordingVisualzer(el: HTMLCanvasElement | null): void {
-    console.log("setRecordingVisualizer");
-
     const demos = DemosRef.current;
 
     if (!el || !demos) return;

@@ -24,4 +24,8 @@ npm run start
 npm run build
 
 checkout deploy branch
-copy over assets/ images/ and the .html files
+copy over dist folder CONTENTS
+
+duplicate index.html -> 404.html
+
+push to remote to trigger deploy process
