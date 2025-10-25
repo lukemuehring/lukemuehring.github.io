@@ -26,7 +26,7 @@ export default function App() {
       <Route
         path="/"
         element={
-          <>
+          <div className="canvas-no-scroll">
             {/* this is used to load the fonts as soon as possible */}
             <div aria-hidden="true" className="hidden-font-loader">
               &nbsp;
@@ -47,7 +47,7 @@ export default function App() {
             />
 
             <div id="toastContainer" className="toast-container"></div>
-          </>
+          </div>
         }
       />
 

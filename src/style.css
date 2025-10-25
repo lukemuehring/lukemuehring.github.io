@@ -22,16 +22,20 @@ body {
   height: 100%;
   min-height: 100vh;
   min-width: 100vw;
-  overflow: hidden; /* optional, prevents scrollbars */
 }
 
 body {
   position: relative;
 }
 
+.canvas-no-scroll {
+  overflow: hidden;
+}
+
 .hide {
   display: none;
 }
+
 .hidden-font-loader {
   position: absolute;
   overflow: hidden;
