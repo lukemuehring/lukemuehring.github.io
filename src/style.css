@@ -28,10 +28,6 @@ body {
   position: relative;
 }
 
-.canvas-no-scroll {
-  overflow: hidden;
-}
-
 .hide {
   display: none;
 }

@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { Route, Routes } from "react-router-dom";
+import { useEffect, useRef } from "react";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Blog from "./components/Blog/Blog";
 import MyCanvas from "./components/MyCanvas";
 import Nav from "./components/Nav/Nav";
@@ -19,6 +19,16 @@ export default function App() {
     IsUserInputAllowedRef.current =
       !IsNavMenuOpenRef.current && !IsDemoModalOpenRef.current;
   };
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  }, [location.pathname]);
 
   return (
     <Routes>
