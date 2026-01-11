@@ -9,6 +9,7 @@ type NavProps = {
   onRefChange?: () => void;
   PlayerRef?: React.RefObject<Player | null>;
   DemosRef?: React.RefObject<Button[] | null>;
+  onToggleNightMode?: () => void;
 };
 
 export default function Nav({
@@ -16,6 +17,7 @@ export default function Nav({
   onRefChange,
   PlayerRef,
   DemosRef,
+  onToggleNightMode,
 }: NavProps) {
   const [isActive, setIsActive] = useState(false);
 
@@ -86,6 +88,11 @@ export default function Nav({
     onClose();
   };
 
+  const handleToggleNightMode = () => {
+     if (onToggleNightMode) onToggleNightMode();
+    onClose();
+  };
+
   function showToast(
     message: string,
     duration = 3000,
@@ -127,6 +134,7 @@ export default function Nav({
           <button onClick={handleLinkedIn}>LinkedIn</button>
           <button onClick={handleWork}>My Work</button>
           <button onClick={handleResume}>Resume</button>
+          <button onClick={handleToggleNightMode}>☀️</button>
         </div>
       </div>
     </nav>

@@ -9,7 +9,17 @@ import { Mouse } from "../types/Mouse";
 import { Player } from "../types/Player";
 import { TextBubble } from "../types/TextBubble";
 import type { TextLinesData } from "../types/TextLinesData";
-import { FONT_HEADING } from "./constants";
+import {
+  BORDER_COLORS_LEFT_RIGHT_DARK,
+  BORDER_COLORS_LEFT_RIGHT_LIGHT,
+  BORDER_COLORS_TOP_BOTTOM_DARK,
+  BORDER_COLORS_TOP_BOTTOM_LIGHT,
+  FONT_BG_DARK_MODE,
+  FONT_BG_LIGHT_MODE,
+  FONT_COLOR_DARK_MODE,
+  FONT_COLOR_LIGHT_MODE,
+  FONT_HEADING,
+} from "./constants";
 import { CodingStory } from "./story";
 
 /**
@@ -206,8 +216,6 @@ export function calculateHeaderDimensions(
  * @param {*} lines
  * @param {*} fontSize
  * @param {*} leading
- * @param {*} borderColorsLeftRight
- * @param {*} borderColorsTopBottom
  * @param {*} padding
  * @returns
  */
@@ -220,37 +228,25 @@ export function drawWhiteBoxWithText(
   lines: string[],
   fontSize: number,
   leading: number,
-  borderColorsLeftRight: string[],
-  borderColorsTopBottom: string[],
   _padding: number,
   _lineWidths: number[],
-  cornerImage: HTMLImageElement
+  cornerImage: HTMLImageElement,
+  darkMode: boolean
 ) {
   context.save();
 
-  // White background
-  context.fillStyle = "white";
+  // Background
+  context.fillStyle = darkMode ? FONT_BG_DARK_MODE : FONT_BG_LIGHT_MODE;
   context.fillRect(
     Math.floor(x - whiteBoxWidth / 2),
     Math.floor(y),
     whiteBoxWidth,
     whiteBoxHeight
   );
-
-  context.font = getCanvasFontString(fontSize);
-
-  context.fillStyle = "white";
-  context.fillRect(
-    Math.floor(x - whiteBoxWidth / 2),
-    Math.floor(y),
-    whiteBoxWidth,
-    whiteBoxHeight
-  );
-
-  context.font = getCanvasFontString(fontSize);
 
   // Drawing the text over the white box
-  context.fillStyle = "black";
+  context.font = getCanvasFontString(fontSize);
+  context.fillStyle = darkMode ? FONT_COLOR_DARK_MODE : FONT_COLOR_LIGHT_MODE;
 
   for (let i = 0; i < lines.length; i++) {
     let startPadding =
@@ -266,33 +262,41 @@ export function drawWhiteBoxWithText(
   }
 
   // Top and Bottom borders of the white box
-  for (let i = 0; i < borderColorsTopBottom.length; i++) {
-    context.fillStyle = borderColorsTopBottom[i];
+  for (let i = 0; i < BORDER_COLORS_TOP_BOTTOM_LIGHT.length; i++) {
+    context.fillStyle = darkMode
+      ? BORDER_COLORS_TOP_BOTTOM_DARK[i]
+      : BORDER_COLORS_TOP_BOTTOM_LIGHT[i];
     context.fillRect(
       Math.floor(x - whiteBoxWidth / 2),
-      Math.floor(y - borderColorsTopBottom.length + i),
+      Math.floor(y - BORDER_COLORS_TOP_BOTTOM_LIGHT.length + i),
       whiteBoxWidth,
       1
     );
     context.fillRect(
       Math.floor(x - whiteBoxWidth / 2),
-      Math.floor(y + whiteBoxHeight - i + borderColorsTopBottom.length - 1),
+      Math.floor(
+        y + whiteBoxHeight - i + BORDER_COLORS_TOP_BOTTOM_LIGHT.length - 1
+      ),
       whiteBoxWidth,
       1
     );
   }
 
   // Left and Right
-  for (let i = 0; i < borderColorsLeftRight.length; i++) {
-    context.fillStyle = borderColorsLeftRight[i];
+  for (let i = 0; i < BORDER_COLORS_LEFT_RIGHT_LIGHT.length; i++) {
+    context.fillStyle = darkMode
+      ? BORDER_COLORS_LEFT_RIGHT_DARK[i]
+      : BORDER_COLORS_LEFT_RIGHT_LIGHT[i];
     context.fillRect(
-      Math.floor(x - whiteBoxWidth / 2 - borderColorsLeftRight.length + i),
+      Math.floor(x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length + i),
       Math.floor(y),
       1,
       whiteBoxHeight
     );
     context.fillRect(
-      Math.floor(x + whiteBoxWidth / 2 + borderColorsLeftRight.length - 1 - i),
+      Math.floor(
+        x + whiteBoxWidth / 2 + BORDER_COLORS_LEFT_RIGHT_LIGHT.length - 1 - i
+      ),
       Math.floor(y),
       1,
       whiteBoxHeight
@@ -306,8 +310,8 @@ export function drawWhiteBoxWithText(
     0, // source y
     4, // source width
     5, // source height
-    Math.floor(x - whiteBoxWidth / 2 - borderColorsLeftRight.length), // target x
-    Math.floor(y - borderColorsTopBottom.length), // target y
+    Math.floor(x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length), // target x
+    Math.floor(y - BORDER_COLORS_TOP_BOTTOM_LIGHT.length), // target y
     4, // target width
     5 // target height
   );
@@ -318,7 +322,7 @@ export function drawWhiteBoxWithText(
     0,
     4,
     5,
-    Math.floor(x - whiteBoxWidth / 2 - borderColorsLeftRight.length),
+    Math.floor(x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length),
     Math.floor(y + whiteBoxHeight),
     4,
     5
@@ -331,7 +335,7 @@ export function drawWhiteBoxWithText(
     4,
     5,
     Math.floor(x + whiteBoxWidth / 2),
-    Math.floor(y - borderColorsTopBottom.length),
+    Math.floor(y - BORDER_COLORS_TOP_BOTTOM_LIGHT.length),
     4,
     5
   );
@@ -351,7 +355,7 @@ export function drawWhiteBoxWithText(
   context.restore();
 
   return {
-    width: whiteBoxWidth + 2 * borderColorsLeftRight.length,
+    width: whiteBoxWidth + 2 * BORDER_COLORS_LEFT_RIGHT_LIGHT.length,
     height: whiteBoxHeight,
   };
 }
@@ -467,6 +471,7 @@ export function setupTextBubblesObjectsAndDemos(
   Floor: Floor,
   Player: Player,
   Map: GameMap,
+  grassMarkerImage: HTMLImageElement,
   CanShowTextRef: React.RefObject<boolean>,
   _IsUserInputAllowedRef: React.RefObject<boolean>,
   cornerImage: HTMLImageElement,
@@ -483,8 +488,6 @@ export function setupTextBubblesObjectsAndDemos(
 
   // determines how much horizontal distance is given to each text bubble
   const ReadingSpeedPixelsPerCharacter = 7;
-  const grassMarkerImage = new Image();
-  grassMarkerImage.src = "../../images/grass1.png";
   const TEXT_BUBBLE_MAX_LINE_WIDTH: number = Math.floor(
     context.canvas.width / 1.5
   );

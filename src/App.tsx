@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Blog from "./components/Blog/Blog";
 import MyCanvas from "./components/MyCanvas";
@@ -15,6 +15,10 @@ export default function App() {
   const PlayerRef = useRef<Player | null>(null);
   const DemosRef = useRef<Button[] | null>(null);
 
+  const [nightMode, setNightMode] = useState(false);
+  const nightModeRef = useRef(nightMode);
+  const handleToggleNightMode = () => setNightMode((prev) => !prev);
+
   const updateDerivedRef = () => {
     IsUserInputAllowedRef.current =
       !IsNavMenuOpenRef.current && !IsDemoModalOpenRef.current;
@@ -30,6 +34,11 @@ export default function App() {
     }
   }, [location.pathname]);
 
+  // Keep nightModeRef in sync with state
+  useEffect(() => {
+    nightModeRef.current = nightMode;
+  }, [nightMode]);
+
   return (
     <Routes>
       {/* Main "Home" route */}
@@ -41,19 +50,20 @@ export default function App() {
             <div aria-hidden="true" className="hidden-font-loader">
               &nbsp;
             </div>
-
             <MyCanvas
               IsUserInputAllowedRef={IsUserInputAllowedRef}
               IsDemoModalOpenRef={IsDemoModalOpenRef}
               onRefChange={updateDerivedRef}
               PlayerRef={PlayerRef}
               DemosRef={DemosRef}
+              darkModeRef={nightModeRef}
             />
             <Nav
               IsNavMenuOpenRef={IsNavMenuOpenRef}
               onRefChange={updateDerivedRef}
               PlayerRef={PlayerRef}
               DemosRef={DemosRef}
+              onToggleNightMode={handleToggleNightMode}
             />
 
             <div id="toastContainer" className="toast-container"></div>

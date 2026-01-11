@@ -42,15 +42,16 @@ export default function MyCanvas({
   onRefChange,
   PlayerRef,
   DemosRef,
+  darkModeRef,
 }: {
   IsUserInputAllowedRef: React.RefObject<boolean>;
   IsDemoModalOpenRef: React.RefObject<boolean>;
   onRefChange: () => void;
   PlayerRef: React.RefObject<Player | null>;
   DemosRef: React.RefObject<Button[] | null>;
+  darkModeRef: React.RefObject<boolean>;
 }) {
   const visualizerRef = useRef<RecordingVisualizerHandle>(null);
-
   const [demoModal, setDemoModal] = useState<any | null>(null);
   const handleOpenModal = (demo: any) => {
     setDemoModal(demo);
@@ -80,6 +81,7 @@ export default function MyCanvas({
   const ForegroundObjectsRef = useRef<ImageObject[] | null>(null);
   const FloorRef = useRef<Floor | null>(null);
   const FrameCountRef = useRef(0);
+  const GrassMarkerImgRef = useRef<HTMLImageElement | null>(null);
   const MapRef = useRef<GameMap | null>(null);
   const MouseRef = useRef<Mouse | null>(null);
   const TextBubbleArrayRef = useRef<TextBubble[] | null>(null);
@@ -96,6 +98,8 @@ export default function MyCanvas({
   let PrevTimestamp = 0;
   let SpawnX = 0;
   let MapMaxX = 0;
+
+  let oldDarkMode = darkModeRef.current;
   // #endregion
 
   // runs after the component mounts + renders
@@ -112,6 +116,15 @@ export default function MyCanvas({
       "./images/player/walk1_2.png",
       "./images/player/walk1_3.png",
       "./images/grass1.png",
+      "./images/player/jump_0_dark.png",
+      "./images/player/stand1_0_dark.png",
+      "./images/player/stand1_1_dark.png",
+      "./images/player/stand1_2_dark.png",
+      "./images/player/walk1_0_dark.png",
+      "./images/player/walk1_1_dark.png",
+      "./images/player/walk1_2_dark.png",
+      "./images/player/walk1_3_dark.png",
+      "./images/grass1_dark.png",
     ];
 
     let loadedImages = 0;
@@ -218,9 +231,11 @@ export default function MyCanvas({
     );
     Bg1.currentMaxLocationIndex = Bg1.locations.length - 1;
 
-    TileSheetImgRef.current = new Image();
-    TileSheetImgRef.current.src = "../../images/tiles.png";
+    GrassMarkerImgRef.current = new Image();
+    GrassMarkerImgRef.current.src = "./images/grass1.png";
 
+    TileSheetImgRef.current = new Image();
+    TileSheetImgRef.current.src = "./images/tiles.png";
     let floorHeight =
       c.canvas.height > Bg0.height
         ? Bg0.height - 1.5 * MapRef.current.tsize
@@ -273,6 +288,7 @@ export default function MyCanvas({
       FloorRef.current,
       PlayerRef.current,
       MapRef.current,
+      GrassMarkerImgRef.current,
       CanShowTextRef,
       IsUserInputAllowedRef,
       cornerImage,
@@ -357,9 +373,7 @@ export default function MyCanvas({
     window.addEventListener("mousedown", mouseDownListener);
     window.addEventListener("mousemove", mouseMoveListener);
     window.addEventListener("mouseup", mouseUpListener);
-
     window.addEventListener("click", onClickListener);
-
     window.addEventListener("touchstart", touchStartListener); // passive by default
     window.addEventListener("touchmove", touchMoveListener, { passive: false });
     window.addEventListener("touchend", touchEndListener); // passive by default
@@ -382,7 +396,6 @@ export default function MyCanvas({
       window.removeEventListener("mousemove", mouseMoveListener);
       window.removeEventListener("mouseup", mouseUpListener);
       window.removeEventListener("click", onClickListener);
-
       window.removeEventListener("touchstart", touchStartListener);
       window.removeEventListener("touchmove", touchMoveListener);
       window.removeEventListener("touchend", touchEndListener);
@@ -405,17 +418,26 @@ export default function MyCanvas({
     const ForegroundObjects: ImageObject[] | null =
       ForegroundObjectsRef.current;
     const Floor: Floor | null = FloorRef.current;
+    const GrassMarkerImage: HTMLImageElement | null = GrassMarkerImgRef.current;
     const Map: GameMap | null = MapRef.current;
     const Mouse: Mouse | null = MouseRef.current;
     const Player: Player | null = PlayerRef.current;
     const TextBubbleArray: TextBubble[] | null = TextBubbleArrayRef.current;
     const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
     const WelcomeTextArray: GameText[] | null = WelcomeTextArrayRef.current;
+    const darkMode = darkModeRef.current;
+
+    // check if dark mode changed
+    let darkModeChanged = false;
+    if (darkMode !== oldDarkMode) {
+      darkModeChanged = true;
+      oldDarkMode = darkMode;
+    }
 
     // calculate time elapsed since last frame
     const deltaTime: number = timestamp - PrevTimestamp;
     if (
-      deltaTime >= FRAME_DURATION &&
+      (deltaTime >= FRAME_DURATION || darkModeChanged) &&
       BackgroundObjects &&
       Bg0 &&
       Bg1 &&
@@ -426,6 +448,7 @@ export default function MyCanvas({
       Demos &&
       ForegroundObjects &&
       Floor &&
+      GrassMarkerImage &&
       Map &&
       Mouse &&
       Player &&
@@ -434,6 +457,17 @@ export default function MyCanvas({
       WelcomeTextArray
     ) {
       PrevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
+
+      // Respond to dark mode change
+      if (darkModeChanged) {
+        TileSheet.src = darkMode
+          ? "./images/tiles_dark.png"
+          : "./images/tiles.png";
+
+        GrassMarkerImage.src = darkMode
+          ? "./images/grass1_dark.png"
+          : "./images/grass1.png";
+      }
 
       /*
        * Responsive Scaling
@@ -479,8 +513,8 @@ export default function MyCanvas({
       // #endregion Updating game state - Camera, Controller, Player
 
       // #region Drawing
-      Bg0.draw(c);
-      Bg1.draw(c);
+      Bg0.draw(c, darkMode);
+      Bg1.draw(c, darkMode);
 
       // /*
       //  * Background Object Draw
@@ -522,7 +556,7 @@ export default function MyCanvas({
        * Demos Draw
        */
       for (let i = 0; i < Demos.length; i++) {
-        Demos[i].draw(c, Camera.x);
+        Demos[i].draw(c, Camera.x, darkMode);
         if (Demos[i].detectMouseHover(Mouse.x, Mouse.y, Camera.x)) {
           Demos[i].drawHoverBox(c, Camera.x, Camera.y);
         }
@@ -532,7 +566,7 @@ export default function MyCanvas({
        * Text Draw
        */
       for (let i = 0; i < WelcomeTextArray.length; i++) {
-        WelcomeTextArray[i].draw(c, Camera.x, Camera.y);
+        WelcomeTextArray[i].draw(c, Camera.x, Camera.y, darkMode);
       }
 
       for (let i = 0; i < TextBubbleArray.length; i++) {
@@ -541,12 +575,19 @@ export default function MyCanvas({
           TextBubbleArray[i].minX < Player.x &&
           TextBubbleArray[i].maxX > Player.x
         ) {
-          TextBubbleArray[i].draw(c);
+          let _: number = 0; // camera x and y not used in TextBubble draw currently
+          TextBubbleArray[i].draw(c, _, _, darkMode);
         }
       }
       c.restore();
 
-      Player.draw(c, Floor.height, FrameCountRef.current);
+      Player.draw(
+        c,
+        Floor.height,
+        FrameCountRef.current,
+        darkMode,
+        darkModeChanged
+      );
 
       /*
        * Foreground Object Draw

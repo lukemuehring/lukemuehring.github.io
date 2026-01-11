@@ -1,9 +1,11 @@
 import {
-  colors1,
-  colors2,
+  BORDER_COLORS_TOP_BOTTOM_LIGHT,
+  BORDER_COLORS_LEFT_RIGHT_LIGHT,
   ElementPadding,
   FONT_HEADING,
   TextLeading,
+  BORDER_COLORS_TOP_BOTTOM_DARK,
+  BORDER_COLORS_LEFT_RIGHT_DARK,
 } from "../lib/constants";
 import {
   getCanvasFontString,
@@ -24,8 +26,10 @@ export class TextBubble extends GameText {
 
   leading: number;
   elementPadding: number;
-  borderColorsTopBottom: string[];
-  borderColorsLeftRight: string[];
+  borderColorsTopBottomLight: string[];
+  borderColorsLeftRightLight: string[];
+  borderColorsTopBottomDark: string[];
+  borderColorsLeftRightDark: string[];
 
   constructor(
     text: string,
@@ -50,14 +54,17 @@ export class TextBubble extends GameText {
 
     this.leading = TextLeading;
     this.elementPadding = ElementPadding;
-    this.borderColorsTopBottom = colors1;
-    this.borderColorsLeftRight = colors2;
+    this.borderColorsTopBottomLight = BORDER_COLORS_TOP_BOTTOM_LIGHT;
+    this.borderColorsLeftRightLight = BORDER_COLORS_LEFT_RIGHT_LIGHT;
+    this.borderColorsTopBottomDark = BORDER_COLORS_TOP_BOTTOM_DARK;
+    this.borderColorsLeftRightDark = BORDER_COLORS_LEFT_RIGHT_DARK;
   }
 
   draw(
     context: CanvasRenderingContext2D,
-    _cameraX?: number,
-    _cameraY?: number
+    _cameraX: number,
+    _cameraY: number,
+    darkMode: boolean
   ) {
     if (!this.canShowText.current) {
       return;
@@ -88,7 +95,7 @@ export class TextBubble extends GameText {
       this.player.image.naturalHeight -
       whiteBoxHeight -
       paddingBetweenDialogAndPlayer;
-
+      
     drawWhiteBoxWithText(
       context,
       this.x,
@@ -98,11 +105,10 @@ export class TextBubble extends GameText {
       linesOfTextArray,
       this.fontSize,
       this.leading,
-      this.borderColorsLeftRight,
-      this.borderColorsTopBottom,
       this.elementPadding,
       linesOfTextWidthsArray,
-      this.cornerImage
+      this.cornerImage,
+      darkMode
     );
 
     // middle triangle above player

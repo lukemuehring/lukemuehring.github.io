@@ -149,10 +149,21 @@ export class Player {
   }
 
   // todo: change 1st floorHeight check to yVelocity so that we can implement platforms
+
+  /**
+   * draws the player sprite based on its current state (idle, walking, jumping)
+   * @param c 
+   * @param floorHeight 
+   * @param frameCount 
+   * @param darkMode 
+   * @param darkModeChanged - if the dark mode just changed this frame, immediately switch sprite without waiting for animation buffer
+   */
   draw(
     c: CanvasRenderingContext2D,
     floorHeight: number,
-    frameCount: number
+    frameCount: number,
+    darkMode: boolean,
+    darkModeChanged: boolean
   ): void {
     // if above the floor: jump
     if (this.y < floorHeight) {
@@ -171,7 +182,7 @@ export class Player {
 
     switch (this.state) {
       case PlayerStates.Jumping:
-        this.image = this.imageCache["./images/player/jump_0.png"];
+        this.image = this.imageCache["./images/player/jump_0" + (darkMode ? "_dark" : "") + ".png"];
         break;
       case PlayerStates.Walking:
         if (frameCount % (this.animationTimeBuffer / 5) == 0) {
@@ -179,11 +190,11 @@ export class Player {
         }
         this.image =
           this.imageCache[
-            "./images/player/walk1_" + this.walkSpriteFrame + ".png"
+            "./images/player/walk1_" + this.walkSpriteFrame + (darkMode ? "_dark" : "") + ".png"
           ];
         break;
       case PlayerStates.Idle:
-        if (frameCount % this.animationTimeBuffer == 0 && this.xVelocity == 0) {
+        if ((frameCount % this.animationTimeBuffer == 0 && this.xVelocity == 0) || darkModeChanged) {
           if (this.idleSpriteFrame == 2) {
             this.idleSpriteFrameIsIncreasing = false;
           } else if (this.idleSpriteFrame == 0) {
@@ -197,7 +208,7 @@ export class Player {
           }
           this.image =
             this.imageCache[
-              "./images/player/stand1_" + this.idleSpriteFrame + ".png"
+              "./images/player/stand1_" + this.idleSpriteFrame + (darkMode ? "_dark" : "") + ".png"
             ];
         }
         break;

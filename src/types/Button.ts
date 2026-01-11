@@ -1,4 +1,4 @@
-import { colors1, colors2, ElementPadding } from "../lib/constants";
+import { BORDER_COLORS_TOP_BOTTOM_LIGHT, BORDER_COLORS_LEFT_RIGHT_LIGHT, ElementPadding } from "../lib/constants";
 import {
   calculateHeaderDimensions,
   drawWhiteBoxWithText,
@@ -20,9 +20,6 @@ export class Button {
   maxLineWidth: number;
   leading: number;
   elementPadding: number;
-
-  borderColorsTopBottom: string[];
-  borderColorsLeftRight: string[];
 
   linesData: TextLinesData | null = null;
 
@@ -65,9 +62,6 @@ export class Button {
     this.leading = 0;
     this.elementPadding = ElementPadding;
 
-    this.borderColorsTopBottom = colors1;
-    this.borderColorsLeftRight = colors2;
-
     this.hover = false;
     if (content) {
       this.content = content;
@@ -86,12 +80,12 @@ export class Button {
     );
 
     this.width =
-      this.linesData.whiteBoxWidth + this.borderColorsTopBottom.length * 2;
+      this.linesData.whiteBoxWidth + BORDER_COLORS_TOP_BOTTOM_LIGHT.length * 2;
     this.height =
-      this.linesData.whiteBoxHeight + this.borderColorsLeftRight.length * 2;
+      this.linesData.whiteBoxHeight + BORDER_COLORS_LEFT_RIGHT_LIGHT.length * 2;
   }
 
-  draw(context: CanvasRenderingContext2D, cameraX: number): void {
+  draw(context: CanvasRenderingContext2D, cameraX: number, darkMode: boolean): void {
     if (!this.canShowTextRef.current) {
       return;
     }
@@ -116,11 +110,10 @@ export class Button {
       this.linesData.lines,
       this.headerFontSize,
       this.leading,
-      this.borderColorsLeftRight,
-      this.borderColorsTopBottom,
       this.elementPadding,
       this.linesData.lineWidths,
-      this.cornerImage
+      this.cornerImage,
+      darkMode
     );
 
     this.width = btnWidth;
@@ -161,9 +154,9 @@ export class Button {
     context.fillStyle = "rgb(0 0 0 / .2)"; //dark mode flip this
     context.fillRect(
       Math.floor(this.x - cameraX) - this.width / 2,
-      Math.floor(this.y - cameraY - this.borderColorsTopBottom.length),
+      Math.floor(this.y - cameraY - BORDER_COLORS_TOP_BOTTOM_LIGHT.length),
       this.width,
-      this.height + this.borderColorsTopBottom.length * 2
+      this.height + BORDER_COLORS_TOP_BOTTOM_LIGHT.length * 2
     );
     context.restore();
   }

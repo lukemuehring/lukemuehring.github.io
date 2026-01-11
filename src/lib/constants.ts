@@ -14,9 +14,32 @@ export const FONT_HEADING = {
   P: 38,
 };
 
+export const FONT_COLOR_LIGHT_MODE = "#111111";
+export const FONT_BG_LIGHT_MODE = "#F9FAFB";
+export const FONT_COLOR_DARK_MODE = "#ececec";
+export const FONT_BG_DARK_MODE = "#323232";
+
+/**
+ * Dark Mode Color Palette
+Background: #323232
+Surface:    #020617
+Text:       #ececec
+Secondary:  #9CA3AF
+ */
+
+/**
+ * Light Mode Color Palette
+Background: #F9FAFB
+Surface:    #FFFFFF
+Text:       #111111
+Secondary:  #4B5563
+ */
+
 // border colors for text bubble
-export const colors1 = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
-export const colors2 = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
+export const BORDER_COLORS_TOP_BOTTOM_LIGHT = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
+export const BORDER_COLORS_LEFT_RIGHT_LIGHT = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
+export const BORDER_COLORS_TOP_BOTTOM_DARK = ["#ececec", "#4B5563", "#323232", "#23272e", "#020617"];
+export const BORDER_COLORS_LEFT_RIGHT_DARK = ["#ececec", "#6B7280", "#23272e", "#020617"];
 
 // Text layout
 export const TextLeading = 10;

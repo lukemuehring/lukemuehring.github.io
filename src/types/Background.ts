@@ -2,6 +2,7 @@ export class Background {
   width: number = 1984;
   height: number = 1088;
   image: HTMLImageElement = new Image();
+  darkImage: HTMLImageElement = new Image();
   locations: number[] = [];
   currentMaxLocationIndex: number = 0;
   moveRate: number = 1;
@@ -13,6 +14,7 @@ export class Background {
 
     if (config.imageSrc) {
       this.image.src = config.imageSrc;
+      this.darkImage.src = config.imageSrc.replace(".png", "_dark.png");
     }
   }
 
@@ -20,7 +22,7 @@ export class Background {
    * uses an array of locations to draw multiple background images
    * and moves them according to moveRate in a (almost) seamless loop.
    */
-  draw(context: CanvasRenderingContext2D) {
+  draw(context: CanvasRenderingContext2D, darkMode: boolean) {
     for (let i = 0; i < this.locations.length; i++) {
       if (this.locations[i] + this.width < 0) {
         this.locations[i] =
@@ -30,7 +32,11 @@ export class Background {
 
       this.locations[i] -= this.moveRate;
 
-      context.drawImage(this.image, Math.floor(this.locations[i]), 0);
+      context.drawImage(
+        darkMode ? this.darkImage : this.image,
+        Math.floor(this.locations[i]),
+        0
+      );
     }
   }
 }
