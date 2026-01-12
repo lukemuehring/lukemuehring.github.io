@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import RecordingPopup from "./RecordingPopup";
 import "./RecordingWrapper.css";
 
-function RecordingWrapper() {
+function RecordingWrapper({ darkMode }: { darkMode: boolean }) {
   const [isRecording, setIsRecording] = useState(false);
 
   function start() {
@@ -41,11 +41,11 @@ function RecordingWrapper() {
         </p>
         <div className="mt-4">
           {isRecording ? (
-            <button className="shaf-btn" onClick={stop}>
+            <button className={`shaf-btn ${darkMode ? "shaf-btn--dark" : ""}`} onClick={stop}>
               close the component
             </button>
           ) : (
-            <button className="shaf-btn" onClick={start}>
+            <button className={`shaf-btn ${darkMode ? "shaf-btn--dark" : ""}`} onClick={start}>
               see the component
             </button>
           )}

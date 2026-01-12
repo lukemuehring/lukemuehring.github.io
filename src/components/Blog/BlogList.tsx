@@ -4,7 +4,7 @@ import "./Blog.css";
 
 export default function BlogList() {
   return (
-    <div className="flex flex-col mx-auto w-full md:max-w-4xl p-2 md:p-8">
+    <div className="flex flex-col mx-auto w-full min-h-screen md:max-w-4xl p-2 md:p-8">
       <Link to="/" className="shaf-btn-muted mb-8">
         ← Back to website
       </Link>

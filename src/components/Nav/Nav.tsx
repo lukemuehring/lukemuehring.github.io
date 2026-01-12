@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FiSun, FiMoon } from "react-icons/fi";
 import { movePlayerToScreenCoords } from "../../lib/helpers";
 import type { Player } from "../../types/Player";
 import type { Button } from "../../types/Button";
@@ -9,6 +10,7 @@ type NavProps = {
   onRefChange?: () => void;
   PlayerRef?: React.RefObject<Player | null>;
   DemosRef?: React.RefObject<Button[] | null>;
+  darkMode: boolean;
   onToggleNightMode?: () => void;
 };
 
@@ -17,6 +19,7 @@ export default function Nav({
   onRefChange,
   PlayerRef,
   DemosRef,
+  darkMode,
   onToggleNightMode,
 }: NavProps) {
   const [isActive, setIsActive] = useState(false);
@@ -89,8 +92,7 @@ export default function Nav({
   };
 
   const handleToggleNightMode = () => {
-     if (onToggleNightMode) onToggleNightMode();
-    onClose();
+    if (onToggleNightMode) onToggleNightMode();
   };
 
   function showToast(
@@ -117,9 +119,9 @@ export default function Nav({
   }
 
   return (
-    <nav id="nav">
+    <nav id="nav" className={darkMode ? "dark" : ""}>
       <button
-        className={`ham-menu ${isActive ? "active" : ""}`}
+        className={`ham-menu ${isActive ? "active" : ""} ${darkMode ? "dark" : ""}`}
         onClick={handleMenuToggle}
       >
         <span></span>
@@ -127,14 +129,20 @@ export default function Nav({
         <span></span>
       </button>
 
-      <div className={`menu-container ${isActive ? "active" : ""}`}>
-        <div className="menu">
+      <div
+        className={`menu-container ${isActive ? "active" : ""} ${
+          darkMode ? "dark" : ""
+        }`}
+      >
+        <div className={`menu ${darkMode ? "dark" : ""}`}>
           <button onClick={handleBlog}>Blog</button>
           <button onClick={handleContact}>Contact</button>
           <button onClick={handleLinkedIn}>LinkedIn</button>
           <button onClick={handleWork}>My Work</button>
           <button onClick={handleResume}>Resume</button>
-          <button onClick={handleToggleNightMode}>☀️</button>
+          <button onClick={handleToggleNightMode}>
+            {darkMode ? <FiSun /> : <FiMoon />}
+          </button>
         </div>
       </div>
     </nav>

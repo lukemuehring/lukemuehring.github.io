@@ -43,6 +43,7 @@ export default function MyCanvas({
   PlayerRef,
   DemosRef,
   darkModeRef,
+  darkModeValue,
 }: {
   IsUserInputAllowedRef: React.RefObject<boolean>;
   IsDemoModalOpenRef: React.RefObject<boolean>;
@@ -50,6 +51,7 @@ export default function MyCanvas({
   PlayerRef: React.RefObject<Player | null>;
   DemosRef: React.RefObject<Button[] | null>;
   darkModeRef: React.RefObject<boolean>;
+  darkModeValue: boolean;
 }) {
   const visualizerRef = useRef<RecordingVisualizerHandle>(null);
   const [demoModal, setDemoModal] = useState<any | null>(null);
@@ -232,10 +234,14 @@ export default function MyCanvas({
     Bg1.currentMaxLocationIndex = Bg1.locations.length - 1;
 
     GrassMarkerImgRef.current = new Image();
-    GrassMarkerImgRef.current.src = "./images/grass1.png";
+    GrassMarkerImgRef.current.src = darkModeValue
+      ? "./images/grass1_dark.png"
+      : "./images/grass1.png";
 
     TileSheetImgRef.current = new Image();
-    TileSheetImgRef.current.src = "./images/tiles.png";
+    TileSheetImgRef.current.src = darkModeValue
+      ? "./images/tiles_dark.png"
+      : "./images/tiles.png";
     let floorHeight =
       c.canvas.height > Bg0.height
         ? Bg0.height - 1.5 * MapRef.current.tsize
@@ -680,6 +686,7 @@ export default function MyCanvas({
           images={demoModal.images}
           text={demoModal.text}
           link={demoModal.link}
+          darkMode={darkModeValue}
           onClose={handleCloseModal}
         />
       )}

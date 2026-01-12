@@ -1,11 +1,25 @@
 @reference "../../tailwind.css";
 @import "./prism-code.css";
 
+.blog {
+  color: var(--font-color-light);
+  background-color: var(--font-bg-light);
+}
+.blog.dark {
+  background-color: var(--font-bg-dark);
+  background-color: var(--font-bg-dark);
+}
+
 .blog * {
-  --text-color: rgb(24, 24, 24);
-  --text-color-secondary: #6a7282;
-  font-family: Helvetica, Arial, sans-serif;
-  color: var(--text-color);
+  font-family: "San Francisco", Arial, sans-serif;
+  color: var(--font-color-light);
+  background-color: var(--font-bg-light);
+}
+
+.blog.dark * {
+  color: var(--font-color-dark);
+  background-color: var(--font-bg-dark);
+  background-color: var(--font-bg-dark);
 }
 
 /* headings inside blog */
@@ -15,7 +29,10 @@
 
 .blog-date {
   @apply text-sm;
-  color: var(--text-color-secondary);
+  color: var(--font-color-light-secondary);
+}
+.blog.dark .blog-date {
+  color: var(--font-color-dark-secondary);
 }
 
 .blog h2 {

@@ -4,6 +4,15 @@
   font-family: "VT323", sans-serif;
 }
 
+:root {
+  --font-color-light: #111111;
+  --font-color-light-secondary: #6a7282;
+  --font-bg-light: #f9fafb;
+  --font-color-dark: #ececec;
+  --font-color-dark-secondary: #9ca3af;
+  --font-bg-dark: #323232;
+}
+
 html {
   --font-size-sm: clamp(0.83rem, 0.44vw + 0.72rem, 1rem);
   --font-size-base: clamp(1rem, 0.53vw + 0.87rem, 1.2rem);
@@ -61,18 +70,20 @@ canvas {
   height: 100vh;
 
   .ham-menu {
-    /* opacity: 1; maybe remove this and below line - parent controls these properties */
-    /* pointer-events: all; */
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
     height: 75px;
     width: 75px;
-    position: relative;
     justify-self: right;
     margin-left: auto;
     z-index: 10;
-    background-color: transparent;
+    border-radius: 16px;
+    background-color: color-mix(in srgb, var(--font-bg-light) 50%, transparent);
+    backdrop-filter: saturate(180%) blur(15px);
 
     span {
-      height: 5px;
+      height: 4px;
       width: 50px;
       background-color: rgb(75, 75, 75);
       position: absolute;
@@ -103,6 +114,13 @@ canvas {
       transform: translate(-50%, -50%) rotate(-45deg);
     }
   }
+  .ham-menu.dark {
+    background-color: color-mix(in srgb, var(--font-bg-dark) 50%, transparent);
+
+    span {
+      background-color: var(--font-color-dark);
+    }
+  }
 
   .menu-container {
     position: absolute;
@@ -131,6 +149,10 @@ canvas {
     overflow: hidden; /* Make sure ::before doesn't spill */
   }
 
+  .menu-container.dark {
+    background-color: rgba(125, 125, 125, 0.5);
+  }
+
   .menu-container.active {
     pointer-events: all;
     opacity: 1;
@@ -152,15 +174,20 @@ canvas {
     pointer-events: none;
   }
 
+  .menu-container.dark::before {
+    background: transparent;
+  }
+
   .menu-container .menu button {
     --btn-font-size: 2rem;
-    --btn-font-color: rgba(0, 0, 0, 0.8);
-    --btn-font-hover-color: black;
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
 
     font-size: var(--btn-font-size);
-    color: var(--btn-font-color);
+    color: var(--font-color-light);
     background-color: transparent;
     padding: 8px;
     border: none;
@@ -171,12 +198,19 @@ canvas {
   }
 
   .menu-container .menu button:hover {
-    color: var(--btn-font-hover-color);
+    color: black;
+  }
+
+  .menu-container.dark .menu button {
+    color: var(--font-color-dark);
+  }
+  .menu-container.dark .menu button:hover {
+    color: white;
   }
 }
 
 /* NAV DESKTOP */
-@media (min-width: 640px) {
+@media (min-width: 916px) {
   #nav {
     height: auto;
     top: 0;
@@ -358,15 +392,23 @@ canvas {
 .shaf-btn {
   @apply bg-white md:text-xl text-2xl flex w-fit cursor-pointer border-2 p-2 border-black rounded-lg transition-transform duration-100;
 }
-
+.shaf-btn--dark {
+  background: var(--font-bg-dark);
+  color: var(--font-color-dark);
+  border-color: var(--font-color-dark);
+}
 .shaf-btn:hover {
   @apply bg-black/5;
 }
-
+.shaf-btn--dark:hover {
+  background: color-mix(in srgb, var(--font-bg-dark) 90%, white);
+}
 .shaf-btn:active {
   @apply bg-black/10;
 }
-
+.shaf-btn--dark:active {
+  background: color-mix(in srgb, var(--font-bg-dark) 80%, white);
+}
 .shaf-btn:focus {
   @apply outline-none ring-2 ring-blue-300;
 }

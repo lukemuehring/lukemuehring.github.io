@@ -1,4 +1,8 @@
-import { BORDER_COLORS_TOP_BOTTOM_LIGHT, BORDER_COLORS_LEFT_RIGHT_LIGHT, ElementPadding } from "../lib/constants";
+import {
+  BORDER_COLORS_TOP_BOTTOM_LIGHT,
+  BORDER_COLORS_LEFT_RIGHT_LIGHT,
+  ElementPadding,
+} from "../lib/constants";
 import {
   calculateHeaderDimensions,
   drawWhiteBoxWithText,
@@ -31,7 +35,7 @@ export class Button {
 
   cornerImage: HTMLImageElement;
 
-  content?: React.ReactNode;
+  content?: (props: { darkMode: boolean }) => React.ReactNode;
 
   constructor(
     x: number,
@@ -45,7 +49,7 @@ export class Button {
     canShowTextRef: React.RefObject<boolean>,
     cornerImage: HTMLImageElement,
     onClick: (...args: any[]) => void,
-    content?: React.ReactNode
+    content?: (props: { darkMode: boolean }) => React.ReactNode
   ) {
     this.x = x;
     this.y = y;
@@ -85,7 +89,11 @@ export class Button {
       this.linesData.whiteBoxHeight + BORDER_COLORS_LEFT_RIGHT_LIGHT.length * 2;
   }
 
-  draw(context: CanvasRenderingContext2D, cameraX: number, darkMode: boolean): void {
+  draw(
+    context: CanvasRenderingContext2D,
+    cameraX: number,
+    darkMode: boolean
+  ): void {
     if (!this.canShowTextRef.current) {
       return;
     }

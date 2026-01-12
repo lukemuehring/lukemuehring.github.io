@@ -2,11 +2,12 @@ import { useEffect } from "react";
 import "./DemoModal.css";
 
 type DemoModalProps = {
-  content?: React.ReactNode;
+  content?: (props: { darkMode: boolean }) => React.ReactNode;
   headerText: string;
   images?: { src: string }[];
   text: string;
   link: string;
+  darkMode: boolean;
   onClose: () => void;
 };
 
@@ -16,6 +17,7 @@ export default function DemoModal({
   images = [],
   text,
   link,
+  darkMode,
   onClose,
 }: DemoModalProps) {
   // Listen for ESC key
@@ -35,15 +37,20 @@ export default function DemoModal({
   }, [onClose]);
 
   return (
-    <div className="demo-modal">
+    <div className={darkMode ? "demo-modal demo-modal--dark" : "demo-modal"}>
       {/* Header */}
       <p className="demo-modal__header">{headerText}</p>
-
       {/* Close button */}
-      <button className="demo-modal__close" onClick={onClose}>
+      <button
+        className={
+          darkMode
+            ? "demo-modal__close demo-modal__close--dark"
+            : "demo-modal__close"
+        }
+        onClick={onClose}
+      >
         &times;
       </button>
-
       {/* Images */}
       {images.length > 0 && (
         <div className="demo-modal__image-container">
@@ -61,20 +68,26 @@ export default function DemoModal({
           </div>
         </div>
       )}
-
       {/* Text + Link */}
       <div className="demo-modal__content">
         <p className="demo-modal__text">{text}</p>
 
         {link.length > 0 && (
-          <a href={link} target="_blank" className="demo-modal__link">
+          <a
+            href={link}
+            target="_blank"
+            className={
+              darkMode
+                ? "demo-modal__link demo-modal__link--dark"
+                : "demo-modal__link"
+            }
+          >
             See it live!
           </a>
         )}
       </div>
-
       {/* Content */}
-      {content}
+      {typeof content === "function" ? content({ darkMode }) : content}{" "}
     </div>
   );
 }

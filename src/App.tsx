@@ -15,9 +15,9 @@ export default function App() {
   const PlayerRef = useRef<Player | null>(null);
   const DemosRef = useRef<Button[] | null>(null);
 
-  const [nightMode, setNightMode] = useState(false);
-  const nightModeRef = useRef(nightMode);
-  const handleToggleNightMode = () => setNightMode((prev) => !prev);
+  const [darkMode, setDarkMode] = useState(false);
+  const darkModeRef = useRef(darkMode);
+  const handleToggleNightMode = () => setDarkMode((prev) => !prev);
 
   const updateDerivedRef = () => {
     IsUserInputAllowedRef.current =
@@ -34,10 +34,10 @@ export default function App() {
     }
   }, [location.pathname]);
 
-  // Keep nightModeRef in sync with state
+  // Keep darkModeRef in sync with state
   useEffect(() => {
-    nightModeRef.current = nightMode;
-  }, [nightMode]);
+    darkModeRef.current = darkMode;
+  }, [darkMode]);
 
   return (
     <Routes>
@@ -56,13 +56,15 @@ export default function App() {
               onRefChange={updateDerivedRef}
               PlayerRef={PlayerRef}
               DemosRef={DemosRef}
-              darkModeRef={nightModeRef}
+              darkModeRef={darkModeRef}
+              darkModeValue={darkMode}
             />
             <Nav
               IsNavMenuOpenRef={IsNavMenuOpenRef}
               onRefChange={updateDerivedRef}
               PlayerRef={PlayerRef}
               DemosRef={DemosRef}
+              darkMode={darkMode}
               onToggleNightMode={handleToggleNightMode}
             />
 
@@ -71,7 +73,7 @@ export default function App() {
         }
       />
 
-      <Route path="/blog/*" element={<Blog />} />
+      <Route path="/blog/*" element={<Blog darkMode={darkMode} />} />
     </Routes>
   );
 }

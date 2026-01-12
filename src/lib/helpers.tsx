@@ -288,7 +288,9 @@ export function drawWhiteBoxWithText(
       ? BORDER_COLORS_LEFT_RIGHT_DARK[i]
       : BORDER_COLORS_LEFT_RIGHT_LIGHT[i];
     context.fillRect(
-      Math.floor(x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length + i),
+      Math.floor(
+        x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length + i
+      ),
       Math.floor(y),
       1,
       whiteBoxHeight
@@ -588,7 +590,9 @@ export function setupTextBubblesObjectsAndDemos(
   voiceDictDemo.initializeDimensions(context);
   voiceDictDemo.x += Math.floor(voiceDictDemo.width / 2);
 
-  voiceDictDemo.content = <RecordingWrapper />;
+  voiceDictDemo.content = (props: { darkMode: boolean }) => (
+    <RecordingWrapper darkMode={props.darkMode} />
+  );
 
   demos.push(voiceDictDemo);
   // #endregion Demo setup
