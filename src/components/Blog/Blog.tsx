@@ -8,7 +8,7 @@ export default function Blog({ darkMode }: { darkMode: boolean }) {
     <div className={`blog ${darkMode ? "dark" : ""} w-[100%] tracking-tight`}>
       <Routes>
         <Route path="/" element={<BlogList />} />
-        <Route path=":id" element={<BlogPost darkMode={darkMode} />} />
+        <Route path=":id" element={<BlogPost  />} />
       </Routes>
     </div>
   );

@@ -8,7 +8,7 @@ import type { Post } from "../../types/Post";
 import "./Blog.css";
 import { posts } from "./posts";
 
-export default function BlogPost({ darkMode }: { darkMode: boolean }) {
+export default function BlogPost() {
   const { id } = useParams();
   const post: Post | undefined = posts.find((p) => p.id === id);
 
