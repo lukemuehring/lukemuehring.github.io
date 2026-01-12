@@ -70,17 +70,13 @@ canvas {
   height: 100vh;
 
   .ham-menu {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
+    position: relative;
     height: 75px;
     width: 75px;
     justify-self: right;
     margin-left: auto;
     z-index: 10;
     border-radius: 16px;
-    background-color: color-mix(in srgb, var(--font-bg-light) 50%, transparent);
-    backdrop-filter: saturate(180%) blur(15px);
 
     span {
       height: 4px;
@@ -115,8 +111,6 @@ canvas {
     }
   }
   .ham-menu.dark {
-    background-color: color-mix(in srgb, var(--font-bg-dark) 50%, transparent);
-
     span {
       background-color: var(--font-color-dark);
     }
