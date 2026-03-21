@@ -5,7 +5,7 @@ import BlogPost from "./BlogPost";
 
 export default function Blog({ darkMode }: { darkMode: boolean }) {
   return (
-    <div className={`blog ${darkMode ? "dark" : ""} w-[100%] tracking-tight`}>
+    <div className={`blog ${darkMode ? "dark" : ""} w-[100%]`}>
       <Routes>
         <Route path="/" element={<BlogList />} />
         <Route path=":id" element={<BlogPost  />} />

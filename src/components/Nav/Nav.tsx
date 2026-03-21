@@ -75,22 +75,6 @@ export default function Nav({
     onClose();
   };
 
-  const handleWork = () => {
-    if (PlayerRef && PlayerRef.current && DemosRef && DemosRef.current) {
-      movePlayerToScreenCoords(PlayerRef.current, DemosRef.current[0].x, 0);
-    }
-    onClose();
-  };
-
-  const handleLinkedIn = () => {
-    window.open(
-      "https://www.linkedin.com/in/lukemuehring/",
-      "_blank",
-      "noopener,noreferrer"
-    );
-    onClose();
-  };
-
   const handleToggleNightMode = () => {
     if (onToggleNightMode) onToggleNightMode();
   };
@@ -137,8 +121,6 @@ export default function Nav({
         <div className={`menu ${darkMode ? "dark" : ""}`}>
           <button onClick={handleBlog}>Blog</button>
           <button onClick={handleContact}>Contact</button>
-          <button onClick={handleLinkedIn}>LinkedIn</button>
-          <button onClick={handleWork}>My Work</button>
           <button onClick={handleResume}>Resume</button>
           <button onClick={handleToggleNightMode}>
             {darkMode ? <FiSun /> : <FiMoon />}

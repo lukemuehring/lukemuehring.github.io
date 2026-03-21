@@ -4,18 +4,18 @@ import "./Blog.css";
 
 export default function BlogList() {
   return (
-    <div className="flex flex-col mx-auto w-full min-h-screen md:max-w-4xl p-2 md:p-8">
+    <div className="flex flex-col mx-auto w-full min-h-screen md:max-w-5xl p-2 md:p-8">
       <Link to="/" className="shaf-btn-muted mb-8">
         ← Back to website
       </Link>
-      <h1 className="md:text-6xl text-4xl">Blog</h1>
-      <ul>
+      <h1 className="md:text-8xl text-7xl mb-8">Blog</h1>
+      <ul className="flex flex-col gap-10">
         {posts.map((post) => (
-          <li key={post.id} style={{ margin: "1rem 0" }}>
+          <li key={post.id}>
             <Link to={`/blog/${post.id}`} className={"blog-link"}>
               <span>{post.title}</span>
             </Link>
-            <div className="blog-date text-xl md:text-2xl">{post.date}</div>
+            <div className="blog-date">{post.date}</div>
           </li>
         ))}
       </ul>

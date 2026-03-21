@@ -15,7 +15,7 @@ export default function App() {
   const PlayerRef = useRef<Player | null>(null);
   const DemosRef = useRef<Button[] | null>(null);
 
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const darkModeRef = useRef(darkMode);
   const handleToggleNightMode = () => setDarkMode((prev) => !prev);
 

@@ -384,7 +384,7 @@ canvas {
 }
 
 .shaf-btn {
-  @apply bg-white md:text-xl text-2xl flex w-fit cursor-pointer border-2 p-2 border-black rounded-lg transition-transform duration-100;
+  @apply bg-[var(--font-bg-light)]  md:text-xl text-2xl flex w-fit cursor-pointer border-2 p-2 border-black rounded-lg transition-transform duration-100;
 }
 .shaf-btn--dark {
   background: var(--font-bg-dark);
@@ -408,7 +408,7 @@ canvas {
 }
 
 .shaf-btn-muted {
-  @apply bg-white !text-inherit !no-underline md:text-xl text-2xl flex w-fit cursor-pointer p-0.5 transition-transform rounded-lg duration-100;
+  @apply bg-[var(--font-bg-light)] !text-inherit !no-underline md:text-xl text-2xl flex w-fit cursor-pointer p-0.5 transition-transform rounded-lg duration-100;
 }
 
 .shaf-btn-muted:hover {

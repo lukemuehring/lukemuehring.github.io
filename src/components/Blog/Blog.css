@@ -4,6 +4,7 @@
 .blog {
   color: var(--font-color-light);
   background-color: var(--font-bg-light);
+  @apply md:text-xl text-lg;
 }
 .blog.dark {
   background-color: var(--font-bg-dark);
@@ -15,10 +16,8 @@
   color: var(--font-color-light);
   background-color: var(--font-bg-light);
 }
-
 .blog.dark * {
   color: var(--font-color-dark);
-  background-color: var(--font-bg-dark);
   background-color: var(--font-bg-dark);
 }
 
@@ -26,21 +25,20 @@
 .blog-h1 {
   @apply md:text-4xl text-xl font-bold mt-4;
 }
-
-.blog-date {
-  @apply text-sm;
-  color: var(--font-color-light-secondary);
-}
-.blog.dark .blog-date {
-  color: var(--font-color-dark-secondary);
-}
-
 .blog h2 {
-  @apply text-lg font-bold mt-4;
+  @apply md:text-2xl text-xl font-bold mt-4;
 }
 
 .blog h3 {
-  @apply font-bold mt-4;
+  @apply md:text-xl text-lg font-bold mt-4;
+}
+
+.blog-caption {
+  @apply mt-2 mb-2;
+}
+
+figure {
+  @apply my-8;
 }
 
 .blog ul,
@@ -52,8 +50,9 @@
   @apply mb-4;
 }
 
+/* blog list */
 .blog-link {
-  @apply md:text-3xl text-2xl font-bold !text-inherit !no-underline;
+  @apply md:text-4xl text-3xl font-bold !text-inherit !no-underline;
 }
 
 .blog-link > span:hover {
@@ -66,15 +65,25 @@
 .blog a:hover {
   text-decoration: none;
 }
+.blog-date {
+  @apply text-xl md:text-2xl;
+  color: var(--font-color-light-secondary);
+}˝
+.blog.dark .blog-date {
+  color: var(--font-color-dark-secondary);
+}
+
 
 .blog pre > code * {
-  font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 .blog code {
-  font-family: Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family:
+    Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   color: rgb(151, 0, 0);
 }
 
@@ -86,4 +95,11 @@
   .markdown ol {
     @apply !list-decimal !ml-5;
   }
+}
+
+.special-text {
+  font-family: Impact, "Arial Black", Haettenschweiler, sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.25rem;
 }
