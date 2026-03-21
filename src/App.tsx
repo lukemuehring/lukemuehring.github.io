@@ -15,9 +15,36 @@ export default function App() {
   const PlayerRef = useRef<Player | null>(null);
   const DemosRef = useRef<Button[] | null>(null);
 
-  const [darkMode, setDarkMode] = useState(true);
+  // Initialize dark mode: localStorage > system preference > ˝-based fallback
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check localStorage first
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) {
+      return saved === 'true';
+    }
+    // Fall back to system preference
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mediaQuery.media !== "not all") {
+      return mediaQuery.matches;
+    }
+    // Fall back to time-based
+    const hour = new Date().getHours();
+    return hour >= 19 || hour < 7;
+  });
+
   const darkModeRef = useRef(darkMode);
   const handleToggleNightMode = () => setDarkMode((prev) => !prev);
+
+    // Keep darkModeRef, html class, and localStorage in sync with state
+  useEffect(() => {
+    localStorage.setItem('darkMode', String(darkMode));
+    darkModeRef.current = darkMode;
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   const updateDerivedRef = () => {
     IsUserInputAllowedRef.current =
@@ -33,11 +60,6 @@ export default function App() {
       document.body.style.overflow = "";
     }
   }, [location.pathname]);
-
-  // Keep darkModeRef in sync with state
-  useEffect(() => {
-    darkModeRef.current = darkMode;
-  }, [darkMode]);
 
   return (
     <Routes>
