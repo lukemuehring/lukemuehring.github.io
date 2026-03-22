@@ -39,10 +39,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('darkMode', String(darkMode));
     darkModeRef.current = darkMode;
+    const htmlElement = document.documentElement;
+    const bodyElement = htmlElement.getElementsByTagName("body")[0];
     if (darkMode) {
-      document.documentElement.classList.add("dark");
+      htmlElement.classList.add("dark");
+      bodyElement.classList.add("dark")
     } else {
-      document.documentElement.classList.remove("dark");
+      htmlElement.classList.remove("dark");
+      bodyElement.classList.remove("dark")
     }
   }, [darkMode]);
 

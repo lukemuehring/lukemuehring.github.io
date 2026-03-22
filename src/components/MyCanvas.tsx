@@ -668,7 +668,7 @@ export default function MyCanvas({
     <>
       <canvas id="canvas" ref={CanvasRef}>
         <header>
-          <h1>ʟᴜᴋᴇ ᴍᴜᴇʜʀɪɴɢ</h1>
+          <h1>Luke Muehring</h1>
         </header>
         <main>
           <p>climbing, coding & creating</p>
@@ -677,7 +677,7 @@ export default function MyCanvas({
         <noscript>
           <p>Please enable JavaScript to view this content.</p>
         </noscript>
-        <footer>2025 LM</footer>
+        <footer>2026 LM</footer>
       </canvas>
       {demoModal && (
         <DemoModal
