@@ -13,3 +13,8 @@ export default function Blog({ darkMode }: { darkMode: boolean }) {
     </div>
   );
 }
+
+
+
+// blog design inspo
+// https://cursor.com/blog/scaling-agents
