@@ -24,6 +24,8 @@ export class Background {
    */
   draw(context: CanvasRenderingContext2D, darkMode: boolean) {
     for (let i = 0; i < this.locations.length; i++) {
+      // if the entire map has been scrolled off screen,
+      // move it next to the location furthest to the right
       if (this.locations[i] + this.width < 0) {
         this.locations[i] =
           this.locations[this.currentMaxLocationIndex] + this.width;

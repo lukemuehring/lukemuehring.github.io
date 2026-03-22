@@ -204,7 +204,7 @@ export default function MyCanvas({
       width: 1984,
       height: 1088,
       imageSrc: "./images/bg_0.png",
-      moveRate: 0.3,
+      moveRate: .5,
     });
     const Bg0 = Bg0Ref.current;
     if (!Bg0) return;
