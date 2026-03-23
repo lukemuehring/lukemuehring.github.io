@@ -14,26 +14,22 @@ import watch_13 from '../../../../images/blog/watch/watch_13.jpg';
 import watch_14 from '../../../../images/blog/watch/watch_14.jpg';
 import watch_15 from '../../../../images/blog/watch/watch_15.jpg';
 import watch_16 from '../../../../images/blog/watch/watch_16.jpg';
-
+import BlogPicture from "../BlogPicture";
+import BlogDoublePicture from "../BlogDoublePicture";
 
 export const date = "2026-03-01";
 export const title =
   "The Watchman in Zion - Solo Scramble";
 
-<figure style={{ textAlign: 'center' }}>
-  <img src={watch_1} alt="Sunset on the west face of the Watchman" />
-  <figcaption className="blog-caption">Sunset on the west face of the Watchman.</figcaption>
-</figure>
+<BlogPicture imageSrc={watch_1} fullSize={true} caption={"Sunset on the west face of the Watchman."}/>
 
 The first time I visited Zion back in 2025, I noticed the Watchman. It's one of the first peaks you see looming over the buildings of Springdale as you approach the park's entrance. At first glance, it doesn't look like there's any way to get on top of it's 1,000 to 1,500 ft. cliffs without roping up. But as it turns out, there is one way. The only known scrambling route to the summit goes up the West Face, accesible via a notch in Johnson Mountain ([SummitPost page](https://www.summitpost.org/west-face-scramble/184535)). My friends were doing a road trip down for the weekend, and there was one more open seat, so I tagged along for the ride and good company. I didn't know what I was in for, except that it was going to be an adventure.
 \
 \
 I had my friends drop me off at the trailhead. It was already afternoon, since we had bouldered earlier in the day. I also decided to lug camping gear with me and make it an overnight thing. I didn't want to navigate an unfamiliar maze of cliffs once it got dark.
 
-<figure style={{ textAlign: 'center' }}>
-  <img src={watch_2} alt="A picture of the entire landscape" className="mx-auto w-full md:w-[50%]" />
-  <figcaption className="blog-caption">Where I'm going!</figcaption>
-</figure>
+<BlogPicture imageSrc={watch_2} caption={"Where I'm going!"}/>
+
 
 It wasn't long before I got off track. I began in the wrong spot. The SummitPost said to “start at the end of Canyon Springs Road”, so I began at the end of that road in a culdesac with some nice houses. After bushwhacking, jumping barbed wire, and trespassing for a mile, I decided that I was not on the "climbers' trail" and stopped to get un-lost. 
 \
@@ -42,13 +38,7 @@ That's when I discovered [this person's topo](https://stavislost.com/hikes/trail
 \
 I could have avoided this by downloading an offline map. Instead, I took a lax approach - I was simply comparing my location on Google Maps/Strava to screenshots of the route from SummitPost. It was an oversight that would continue to haunt me over the course of the scramble.
 
-<figure className="flex flex-col" style={{ textAlign: 'center' }}>
-<div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:flex-nowrap md:w-[50%]">
-  <img src={watch_3} alt="afternoon view of the mountain" />
-  <img src={watch_4} alt="alpenglow view of the mountain" />
-</div>
-  <figcaption className="blog-caption">Views looking up and north. </figcaption>
-</figure>
+<BlogDoublePicture imageSrc1={watch_3} imageSrc2={watch_4} caption={'Views looking up and north.'}/>
 
 I worked up quite the sweat lugging my tent, some food, extra layers, and a 40oz jug + another 500mL (just under 2L) of water up the west side of the valley, which was baking in afternoon sun. Although I was off-trail for the most part on the upper ridgeline, I was able to find footprints in the sand to stay on track. I also knew the general landmark I was heading towards: the Notch in Johnson mountain that allows access to the west face of the Watchman. For those eager to try, you will want to use the 3rd class ledges trending up and to climbers' left to get to the white arrow in the photos above. Unfortunately, I chose to not go up them the first time around because I didn't see any cairns. I continued all the way to the dark area below the X. 
 
@@ -60,6 +50,7 @@ Because I didn't take the 3rd class ledges, I ended up too far south at the base
 </figure>
 
 The south branch had a 20 ft. chimney with a tricky mantle that looked quite comitting. I retreated to the north branch, but it was completely impassible as well. So, I returned to the south branch thinking that this must be the way. I pulled the 4th class moves and took the gulley as deep as I could, clawing into loose dirt to ascend the steep scree. I reached a dead end at a completely wild grassy shelf. Any more progress was blocked by giant cliffs to the front and steep drops to the side. The lack of any signs of travel should have been screaming clues - but hey, the Watchman is not a well-trafficked route, so it's often a blurry line between trail and bushwhack. But the lack of mention or absence of photos for such a technical section (which turned out to be harder than the actual crux of the scramble) should have tipped me off. 
+
 <figure style={{ textAlign: 'center' }}>
   <img src={watch_6} alt="The mantle" className="mx-auto w-full md:w-[50%]" />
   <figcaption className="blog-caption">Getting lost</figcaption>
@@ -146,13 +137,8 @@ I decided to go back up to the summit, and found the trail again. After crossing
 \
 A mild panic turned into a more serious, gripping fear that I might be entering a survival situation and that my physical condition could deteriorate further (more light headedness, hyperventilation, poor decision making and coordination leads to rushing tricky moves and sloppy technique, which I noticed happened once or twice). I finished the last of my water, took some deep breaths, and studied the Strava I had saved from my ascent. Strava’s map has detailed elevation bands, so I compared screenshots of my ascent recording to my current recording, and looked at landmark features and elevation bands to position myself vs. the “proper” trail. 
 
-<figure className="flex flex-col" style={{ textAlign: 'center' }}>
-<div className="flex flex-col gap-4 md:flex md:flex-row md:gap-0 md:flex-nowrap md:w-[50%]">
-  <img src={watch_14} />
-  <img src={watch_15} />
-</div>
-  <figcaption className="blog-caption">My route going up (1st picture) and me getting lost (2nd picture). </figcaption>
-</figure>
+<BlogDoublePicture imageSrc1={watch_14} imageSrc2={watch_15} caption={'My route going up (1st picture) and me getting lost (2nd picture). '}/>
+
 
 From this, I was able to confirm that I was way too far south, and needed to go north. After a weary couple of minutes, I spotted a major cairn and found the path again. 
 

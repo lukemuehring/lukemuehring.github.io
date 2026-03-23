@@ -494,7 +494,7 @@ export function setupTextBubblesObjectsAndDemos(
     context.canvas.width / 1.5
   );
 
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 1; i++) {
     endX = startX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
 
     textBubbleArray.push(
@@ -544,7 +544,7 @@ export function setupTextBubblesObjectsAndDemos(
   const BTN_MAX_LINE_WIDTH = Math.min(1000, context.canvas.width - 50);
 
   const websiteDemo = new Button(
-    textBubbleArray[1].maxX,
+    textBubbleArray[0].maxX,
     Math.floor(Floor.height / 2) - 100,
     images,
     websiteDemoHeader,
@@ -604,7 +604,7 @@ export function setupTextBubblesObjectsAndDemos(
 
   textBubbleArray.push(
     new TextBubble(
-      CodingStory[2],
+      CodingStory[1],
       Player.x,
       Player.y,
       CanShowTextRef,
@@ -622,7 +622,7 @@ export function setupTextBubblesObjectsAndDemos(
   );
   startX = endX;
 
-  for (let i = 3; i < CodingStory.length; i++) {
+  for (let i = 2; i < CodingStory.length; i++) {
     if (i == CodingStory.length - 1) {
       endX = startX + 500 - ((startX + 500) % Map.tsize);
       Floor.rightX = startX + 500 - ((startX + 500) % Map.tsize);

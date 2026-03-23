@@ -84,6 +84,7 @@ export default function MyCanvas({
   const FloorRef = useRef<Floor | null>(null);
   const FrameCountRef = useRef(0);
   const GrassMarkerImgRef = useRef<HTMLImageElement | null>(null);
+  const DialogTriangleImageRef = useRef<HTMLImageElement | null>(null);
   const MapRef = useRef<GameMap | null>(null);
   const MouseRef = useRef<Mouse | null>(null);
   const TextBubbleArrayRef = useRef<TextBubble[] | null>(null);
@@ -179,7 +180,7 @@ export default function MyCanvas({
     CameraRef.current = new Camera(
       MapRef.current,
       c.canvas.width,
-      c.canvas.height
+      c.canvas.height,
     );
 
     // change the canvas size to match the screen's to cover it completely.
@@ -195,7 +196,7 @@ export default function MyCanvas({
       SpawnX,
       imageCache,
       ANIMATION_TIME_BUFFER,
-      IsUserInputAllowedRef
+      IsUserInputAllowedRef,
     );
     CameraRef.current.follow(PlayerRef.current);
 
@@ -204,7 +205,7 @@ export default function MyCanvas({
       width: 1984,
       height: 1088,
       imageSrc: "./images/bg_0.png",
-      moveRate: .5,
+      moveRate: 0.5,
     });
     const Bg0 = Bg0Ref.current;
     if (!Bg0) return;
@@ -213,7 +214,7 @@ export default function MyCanvas({
 
     Bg0.locations = Array.from(
       { length: numBgImages },
-      (_, index) => index * Bg0.width
+      (_, index) => index * Bg0.width,
     );
     Bg0.currentMaxLocationIndex = Bg0.locations.length - 1;
 
@@ -229,7 +230,7 @@ export default function MyCanvas({
 
     Bg1.locations = Array.from(
       { length: numBgImages },
-      (_, index) => index * Bg1.width
+      (_, index) => index * Bg1.width,
     );
     Bg1.currentMaxLocationIndex = Bg1.locations.length - 1;
 
@@ -256,7 +257,7 @@ export default function MyCanvas({
     // #region Controller setup
     ControllerRef.current = new Controller(
       PlayerRef.current,
-      IsUserInputAllowedRef
+      IsUserInputAllowedRef,
     );
     // #endregion
 
@@ -272,7 +273,7 @@ export default function MyCanvas({
       Math.floor(c.canvas.width / 2),
       c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
       calculateHeadingFontSize(c, welcomeStr, FONT_HEADING.H1),
-      CanShowTextRef
+      CanShowTextRef,
     );
     WelcomeTextArrayRef.current = [welcomeText];
 
@@ -280,8 +281,10 @@ export default function MyCanvas({
     const cornerImage = new Image();
     cornerImage.src = "./images/DialogCorners.png";
 
-    const triangleImage = new Image();
-    triangleImage.src = "./images/DialogTriangle.png";
+    DialogTriangleImageRef.current = new Image();
+    DialogTriangleImageRef.current.src = darkModeValue
+      ? "./images/DialogTriangle_dark.png"
+      : "./images/DialogTriangle.png";
 
     const textBubbleArray: TextBubble[] = [];
     const backgroundObjects: ImageObject[] = [];
@@ -298,12 +301,12 @@ export default function MyCanvas({
       CanShowTextRef,
       IsUserInputAllowedRef,
       cornerImage,
-      triangleImage,
+      DialogTriangleImageRef.current,
       textBubbleArray,
       backgroundObjects,
       foregroundObjects,
       demos,
-      handleOpenModal
+      handleOpenModal,
     );
 
     TextBubbleArrayRef.current = textBubbleArray;
@@ -344,7 +347,7 @@ export default function MyCanvas({
     const onClickListener = (_event: MouseEvent) => {
       const obj = checkIfObjectClicked(
         DemosRef.current ?? [],
-        PlayerRef.current
+        PlayerRef.current,
       );
       if (obj) {
         obj.onClick(obj);
@@ -361,7 +364,7 @@ export default function MyCanvas({
         handleTouchMove(
           evt,
           IsUserInputAllowedRef.current ?? true,
-          PlayerRef.current
+          PlayerRef.current,
         );
       }
     };
@@ -421,6 +424,8 @@ export default function MyCanvas({
     const Camera: Camera | null = CameraRef.current;
     const Controller: Controller | null = ControllerRef.current;
     const Demos: Button[] | null = DemosRef.current;
+    const DialogTriangleImage: HTMLImageElement | null =
+      DialogTriangleImageRef.current;
     const ForegroundObjects: ImageObject[] | null =
       ForegroundObjectsRef.current;
     const Floor: Floor | null = FloorRef.current;
@@ -452,6 +457,7 @@ export default function MyCanvas({
       Camera &&
       Controller &&
       Demos &&
+      DialogTriangleImage &&
       ForegroundObjects &&
       Floor &&
       GrassMarkerImage &&
@@ -473,6 +479,10 @@ export default function MyCanvas({
         GrassMarkerImage.src = darkMode
           ? "./images/grass1_dark.png"
           : "./images/grass1.png";
+
+        DialogTriangleImage.src = darkMode
+          ? "./images/DialogTriangle_dark.png"
+          : "./images/DialogTriangle.png";
       }
 
       /*
@@ -489,13 +499,14 @@ export default function MyCanvas({
           Map,
           Floor,
           TextBubbleArray,
-          MapMaxX
+          MapMaxX,
         );
       }
 
       // default background is bg_1 cloud color
       c.save();
-      c.fillStyle = "#cbf0ff";
+      c.fillStyle = darkMode ? "#252628" : "#cbf0ff";
+      //todo11
       c.fillRect(0, 0, c.canvas.width, c.canvas.height);
       c.restore();
 
@@ -592,7 +603,7 @@ export default function MyCanvas({
         Floor.height,
         FrameCountRef.current,
         darkMode,
-        darkModeChanged
+        darkModeChanged,
       );
 
       /*
@@ -624,7 +635,7 @@ export default function MyCanvas({
             Math.floor(x), // target x
             Math.floor(y + Floor.height), // target y
             Map.tsize, // target width
-            Map.tsize // target height
+            Map.tsize, // target height
           );
         }
       }

@@ -38,8 +38,8 @@ Secondary:  #4B5563
 // border colors for text bubble
 export const BORDER_COLORS_TOP_BOTTOM_LIGHT = ["#000000", "#98A4CA", "#A9ACCB", "#C9D7F2", "#ECEFF8"];
 export const BORDER_COLORS_LEFT_RIGHT_LIGHT = ["#000000", "#AFB5CF", "#CCD5E7", "#ECEFF8"];
-export const BORDER_COLORS_TOP_BOTTOM_DARK = ["#ececec", "#4B5563", "#323232", "#23272e", "#020617"];
-export const BORDER_COLORS_LEFT_RIGHT_DARK = ["#ececec", "#6B7280", "#23272e", "#020617"];
+export const BORDER_COLORS_TOP_BOTTOM_DARK = ["#ececec", "#aeb1b7", "#474e57", "#464646", "#3f3f3f"];
+export const BORDER_COLORS_LEFT_RIGHT_DARK = ["#ececec", "#aeb1b7", "#474e57", "#464646"];
 
 // Text layout
 export const TextLeading = 10;
