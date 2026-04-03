@@ -23,8 +23,9 @@ npm run start
 
 npm run build
 
-checkout deploy branch
-copy over dist folder CONTENTS
+copy over dist folder's contents
+
+git checkout deploy
 
 duplicate index.html -> 404.html
 

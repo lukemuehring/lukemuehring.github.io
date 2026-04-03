@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
-import { FiSun, FiMoon } from "react-icons/fi";
-import { movePlayerToScreenCoords } from "../../lib/helpers";
-import type { Player } from "../../types/Player";
-import type { Button } from "../../types/Button";
+import { FiMoon, FiSun } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 type NavProps = {
   IsNavMenuOpenRef?: React.RefObject<boolean>;
   onRefChange?: () => void;
-  PlayerRef?: React.RefObject<Player | null>;
-  DemosRef?: React.RefObject<Button[] | null>;
   darkMode: boolean;
   onToggleNightMode?: () => void;
 };
@@ -17,8 +12,6 @@ type NavProps = {
 export default function Nav({
   IsNavMenuOpenRef,
   onRefChange,
-  PlayerRef,
-  DemosRef,
   darkMode,
   onToggleNightMode,
 }: NavProps) {

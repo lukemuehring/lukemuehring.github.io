@@ -88,8 +88,6 @@ export default function App() {
             <Nav
               IsNavMenuOpenRef={IsNavMenuOpenRef}
               onRefChange={updateDerivedRef}
-              PlayerRef={PlayerRef}
-              DemosRef={DemosRef}
               darkMode={darkMode}
               onToggleNightMode={handleToggleNightMode}
             />

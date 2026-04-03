@@ -140,14 +140,14 @@ function cutOffFloorEdgesInMap(Map: GameMap, maxX: number) {
 }
 
 // todo make smooth
-export function movePlayerToScreenCoords(Player: Player, x: number, y: number) {
-  if (x < Player.x) {
-    while (Player.x < x) {
-      Player.x += 1;
-    }
-  }
-  (Player.x = x), (Player.y = y);
-}
+// export function movePlayerToScreenCoords(Player: Player, x: number, y: number) {
+//   if (x < Player.x) {
+//     while (Player.x < x) {
+//       Player.x += 1;
+//     }
+//   }
+//   (Player.x = x), (Player.y = y);
+// }
 // #endregion
 
 // #region --- Text Utilities ---
