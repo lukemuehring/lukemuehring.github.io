@@ -18,9 +18,9 @@ export default function App() {
   // Initialize dark mode: localStorage > system preference > ˝-based fallback
   const [darkMode, setDarkMode] = useState(() => {
     // Check localStorage first
-    const saved = localStorage.getItem('darkMode');
+    const saved = localStorage.getItem("darkMode");
     if (saved !== null) {
-      return saved === 'true';
+      return saved === "true";
     }
     // Fall back to system preference
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -35,18 +35,18 @@ export default function App() {
   const darkModeRef = useRef(darkMode);
   const handleToggleNightMode = () => setDarkMode((prev) => !prev);
 
-    // Keep darkModeRef, html class, and localStorage in sync with state
+  // Keep darkModeRef, html class, and localStorage in sync with state
   useEffect(() => {
-    localStorage.setItem('darkMode', String(darkMode));
+    localStorage.setItem("darkMode", String(darkMode));
     darkModeRef.current = darkMode;
     const htmlElement = document.documentElement;
     const bodyElement = htmlElement.getElementsByTagName("body")[0];
     if (darkMode) {
       htmlElement.classList.add("dark");
-      bodyElement.classList.add("dark")
+      bodyElement.classList.add("dark");
     } else {
       htmlElement.classList.remove("dark");
-      bodyElement.classList.remove("dark")
+      bodyElement.classList.remove("dark");
     }
   }, [darkMode]);
 
@@ -97,7 +97,12 @@ export default function App() {
         }
       />
 
-      <Route path="/blog/*" element={<Blog darkMode={darkMode} />} />
+      <Route
+        path="/blog/*"
+        element={
+          <Blog darkMode={darkMode} onToggleNightMode={handleToggleNightMode} />
+        }
+      />
     </Routes>
   );
 }

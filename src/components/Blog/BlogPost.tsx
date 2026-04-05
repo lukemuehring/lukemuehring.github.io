@@ -6,9 +6,18 @@ import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Post } from "../../types/Post";
 import "./Blog.css";
+import BlogNavHeader from "./BlogNavHeader";
 import { posts } from "./posts";
 
-export default function BlogPost() {
+type BlogPostProps = {
+  darkMode: boolean;
+  onToggleNightMode?: () => void;
+};
+
+export default function BlogPost({
+  darkMode,
+  onToggleNightMode,
+}: BlogPostProps) {
   const { id } = useParams();
   const post: Post | undefined = posts.find((p) => p.id === id);
 
@@ -32,9 +41,12 @@ export default function BlogPost() {
   return (
     <div className="flex flex-col items-center justify-center p-2 md:p-8">
       <div className="w-full md:max-w-4xl markdown">
-        <Link to="/blog" className="shaf-btn-muted mb-8">
-          ← Back to Blog
-        </Link>
+        <BlogNavHeader
+          text={"Back to Blog"}
+          route={"/blog"}
+          darkMode={darkMode}
+          onToggleNightMode={onToggleNightMode}
+        />
         <h1 className="blog-link">{post.title}</h1>
         <div className="blog-date">{post.date}</div>
         <div className="mt-4 w-full mx-auto">

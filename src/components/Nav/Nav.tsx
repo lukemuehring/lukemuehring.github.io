@@ -70,6 +70,7 @@ export default function Nav({
 
   const handleToggleNightMode = () => {
     if (onToggleNightMode) onToggleNightMode();
+    onClose();
   };
 
   function showToast(

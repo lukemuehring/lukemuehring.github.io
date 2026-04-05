@@ -23,14 +23,14 @@
 
 /* headings inside blog */
 .blog-h1 {
-  @apply md:text-4xl text-xl font-bold mt-4;
+  @apply md:text-4xl text-xl font-bold mt-4 px-12;
 }
 .blog h2 {
-  @apply md:text-2xl text-xl font-bold mt-4;
+  @apply md:text-2xl text-xl font-bold mt-4 px-12;
 }
 
 .blog h3 {
-  @apply md:text-xl text-lg font-bold mt-4;
+  @apply md:text-xl text-lg font-bold mt-4 px-12;
 }
 
 .blog-caption {
@@ -43,16 +43,21 @@ figure {
 
 .blog ul,
 .blog ol {
-  @apply mt-4 mb-4;
+  @apply mt-4 mb-4 px-12;
 }
 
 .blog ol > li > p {
   @apply mb-4;
 }
 
+/* paragraphs */
+.blog p {
+  @apply px-12;
+}
+
 /* blog list */
 .blog-link {
-  @apply md:text-4xl text-3xl font-bold !text-inherit !no-underline;
+  @apply md:text-4xl text-3xl font-bold !text-inherit !no-underline px-12;
 }
 
 .blog-link > span:hover {
@@ -66,9 +71,9 @@ figure {
   text-decoration: none;
 }
 .blog-date {
-  @apply text-xl md:text-2xl;
+  @apply text-sm md:text-lg px-12;
   color: var(--font-color-light-secondary);
-}˝
+}
 .blog.dark .blog-date {
   color: var(--font-color-dark-secondary);
 }
@@ -103,3 +108,4 @@ figure {
   text-transform: uppercase;
   letter-spacing: 0.25rem;
 }
+

@@ -7,10 +7,10 @@
 :root {
   --font-color-light: #111111;
   --font-color-light-secondary: #6a7282;
-  --font-bg-light: #f9fafb;
+  --font-bg-light: #eeece9;
   --font-color-dark: #ececec;
-  --font-color-dark-secondary: #9ca3af;
-  --font-bg-dark: #323232;
+  --font-color-dark-secondary: #787c84;
+  --font-bg-dark: #191919;
 }
 
 html {
@@ -414,7 +414,7 @@ canvas {
 }
 
 .shaf-btn-muted {
-  @apply bg-[var(--font-bg-light)] !text-inherit !no-underline md:text-xl text-2xl flex w-fit cursor-pointer p-0.5 transition-transform rounded-lg duration-100;
+  @apply bg-[var(--font-bg-light)] !text-inherit !no-underline text-lg flex w-fit cursor-pointer p-0.5 transition-transform rounded-lg duration-100;
 }
 
 .shaf-btn-muted:hover {
