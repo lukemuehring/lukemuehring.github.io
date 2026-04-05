@@ -23,13 +23,13 @@
 
 /* headings inside blog */
 .blog-h1 {
-  @apply md:text-4xl text-xl font-bold mt-4;
+  @apply md:text-6xl text-4xl font-bold mt-8 mb-6;
 }
 .blog h2 {
-  @apply md:text-2xl text-xl font-bold mt-4;
+  @apply md:text-3xl text-2xl font-bold mt-6 mb-4;
 }
 .blog h3 {
-  @apply md:text-xl text-lg font-bold mt-4;
+  @apply md:text-xl text-lg font-bold mt-4 mb-2;
 }
 
 .blog-caption {
