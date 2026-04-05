@@ -1,6 +1,7 @@
 import { FiMoon, FiSun } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import "./Blog.css";
+import "../../style.css";
 
 type BlogNavHeaderProps = {
   text: string;
@@ -20,11 +21,11 @@ export default function BlogNavHeader({
   };
 
   return (
-    <div className="flex align-middle justify-between px-2 mb-8">
+    <div className="flex align-middle justify-between px-2 mt-8 mb-8">
       <Link to={route} className="shaf-btn-muted">
         ← {text}
       </Link>
-      <button onClick={handleToggleNightMode}>
+      <button className="menu-button" onClick={handleToggleNightMode}>
         {darkMode ? <FiSun /> : <FiMoon />}
       </button>
     </div>

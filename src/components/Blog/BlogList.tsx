@@ -23,10 +23,10 @@ export default function BlogList({
           onToggleNightMode={onToggleNightMode}
         />
 
-        <h1 className="md:text-8xl text-7xl mb-8 text-center">Blog</h1>
-        <ul className="flex flex-col gap-10 markdown">
+        <h1 className="md:text-7xl text-6xl mb-8">Blog</h1>
+        <ul className="flex flex-col gap-10 no-dot">
           {posts.map((post) => (
-            <li key={post.id} className="markdown">
+            <li key={post.id}>
               <Link to={`/blog/${post.id}`} className={"blog-link"}>
                 <span>{post.title}</span>
               </Link>

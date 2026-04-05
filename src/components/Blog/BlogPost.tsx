@@ -47,9 +47,9 @@ export default function BlogPost({
           darkMode={darkMode}
           onToggleNightMode={onToggleNightMode}
         />
+        <div className="mt-8 mb-8 w-[80%] mx-auto">
         <h1 className="blog-link">{post.title}</h1>
         <div className="blog-date">{post.date}</div>
-        <div className="mt-4 w-full mx-auto">
           <PostContent />
         </div>
       </div>
