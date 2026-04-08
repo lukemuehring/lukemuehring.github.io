@@ -102,8 +102,7 @@ figure {
   letter-spacing: 0.25rem;
 }
 
-
-
 .menu-button {
   font-size: 2rem;
+  cursor: pointer;
 }

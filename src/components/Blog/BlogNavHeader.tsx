@@ -21,11 +21,16 @@ export default function BlogNavHeader({
   };
 
   return (
-    <div className="flex align-middle justify-between px-2 mt-8 mb-8">
+    <div className="flex align-middle justify-between mt-8 mb-8">
       <Link to={route} className="shaf-btn-muted">
         ← {text}
       </Link>
-      <button className="menu-button" onClick={handleToggleNightMode}>
+      <button
+        className="menu-button"
+        onClick={handleToggleNightMode}
+        aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+      >
         {darkMode ? <FiSun /> : <FiMoon />}
       </button>
     </div>

@@ -40,14 +40,14 @@ export default function BlogPost({
 
   return (
     <div className="flex flex-col items-center justify-center p-2 md:p-8">
-      <div className="w-full md:max-w-4xl markdown">
+      <div className="w-[80%] mx-auto md:max-w-4xl markdown">
         <BlogNavHeader
           text={"Back to Blog"}
           route={"/blog"}
           darkMode={darkMode}
           onToggleNightMode={onToggleNightMode}
         />
-        <div className="mt-8 mb-8 w-[80%] mx-auto">
+        <div className="mt-8 mb-8">
           <h1 className="blog-link">{post.title}</h1>
           <div className="blog-date mb-8">{post.date}</div>
           <PostContent />

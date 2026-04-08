@@ -45,7 +45,7 @@ export function checkIfObjectClicked(demos: Button[], Player: Player | null) {
 // closes the hamburger menu
 export function closeMenu(
   IsDemoModalOpenRef: React.RefObject<boolean>,
-  onRefChange: () => void
+  onRefChange: () => void,
 ) {
   const hamMenu = document.querySelector(".ham-menu");
   if (hamMenu && hamMenu.classList.contains("active")) {
@@ -66,7 +66,7 @@ export function drawFlippedImage(
   context: CanvasRenderingContext2D,
   image: HTMLImageElement,
   x: number,
-  y: number
+  y: number,
 ) {
   context.save();
   context.translate(x + image.width / 2, 0);
@@ -84,7 +84,7 @@ export function handleCanvasResize(
   Map: GameMap,
   Floor: Floor,
   TextBubbleArray: TextBubble[],
-  maxX: number
+  maxX: number,
 ) {
   resizeCanvas(context);
   resizeCamera(context, Camera);
@@ -99,7 +99,7 @@ export function resizeCanvas(context: CanvasRenderingContext2D) {
 
 export function resizeCamera(
   _context: CanvasRenderingContext2D,
-  Camera: Camera
+  Camera: Camera,
 ) {
   Camera.width = window.innerWidth;
   Camera.height = window.innerHeight;
@@ -109,7 +109,7 @@ export function resizeMap(
   context: CanvasRenderingContext2D,
   Map: GameMap,
   Floor: Floor,
-  maxX: number
+  maxX: number,
 ) {
   if (context.canvas.height >= Floor.height + Map.tsize * 1.5) {
     Map.rows = Math.ceil((context.canvas.height - Floor.height) / Map.tsize);
@@ -158,7 +158,7 @@ function cutOffFloorEdgesInMap(Map: GameMap, maxX: number) {
 export function calculateHeadingFontSize(
   c: CanvasRenderingContext2D,
   text: string,
-  initialFontSize: number
+  initialFontSize: number,
 ) {
   c.save();
 
@@ -184,14 +184,14 @@ export function calculateHeaderDimensions(
   fontSize: number,
   leading: number,
   maxLineWidth: number,
-  elementPadding: number
+  elementPadding: number,
 ): TextLinesData {
   let lineDataObject = getLinesOfText(
     c,
     headerText,
     fontSize,
     leading,
-    maxLineWidth
+    maxLineWidth,
   );
 
   // ADD PADDING TO BIG BUTTONS
@@ -231,7 +231,7 @@ export function drawWhiteBoxWithText(
   _padding: number,
   _lineWidths: number[],
   cornerImage: HTMLImageElement,
-  darkMode: boolean
+  darkMode: boolean,
 ) {
   context.save();
 
@@ -241,7 +241,7 @@ export function drawWhiteBoxWithText(
     Math.floor(x - whiteBoxWidth / 2),
     Math.floor(y),
     whiteBoxWidth,
-    whiteBoxHeight
+    whiteBoxHeight,
   );
 
   // Drawing the text over the white box
@@ -257,7 +257,7 @@ export function drawWhiteBoxWithText(
     context.fillText(
       lines[i],
       Math.floor(xToDraw),
-      Math.floor(y + fontSize + i * (leading + fontSize))
+      Math.floor(y + fontSize + i * (leading + fontSize)),
     );
   }
 
@@ -270,15 +270,15 @@ export function drawWhiteBoxWithText(
       Math.floor(x - whiteBoxWidth / 2),
       Math.floor(y - BORDER_COLORS_TOP_BOTTOM_LIGHT.length + i),
       whiteBoxWidth,
-      1
+      1,
     );
     context.fillRect(
       Math.floor(x - whiteBoxWidth / 2),
       Math.floor(
-        y + whiteBoxHeight - i + BORDER_COLORS_TOP_BOTTOM_LIGHT.length - 1
+        y + whiteBoxHeight - i + BORDER_COLORS_TOP_BOTTOM_LIGHT.length - 1,
       ),
       whiteBoxWidth,
-      1
+      1,
     );
   }
 
@@ -289,19 +289,19 @@ export function drawWhiteBoxWithText(
       : BORDER_COLORS_LEFT_RIGHT_LIGHT[i];
     context.fillRect(
       Math.floor(
-        x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length + i
+        x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length + i,
       ),
       Math.floor(y),
       1,
-      whiteBoxHeight
+      whiteBoxHeight,
     );
     context.fillRect(
       Math.floor(
-        x + whiteBoxWidth / 2 + BORDER_COLORS_LEFT_RIGHT_LIGHT.length - 1 - i
+        x + whiteBoxWidth / 2 + BORDER_COLORS_LEFT_RIGHT_LIGHT.length - 1 - i,
       ),
       Math.floor(y),
       1,
-      whiteBoxHeight
+      whiteBoxHeight,
     );
   }
 
@@ -315,7 +315,7 @@ export function drawWhiteBoxWithText(
     Math.floor(x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length), // target x
     Math.floor(y - BORDER_COLORS_TOP_BOTTOM_LIGHT.length), // target y
     4, // target width
-    5 // target height
+    5, // target height
   );
 
   context.drawImage(
@@ -327,7 +327,7 @@ export function drawWhiteBoxWithText(
     Math.floor(x - whiteBoxWidth / 2 - BORDER_COLORS_LEFT_RIGHT_LIGHT.length),
     Math.floor(y + whiteBoxHeight),
     4,
-    5
+    5,
   );
 
   context.drawImage(
@@ -339,7 +339,7 @@ export function drawWhiteBoxWithText(
     Math.floor(x + whiteBoxWidth / 2),
     Math.floor(y - BORDER_COLORS_TOP_BOTTOM_LIGHT.length),
     4,
-    5
+    5,
   );
 
   context.drawImage(
@@ -351,7 +351,7 @@ export function drawWhiteBoxWithText(
     Math.floor(x + whiteBoxWidth / 2),
     Math.floor(y + whiteBoxHeight),
     4,
-    5
+    5,
   );
 
   context.restore();
@@ -397,7 +397,7 @@ export function getLinesOfText(
   text: string,
   fontSize: number,
   leading: number,
-  maxLineWidth: number
+  maxLineWidth: number,
 ): TextLinesData {
   context.save();
   context.font = getCanvasFontString(fontSize);
@@ -452,7 +452,7 @@ export function getLinesOfText(
 export function resizeText(
   context: CanvasRenderingContext2D,
   Demos: Button[],
-  TextBubbleArray: TextBubble[]
+  TextBubbleArray: TextBubble[],
 ) {
   for (let i = 0; i < TextBubbleArray.length; i++) {
     TextBubbleArray[i].maxLineWidth = context.canvas.width / 1.3;
@@ -479,10 +479,11 @@ export function setupTextBubblesObjectsAndDemos(
   cornerImage: HTMLImageElement,
   triangleImage: HTMLImageElement,
   textBubbleArray: TextBubble[],
-  _backgroundObjects: ImageObject[],
+  backgroundObjects: ImageObject[],
+  websiteUiImage: HTMLImageElement,
   foregroundObjects: ImageObject[],
   demos: Button[],
-  demosOpenHandler: (demo: any) => void
+  demosOpenHandler: (demo: any) => void,
 ) {
   let startX: number =
     context.canvas.width - Math.floor(context.canvas.width * 0.4);
@@ -491,7 +492,7 @@ export function setupTextBubblesObjectsAndDemos(
   // determines how much horizontal distance is given to each text bubble
   const ReadingSpeedPixelsPerCharacter = 7;
   const TEXT_BUBBLE_MAX_LINE_WIDTH: number = Math.floor(
-    context.canvas.width / 1.5
+    context.canvas.width / 1.5,
   );
 
   for (let i = 0; i < 1; i++) {
@@ -508,13 +509,13 @@ export function setupTextBubblesObjectsAndDemos(
         TEXT_BUBBLE_MAX_LINE_WIDTH,
         Player,
         cornerImage,
-        triangleImage
-      )
+        triangleImage,
+      ),
     );
 
     // the grass image is 55 pixels tall
     foregroundObjects.push(
-      new ImageObject(startX, Floor.height - 55, grassMarkerImage)
+      new ImageObject(startX, Floor.height - 55, grassMarkerImage),
     );
     startX = endX;
   }
@@ -539,7 +540,7 @@ export function setupTextBubblesObjectsAndDemos(
   let fontSize = calculateHeadingFontSize(
     context,
     websiteDemoHeader,
-    FONT_HEADING.H1
+    FONT_HEADING.H1,
   );
   const BTN_MAX_LINE_WIDTH = Math.min(1000, context.canvas.width - 50);
 
@@ -556,7 +557,7 @@ export function setupTextBubblesObjectsAndDemos(
     cornerImage,
     () => {
       demosOpenHandler(websiteDemo);
-    }
+    },
   );
   websiteDemo.initializeDimensions(context);
   websiteDemo.x += Math.floor(websiteDemo.width / 2);
@@ -568,7 +569,7 @@ export function setupTextBubblesObjectsAndDemos(
   let fontSize2 = calculateHeadingFontSize(
     context,
     voiceDictHeader,
-    FONT_HEADING.H1
+    FONT_HEADING.H1,
   );
 
   let gap = 50;
@@ -585,7 +586,7 @@ export function setupTextBubblesObjectsAndDemos(
     cornerImage,
     () => {
       demosOpenHandler(voiceDictDemo);
-    }
+    },
   );
   voiceDictDemo.initializeDimensions(context);
   voiceDictDemo.x += Math.floor(voiceDictDemo.width / 2);
@@ -613,12 +614,12 @@ export function setupTextBubblesObjectsAndDemos(
       TEXT_BUBBLE_MAX_LINE_WIDTH,
       Player,
       cornerImage,
-      triangleImage
-    )
+      triangleImage,
+    ),
   );
 
   foregroundObjects.push(
-    new ImageObject(startX, Floor.height - 55, grassMarkerImage)
+    new ImageObject(startX, Floor.height - 55, grassMarkerImage),
   );
   startX = endX;
 
@@ -640,15 +641,28 @@ export function setupTextBubblesObjectsAndDemos(
         TEXT_BUBBLE_MAX_LINE_WIDTH,
         Player,
         cornerImage,
-        triangleImage
-      )
+        triangleImage,
+      ),
     );
 
     foregroundObjects.push(
-      new ImageObject(startX, Floor.height - 55, grassMarkerImage)
+      new ImageObject(startX, Floor.height - 55, grassMarkerImage),
     );
     startX = endX;
   }
+  // #endregion
+
+  // #region background objects
+  const websitePixelArt = new ImageObject(
+    textBubbleArray[3].minX +
+      Math.floor((textBubbleArray[3].maxX - textBubbleArray[3].minX) / 2),
+    Math.floor(Floor.height / 2) - 100,
+    websiteUiImage,
+    undefined,
+    328,
+    198
+  );
+  backgroundObjects.push(websitePixelArt);
   // #endregion
 }
 
@@ -675,7 +689,7 @@ function ongoingTouchIndexById(idToFind: number) {
 export function handleTouchStart(
   evt: TouchEvent,
   Controller: Controller,
-  Mouse: Mouse
+  Mouse: Mouse,
 ) {
   Controller.userInputRegistered = true;
 
@@ -691,7 +705,7 @@ export function handleTouchStart(
 export function handleTouchMove(
   evt: TouchEvent,
   userInputIsAllowed: boolean,
-  Player: Player
+  Player: Player,
 ) {
   const touches: TouchList = evt.changedTouches;
 

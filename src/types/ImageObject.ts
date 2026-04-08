@@ -3,17 +3,23 @@ export class ImageObject {
   y: number;
   image: HTMLImageElement | HTMLCanvasElement;
   compositeOperation?: GlobalCompositeOperation;
+  width?: number;
+  height?: number;
 
   constructor(
     x: number,
     y: number,
     img: HTMLImageElement | HTMLCanvasElement,
-    compositeOperation?: GlobalCompositeOperation
+    compositeOperation?: GlobalCompositeOperation,
+    width?: number,
+    height?: number,
   ) {
     this.x = x;
     this.y = y;
     this.image = img;
     this.compositeOperation = compositeOperation;
+    this.width = width;
+    this.height = height;
   }
 
   draw(context: CanvasRenderingContext2D, cameraX: number) {
@@ -24,11 +30,28 @@ export class ImageObject {
       context.globalCompositeOperation = this.compositeOperation;
       contextChanged = true;
     }
-    context.drawImage(
-      this.image,
-      Math.floor(this.x - cameraX),
-      Math.floor(this.y)
-    );
+
+    // Only use passed in width and height if desktop sized.
+    // Otherwise, use original image dimensions.
+    const isMobile = context.canvas.width < 768;
+    if (this.width && this.height && !isMobile) {
+      context.save();
+      context.imageSmoothingEnabled = false;
+      context.drawImage(
+        this.image,
+        Math.floor(this.x - cameraX),
+        Math.floor(this.y),
+        this.width,
+        this.height,
+      );
+      context.restore();
+    } else {
+      context.drawImage(
+        this.image,
+        Math.floor(this.x - cameraX),
+        Math.floor(this.y),
+      );
+    }
 
     if (contextChanged) {
       context.restore();

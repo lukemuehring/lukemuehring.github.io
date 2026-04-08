@@ -80,16 +80,17 @@ export default function MyCanvas({
   const CanvasRef = useRef<HTMLCanvasElement>(null);
   const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
   const ControllerRef = useRef<Controller | null>(null);
+  const DialogTriangleImageRef = useRef<HTMLImageElement | null>(null);
   const ForegroundObjectsRef = useRef<ImageObject[] | null>(null);
   const FloorRef = useRef<Floor | null>(null);
   const FrameCountRef = useRef(0);
   const GrassMarkerImgRef = useRef<HTMLImageElement | null>(null);
-  const DialogTriangleImageRef = useRef<HTMLImageElement | null>(null);
   const MapRef = useRef<GameMap | null>(null);
   const MouseRef = useRef<Mouse | null>(null);
   const TextBubbleArrayRef = useRef<TextBubble[] | null>(null);
   const TileSheetImgRef = useRef<HTMLImageElement | null>(null);
   const WelcomeTextArrayRef = useRef<GameText[] | null>(null);
+  const WebsiteUiImgRef = useRef<HTMLImageElement | null>(null);
   const RecordingVisualizerRef = useRef<ImageObject | null>(null);
 
   // #endregion
@@ -128,6 +129,8 @@ export default function MyCanvas({
       "./images/player/walk1_2_dark.png",
       "./images/player/walk1_3_dark.png",
       "./images/grass1_dark.png",
+      "./images/website_pixel.png",
+      "./images/website_pixel_dark.png",
     ];
 
     let loadedImages = 0;
@@ -248,6 +251,7 @@ export default function MyCanvas({
         ? Bg0.height - 1.5 * MapRef.current.tsize
         : c.canvas.height - 1.5 * MapRef.current.tsize;
     FloorRef.current = new Floor(floorHeight, -1000, 1000);
+
     // #endregion
 
     // #region Mouse
@@ -286,6 +290,11 @@ export default function MyCanvas({
       ? "./images/DialogTriangle_dark.png"
       : "./images/DialogTriangle.png";
 
+    WebsiteUiImgRef.current = new Image();
+    WebsiteUiImgRef.current.src = darkModeValue
+      ? "./images/website_pixel_dark.png"
+      : "./images//website_pixel.png";
+
     const textBubbleArray: TextBubble[] = [];
     const backgroundObjects: ImageObject[] = [];
     const foregroundObjects: ImageObject[] = [];
@@ -304,6 +313,7 @@ export default function MyCanvas({
       DialogTriangleImageRef.current,
       textBubbleArray,
       backgroundObjects,
+      WebsiteUiImgRef.current,
       foregroundObjects,
       demos,
       handleOpenModal,
@@ -423,6 +433,7 @@ export default function MyCanvas({
     const Canvas: HTMLCanvasElement | null = CanvasRef.current;
     const Camera: Camera | null = CameraRef.current;
     const Controller: Controller | null = ControllerRef.current;
+    const darkMode = darkModeRef.current;
     const Demos: Button[] | null = DemosRef.current;
     const DialogTriangleImage: HTMLImageElement | null =
       DialogTriangleImageRef.current;
@@ -436,7 +447,7 @@ export default function MyCanvas({
     const TextBubbleArray: TextBubble[] | null = TextBubbleArrayRef.current;
     const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
     const WelcomeTextArray: GameText[] | null = WelcomeTextArrayRef.current;
-    const darkMode = darkModeRef.current;
+    const WebsiteUiImg: HTMLImageElement | null = WebsiteUiImgRef.current;
 
     // check if dark mode changed
     let darkModeChanged = false;
@@ -466,7 +477,8 @@ export default function MyCanvas({
       Player &&
       TextBubbleArray &&
       TileSheet &&
-      WelcomeTextArray
+      WelcomeTextArray &&
+      WebsiteUiImg
     ) {
       PrevTimestamp = timestamp - (deltaTime % FRAME_DURATION);
 
@@ -483,6 +495,10 @@ export default function MyCanvas({
         DialogTriangleImage.src = darkMode
           ? "./images/DialogTriangle_dark.png"
           : "./images/DialogTriangle.png";
+
+        WebsiteUiImg.src = darkMode
+          ? "./images/website_pixel_dark.png"
+          : "./images//website_pixel.png";
       }
 
       /*
@@ -536,13 +552,9 @@ export default function MyCanvas({
       // /*
       //  * Background Object Draw
       //  */
-      // for (let i = 0; i < backgroundObjects.length; i++) {
-      //   c.drawImage(
-      //     backgroundObjects[i].image,
-      //     Math.floor(backgroundObjects[i].x - camera.x),
-      //     Math.floor(backgroundObjects[i].y)
-      //   );
-      // }
+      for (let i = 0; i < BackgroundObjects.length; i++) {
+        BackgroundObjects[i].draw(c, Camera.x);
+      }
 
       // /*
       //  * Microsoft Logo Draw
