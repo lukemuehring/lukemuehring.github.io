@@ -12,6 +12,8 @@ import pfeiff_11 from '../../../../images/blog/pfeiff/pfeiff_11.png';
 import pfeiff_12 from '../../../../images/blog/pfeiff/pfeiff_12.png';
 import pfeiff_13 from '../../../../images/blog/pfeiff/pfeiff_13.png';
 import pfeiff_14 from '../../../../images/blog/pfeiff/pfeiff_14.png';
+import BlogPicture from "../BlogPicture";
+import BlogDoublePicture from "../BlogDoublePicture";
 export const date = "2026-01-14";
 export const title =
   "Pfeifferhorn North Ridge - Solo Scramble";
@@ -19,10 +21,8 @@ export const title =
 {/* import pfeiff_09 from '../../../../images/blog/pfeiff/pfeiff_09.jpg';
  import pfeiff_10 from '../../../../images/blog/pfeiff/pfeiff_10.jpg';
 */}
-<figure style={{ textAlign: 'center' }}>
-  <img src={pfeiff_01} alt="A picture of the north ridge" />
-  <figcaption className="blog-caption">The north ridge, viewed from Maybird Gulch.</figcaption>
-</figure>
+
+<BlogPicture imageSrc={pfeiff_01} fullSize={true} caption={"The north ridge, viewed from Maybird Gulch."}/>
 
 The Pfeifferhorn is one of Salt Lake City's most iconic peaks of granite. Located along the Little Cottonwood Canyon ridgeline, the summit rises to 11,326 ft, which is kind of crazy since [the trailhead](https://www.google.com/maps/place/White+Pine+Trailhead/@40.5755164,-111.6836077,1199m/data=!3m2!1e3!4b1!4m6!3m5!1s0x87527a64f4d8b599:0x24210b6d6f17da0c!8m2!3d40.5755164!4d-111.6810328!16s%2Fg%2F11bwh5mcqx?entry=ttu&g_ep=EgoyMDI2MDEyMS4wIKXMDSoASAFQAw%3D%3D) is just a 20 minute drive from my spot in Cottonwood Heights. The easiest way up is hiking the summer route up the canyon and along the eastern ridge, which has 3rd class scrambling just before the summit. Before this trip, I had done that route twice already - first on a mission to stash supplies for the WURL in 2024, and then on the actual WURL itself. 
 
@@ -40,39 +40,22 @@ I decided to try the North Ridge in late August, when the snow was completely me
 
 ### Approach from Maybird Gulch
 I started from the White Pine trailhead and eventually took the fork west into Maybird Gulch. I brought camping stuff so I could spend more time out there - I heard that Maybird was more secluded than White Pine. And as far as I could tell, I had the place to myself that Saturday night. I also noticed that one lake still remained this late into the summer. 
+<BlogPicture imageSrc={pfeiff_09} caption={"Where I camped in Maybird Gulch, from the ridge."}/> 
 
-<figure  className="flex flex-col"style={{ textAlign: 'center' }}>
-<div className="flex flex-nowrap w-[50%]">
-  <img src={pfeiff_02} alt="evening view of the mountain" />
-  <img src={pfeiff_03} alt="morning view of the mountain" />
-</div>
-  <figcaption className="blog-caption">Evening and morning view of the north ridge.</figcaption>
-</figure>
+<BlogDoublePicture imageSrc1={pfeiff_02} imageSrc2={pfeiff_03} caption={"Evening and morning view of the north ridge from camp."}/>
 
-<figure style={{ textAlign: 'center' }}>
-  <img src={pfeiff_04} alt="a view of the talus field leading up to the ridgeline" />
-  <figcaption className="blog-caption">It felt more intimidating from far away than up close.</figcaption>
-</figure>
+<BlogPicture imageSrc={pfeiff_04} fullSize={true} caption={"It felt more intimidating from far away than up close."}/>
 The next morning, I left camp and followed a trail south until I hit the giant talus field. I took the path of least resistance through it and aimed for the southernmost saddle of the ridgeline.  
 Aside from a giant piece teetering unexpectedly, I made it up there without incident. It always excites me when I reach the point where the terrain begins to get more technical than just hiking. It foreshadows the scrambling ahead.
 Now that I was on the actual ridge, I could see that no one else was scrambling above, which was a relief. Previous trip reports mentioned that the top had tons of loose rock. I looked down into the moraines below, which appeared as if gigantic monster worms had burrowed into the mountain.
 
-<figure style={{ textAlign: 'center' }}>
-  <img src={pfeiff_05} alt="Moraines winding through the talus shaped like giant worms" />
-  <figcaption className="blog-caption">Monster worms, and another interesting ridge to the east known as the Maybird Palisades.</figcaption>
-</figure>
+<BlogPicture imageSrc={pfeiff_05} fullSize={true} caption={"Looking east at the monster worms and another interesting ridge known as the Maybird Palisades."}/>
 
-<figure style={{ textAlign: 'center' }}>
-  <img src={pfeiff_06} alt="view looking up at the ridgeline while on it" />
-  <figcaption className="blog-caption">Looking up at the ridge.</figcaption>
-</figure>
-<figure style={{ textAlign: 'center' }}>
-  <img src={pfeiff_07} alt="a fractured ridgeline emerging from the surrounding terrain" />
-</figure>
+<BlogPicture imageSrc={pfeiff_06} fullSize={true} caption={"Looking up at the ridge."}/>
 
-<figure style={{ textAlign: 'center' }}>
-  <img src={pfeiff_08} alt="a rocky cliff step with lots of hand and footholds" />
-</figure>
+<BlogPicture imageSrc={pfeiff_07} fullSize={true}/>
+
+<BlogPicture imageSrc={pfeiff_08} fullSize={true}/> 
 
 ### First Crux
 The ridge began with mellow scrambling until the first set of cruxes. [The main photo on SummitPost](https://www.summitpost.org/north-ridge/164300) for this route is a very useful topo. From reading it, I knew there were two tricky spots in the first half of the ridge. First is the rappel. I chose to down climb climber's left. I remember it being exposed but easy 4th class to navigate. 
@@ -83,8 +66,13 @@ Pretty soon after that was the crux of the entire ridge, where I could have made
 \
 I downclimbed 15 ft. climber's left (east) and found what actually turned out to be the traverse. Woo! Back on track. The old piton was still there, although no fixed line. And still, the traverse was sketchy. There were limited handhold options on the 20 ft. slab, with a lip below that led to an absolute void. On the bright side, it was slabby enough to go slow, and figure it out. It wasn't crazy difficult - I would rate it ~V0-1 slab, but I was smearing with approach shoes, which helps a lot. The most challenging part was that there were no jugs to offer the mental security of 3 solid points on the wall.
 
-\
+<BlogPicture imageSrc={pfeiff_10} fullSize={true}/> 
+
 The rest of the ridge was not as stressful in terms of exposed technical climbing, and was really awesome scrambling in a unique playground of slabs, chimneys, and offwidth to finger cracks. The only other tricky spot for me was after the big platform below the "upper crux". It's a pretty cool spot. The path from there is very choose-your-own-adventure so if things ever get too exposed or hard, there's usually an easier way if you hop around.
+<BlogPicture imageSrc={pfeiff_11} fullSize={true}/> 
+<BlogPicture imageSrc={pfeiff_12} fullSize={true}/> 
+<BlogPicture imageSrc={pfeiff_13} fullSize={true}/> 
+<BlogPicture imageSrc={pfeiff_14} fullSize={true}/> 
 
 \
 It's hard to grade scrambles but I've seen the West Slabs and Geurt's go for 5.4 and 5.5, so it makes sense that this is graded as a step up. I wouldn't say there's mandatory 5.6 climbing on this ridge, but you definitely have to be more locked in because of the exposure, route finding, and choss hazard.

@@ -58,7 +58,7 @@ export default function Nav({
   };
 
   const handleResume = () => {
-    window.open("../../assets/Resume.pdf", "_blank");
+    window.open("/Resume.pdf", "_blank");
     onClose();
   };
 
