@@ -37,6 +37,7 @@ git push origin deploy
 
 echo "🔙 Switching back to master..."
 git checkout master
+git push origin master
 
 echo "✅ Deploy complete!"
 
