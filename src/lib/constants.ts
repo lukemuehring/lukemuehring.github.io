@@ -16,14 +16,14 @@ export const FONT_HEADING = {
 
 export const FONT_COLOR_LIGHT_MODE = "#111111";
 export const FONT_BG_LIGHT_MODE = "#F9FAFB";
-export const FONT_COLOR_DARK_MODE = "#ececec";
+export const FONT_COLOR_DARK_MODE = "#d4d4d4";
 export const FONT_BG_DARK_MODE = "#191919";
 
 /**
  * Dark Mode Color Palette
 Background: #191919
 Surface:    #020617
-Text:       #ececec
+Text:       #d4d4d4
 Secondary:  #9CA3AF
  */
 

@@ -278,6 +278,7 @@ export default function MyCanvas({
       c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
       calculateHeadingFontSize(c, welcomeStr, FONT_HEADING.H1),
       CanShowTextRef,
+      { sheen: true, sheenDuration: 9000, sheenDelay: 1000 },
     );
     WelcomeTextArrayRef.current = [welcomeText];
 
@@ -293,7 +294,7 @@ export default function MyCanvas({
     WebsiteUiImgRef.current = new Image();
     WebsiteUiImgRef.current.src = darkModeValue
       ? "./images/website_pixel_dark.png"
-      : "./images//website_pixel.png";
+      : "./images/website_pixel.png";
 
     const textBubbleArray: TextBubble[] = [];
     const backgroundObjects: ImageObject[] = [];
