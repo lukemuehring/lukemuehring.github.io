@@ -23,9 +23,14 @@ npm run start
 
 npm run build
 
+<<<<<<< Updated upstream
 copy over dist folder's contents
 
 git checkout deploy
+=======
+checkout deploy branch
+copy over dist folder CONTENTS
+>>>>>>> Stashed changes
 
 duplicate index.html -> 404.html
 

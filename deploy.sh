@@ -18,7 +18,8 @@ cp -r dist/* "$TEMP_DIR/"
 [ -d public ] && cp -r public/* "$TEMP_DIR/"
 
 echo "🔀 Switching to deploy branch..."
-git stash --include-untracked
+# Preserve node_modules across branch switch
+mv node_modules /tmp/_deploy_node_modules
 git checkout deploy
 
 echo "🧹 Cleaning old files..."
@@ -38,7 +39,7 @@ git push origin deploy
 
 echo "🔙 Switching back to master..."
 git checkout master
-git stash pop || true
+mv /tmp/_deploy_node_modules node_modules
 git push origin master
 
 echo "✅ Deploy complete!"
