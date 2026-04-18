@@ -714,8 +714,8 @@ export function handleTouchMove(
 
     if (idx >= 0) {
       if (userInputIsAllowed) {
-        Player.xVelocity +=
-          0.3 * (touches[i].clientX - ongoingTouches[idx].clientX);
+        const dy = touches[i].clientY - ongoingTouches[idx].clientY;
+        Player.xVelocity += 0.3 * -dy;
       }
       ongoingTouches.splice(idx, 1, copyTouch(touches[i])); // swap in the new touch record
     } else {

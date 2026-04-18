@@ -18,6 +18,7 @@ cp -r dist/* "$TEMP_DIR/"
 [ -d public ] && cp -r public/* "$TEMP_DIR/"
 
 echo "🔀 Switching to deploy branch..."
+git stash --include-untracked
 git checkout deploy
 
 echo "🧹 Cleaning old files..."
@@ -37,6 +38,7 @@ git push origin deploy
 
 echo "🔙 Switching back to master..."
 git checkout master
+git stash pop || true
 git push origin master
 
 echo "✅ Deploy complete!"
