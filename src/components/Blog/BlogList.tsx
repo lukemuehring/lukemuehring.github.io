@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./Blog.css";
 import BlogNavHeader from "./BlogNavHeader";
+import SearchBar from "../SearchBar";
 import { posts } from "./posts";
 
 type BlogListProps = {
@@ -12,6 +14,8 @@ export default function BlogList({
   darkMode,
   onToggleNightMode,
 }: BlogListProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+
   return (
     // <div className="flex flex-col mx-auto w-full min-h-screen md:max-w-5xl p-2 md:p-8">
     <div className="flex flex-col items-center justify-center p-2 md:p-8">
@@ -24,6 +28,13 @@ export default function BlogList({
         />
         <div className="">
           <h1 className="md:text-7xl text-6xl mb-8">Blog</h1>
+          {/* SEARCH BAR */}
+          <SearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onClear={() => setSearchQuery("")}
+          />
+          {/* BLOG LIST */}
           <ul className="flex flex-col gap-10 no-dot">
             {posts.map((post) => (
               <li key={post.id}>
