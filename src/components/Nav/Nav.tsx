@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { FiMoon, FiSun } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import "./Nav.css";
 
 type NavProps = {
   IsNavMenuOpenRef?: React.RefObject<boolean>;
@@ -20,16 +21,16 @@ export default function Nav({
   const navigate = useNavigate();
 
   const onClose = () => {
-    setIsActive(false); // update local state
-    if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = false; // update the parent ref
-    if (onRefChange) onRefChange(); // update derived ref
+    setIsActive(false);
+    if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = false;
+    if (onRefChange) onRefChange();
   };
 
   const handleMenuToggle = () => {
     setIsActive((prev) => {
       const newState = !prev;
-      if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = newState;
-      if (onRefChange) onRefChange();
+      if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = newState; // update IsNavMenuOpenRef so we can derive IsUserInputAllowedRef in App.tsx
+      if (onRefChange) onRefChange(); // update App.tsx IsUserInputAllowedRef to block user input if nav menu is open.
       return newState;
     });
   };
@@ -76,7 +77,7 @@ export default function Nav({
   function showToast(
     message: string,
     duration = 3000,
-    containerId = "toastContainer"
+    containerId = "toastContainer",
   ) {
     const newDiv = document.createElement("div");
     newDiv.classList.add("toast", "toast-in");
@@ -88,6 +89,7 @@ export default function Nav({
     // Set a timeout to remove the toast after the specified duration
     setTimeout(() => {
       newDiv.classList.remove("toast-in");
+
       newDiv.classList.add("toast-out");
 
       setTimeout(() => {
@@ -98,6 +100,7 @@ export default function Nav({
 
   return (
     <nav id="nav" className={darkMode ? "dark" : ""}>
+      {/* hamburger menu icon btn */}
       <button
         className={`ham-menu ${isActive ? "active" : ""} ${darkMode ? "dark" : ""}`}
         onClick={handleMenuToggle}
@@ -107,6 +110,7 @@ export default function Nav({
         <span></span>
       </button>
 
+      {/* menu options */}
       <div
         className={`menu-container ${isActive ? "active" : ""} ${
           darkMode ? "dark" : ""
