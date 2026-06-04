@@ -2,21 +2,16 @@ import { useEffect, useState } from "react";
 import { FiMoon, FiSun } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import "./Nav.css";
+import { useTheme } from "../../context/ThemeContext";
 
 type NavProps = {
   IsNavMenuOpenRef?: React.RefObject<boolean>;
   onRefChange?: () => void;
-  darkMode: boolean;
-  onToggleNightMode?: () => void;
 };
 
-export default function Nav({
-  IsNavMenuOpenRef,
-  onRefChange,
-  darkMode,
-  onToggleNightMode,
-}: NavProps) {
+export default function Nav({ IsNavMenuOpenRef, onRefChange }: NavProps) {
   const [isActive, setIsActive] = useState(false);
+  const { darkMode, toggle } = useTheme();
 
   const navigate = useNavigate();
 
@@ -68,7 +63,7 @@ export default function Nav({
   };
 
   const handleToggleNightMode = () => {
-    if (onToggleNightMode) onToggleNightMode();
+    toggle();
     onClose();
   };
 

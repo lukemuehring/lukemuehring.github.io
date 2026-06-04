@@ -9,15 +9,7 @@ import "./Blog.css";
 import BlogNavHeader from "./BlogNavHeader";
 import { posts } from "./posts";
 
-type BlogPostProps = {
-  darkMode: boolean;
-  onToggleNightMode?: () => void;
-};
-
-export default function BlogPost({
-  darkMode,
-  onToggleNightMode,
-}: BlogPostProps) {
+export default function BlogPost() {
   const { id } = useParams();
   const post: Post | undefined = posts.find((p) => p.id === id);
 
@@ -42,12 +34,7 @@ export default function BlogPost({
   return (
     <div className="flex flex-col items-center justify-center p-2 md:p-8">
       <div className="w-[80%] mx-auto md:max-w-4xl markdown">
-        <BlogNavHeader
-          text={"Back to Blog"}
-          route={"/blog"}
-          darkMode={darkMode}
-          onToggleNightMode={onToggleNightMode}
-        />
+        <BlogNavHeader text={"Back to Blog"} route={"/blog"} />
         <div className="mt-8 mb-8">
           <h1 className="blog-link">{post.title}</h1>
           <div className="blog-date mb-8">{post.date}</div>

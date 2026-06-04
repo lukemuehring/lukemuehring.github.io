@@ -1,19 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import SearchBar from "../SearchBar";
 import "./Blog.css";
 import BlogNavHeader from "./BlogNavHeader";
 import { posts } from "./posts";
 
-type BlogListProps = {
-  darkMode: boolean;
-  onToggleNightMode?: () => void;
-};
-
-export default function BlogList({
-  darkMode,
-  onToggleNightMode,
-}: BlogListProps) {
+export default function BlogList() {
   const [searchQuery, setSearchQuery] = useState("");
   const cleanedQuery = searchQuery.trim().toLowerCase();
   const filteredPosts =
@@ -25,12 +17,7 @@ export default function BlogList({
     // <div className="flex flex-col mx-auto w-full min-h-screen md:max-w-5xl p-2 md:p-8">
     <div className="flex flex-col items-center justify-center p-2 md:p-8">
       <div className="w-[80%] mx-auto md:max-w-4xl">
-        <BlogNavHeader
-          text={"Back to Website"}
-          route={"/"}
-          darkMode={darkMode}
-          onToggleNightMode={onToggleNightMode}
-        />
+        <BlogNavHeader text={"Back to Website"} route={"/"} />
         <div className="">
           <h1 className="md:text-7xl text-6xl mb-8">Blog</h1>
           {/* SEARCH BAR */}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Blog from "./components/Blog/Blog";
 import MyCanvas from "./components/MyCanvas";
@@ -8,6 +8,7 @@ import "./tailwind.css";
 import "./style.css";
 import type { Button } from "./types/Button";
 import type { Player } from "./types/Player";
+import { useTheme } from "./context/ThemeContext";
 
 export default function App() {
   const IsUserInputAllowedRef = useRef(true);
@@ -16,39 +17,13 @@ export default function App() {
   const PlayerRef = useRef<Player | null>(null);
   const DemosRef = useRef<Button[] | null>(null);
 
-  // Initialize dark mode: localStorage > system preference > ˝-based fallback
-  const [darkMode, setDarkMode] = useState(() => {
-    // Check localStorage first
-    const saved = localStorage.getItem("darkMode");
-    if (saved !== null) {
-      return saved === "true";
-    }
-    // Fall back to system preference
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    if (mediaQuery.media !== "not all") {
-      return mediaQuery.matches;
-    }
-    // Fall back to time-based
-    const hour = new Date().getHours();
-    return hour >= 19 || hour < 7;
-  });
-
+  // Dark mode now lives in ThemeContext (see context/ThemeContext.tsx).
+  const { darkMode } = useTheme();
   const darkModeRef = useRef(darkMode);
-  const handleToggleNightMode = () => setDarkMode((prev) => !prev);
 
-  // Keep darkModeRef, html class, and localStorage in sync with state
+  // Mirror darkMode into a ref so the canvas's imperative code reads the latest value.
   useEffect(() => {
-    localStorage.setItem("darkMode", String(darkMode));
     darkModeRef.current = darkMode;
-    const htmlElement = document.documentElement;
-    const bodyElement = htmlElement.getElementsByTagName("body")[0];
-    if (darkMode) {
-      htmlElement.classList.add("dark");
-      bodyElement.classList.add("dark");
-    } else {
-      htmlElement.classList.remove("dark");
-      bodyElement.classList.remove("dark");
-    }
   }, [darkMode]);
 
   const updateDerivedRef = () => {
@@ -89,8 +64,6 @@ export default function App() {
             <Nav
               IsNavMenuOpenRef={IsNavMenuOpenRef}
               onRefChange={updateDerivedRef}
-              darkMode={darkMode}
-              onToggleNightMode={handleToggleNightMode}
             />
 
             <div id="toastContainer" className="toast-container"></div>
@@ -98,12 +71,7 @@ export default function App() {
         }
       />
 
-      <Route
-        path="/blog/*"
-        element={
-          <Blog darkMode={darkMode} onToggleNightMode={handleToggleNightMode} />
-        }
-      />
+      <Route path="/blog/*" element={<Blog />} />
 
       {/* TODO REMOVE: Sandbox route — lesson exercises; only on the react-lessons branch */}
       <Route path="/sandbox" element={<SandboxPage />} />

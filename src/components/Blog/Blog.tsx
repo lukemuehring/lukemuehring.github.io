@@ -2,34 +2,15 @@ import { Route, Routes } from "react-router-dom";
 import "./Blog.css";
 import BlogList from "./BlogList";
 import BlogPost from "./BlogPost";
+import { useTheme } from "../../context/ThemeContext";
 
-type BlogProps = {
-  darkMode: boolean;
-  onToggleNightMode?: () => void;
-};
-
-export default function Blog({ darkMode, onToggleNightMode }: BlogProps) {
+export default function Blog() {
+  const { darkMode } = useTheme();
   return (
     <div className={`blog ${darkMode ? "dark" : ""} w-[100%]`}>
       <Routes>
-        <Route
-          path="/"
-          element={
-            <BlogList
-              darkMode={darkMode}
-              onToggleNightMode={onToggleNightMode}
-            />
-          }
-        />
-        <Route
-          path=":id"
-          element={
-            <BlogPost
-              darkMode={darkMode}
-              onToggleNightMode={onToggleNightMode}
-            />
-          }
-        />
+        <Route path="/" element={<BlogList />} />
+        <Route path=":id" element={<BlogPost />} />
       </Routes>
     </div>
   );

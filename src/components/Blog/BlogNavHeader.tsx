@@ -2,22 +2,18 @@ import { FiMoon, FiSun } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import "./Blog.css";
 import "../../style.css";
+import { useTheme } from "../../context/ThemeContext";
 
 type BlogNavHeaderProps = {
   text: string;
   route: string;
-  darkMode: boolean;
-  onToggleNightMode?: () => void;
 };
 
-export default function BlogNavHeader({
-  text,
-  route,
-  darkMode,
-  onToggleNightMode,
-}: BlogNavHeaderProps) {
+export default function BlogNavHeader({ text, route }: BlogNavHeaderProps) {
+  const { darkMode, toggle } = useTheme();
+
   const handleToggleNightMode = () => {
-    if (onToggleNightMode) onToggleNightMode();
+    toggle();
   };
 
   return (
