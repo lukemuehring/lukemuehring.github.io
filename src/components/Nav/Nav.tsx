@@ -42,10 +42,8 @@ export default function Nav({
         onClose();
       }
     };
-
     document.addEventListener("keydown", handleEsc);
-
-    // Cleanup
+    // Cleanup function runs on component unmount and before re-running the effect
     return () => {
       document.removeEventListener("keydown", handleEsc);
     };

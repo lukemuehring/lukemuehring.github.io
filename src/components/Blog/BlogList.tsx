@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import SearchBar from "../SearchBar";
 import "./Blog.css";
 import BlogNavHeader from "./BlogNavHeader";
-import SearchBar from "../SearchBar";
 import { posts } from "./posts";
 
 type BlogListProps = {
@@ -15,6 +15,11 @@ export default function BlogList({
   onToggleNightMode,
 }: BlogListProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const cleanedQuery = searchQuery.trim().toLowerCase();
+  const filteredPosts =
+    cleanedQuery === ""
+      ? posts
+      : posts.filter((p) => p.title.toLowerCase().includes(cleanedQuery));
 
   return (
     // <div className="flex flex-col mx-auto w-full min-h-screen md:max-w-5xl p-2 md:p-8">
@@ -32,11 +37,10 @@ export default function BlogList({
           <SearchBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            onClear={() => setSearchQuery("")}
           />
           {/* BLOG LIST */}
           <ul className="flex flex-col gap-10 no-dot">
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <li key={post.id}>
                 <Link to={`/blog/${post.id}`} className={"blog-link"}>
                   <span>{post.title}</span>
@@ -45,6 +49,10 @@ export default function BlogList({
               </li>
             ))}
           </ul>
+          {/* NO RESULTS */}
+          {filteredPosts.length === 0 && (
+            <div>No results for "{searchQuery}"</div>
+          )}
         </div>
       </div>
     </div>

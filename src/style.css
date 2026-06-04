@@ -227,7 +227,7 @@ canvas {
   background: color-mix(in srgb, var(--font-bg-dark) 80%, white);
 }
 .shaf-btn:focus {
-  @apply outline-none ring-2 ring-blue-300;
+  @apply outline-none ring-2;
 }
 
 .shaf-btn-muted {
@@ -239,5 +239,5 @@ canvas {
 }
 
 .shaf-btn-muted:focus {
-  @apply outline-none ring-2 ring-blue-300;
+  @apply outline-none ring-2;
 }

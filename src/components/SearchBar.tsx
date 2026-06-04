@@ -1,13 +1,11 @@
 type SearchBarProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  onClear: () => void;
 };
 
 export default function SearchBar({
   searchQuery,
   onSearchChange,
-  onClear,
 }: SearchBarProps) {
   const hasQuery = searchQuery.length > 0;
 
@@ -19,13 +17,16 @@ export default function SearchBar({
         onChange={(e) => onSearchChange(e.target.value)}
         placeholder="Type to search..."
         className="w-full min-w-0 rounded border p-2 pr-10"
+        aria-label="Search posts"
       ></input>
       <button
         type="button"
-        onClick={onClear}
+        onClick={() => onSearchChange("")}
+        disabled={!hasQuery}
+        aria-hidden={!hasQuery}
         aria-label="Clear search"
         title="Clear search"
-        className={`absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded cursor-pointer transition-opacity duration-200 ${
+        className={`absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded cursor-pointer transition-opacity duration-100 ${
           hasQuery
             ? "opacity-100 pointer-events-auto"
             : "opacity-0 pointer-events-none"

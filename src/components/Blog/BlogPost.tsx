@@ -21,8 +21,9 @@ export default function BlogPost({
   const { id } = useParams();
   const post: Post | undefined = posts.find((p) => p.id === id);
 
+  // highlight code blocks after rendering the post
   useEffect(() => {
-    Prism.highlightAll(); // highlight code blocks after rendering
+    Prism.highlightAll();
   }, [post]);
 
   if (!post) {
