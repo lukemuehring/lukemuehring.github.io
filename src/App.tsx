@@ -72,9 +72,6 @@ export default function App() {
       />
 
       <Route path="/blog/*" element={<Blog />} />
-
-      {/* TODO REMOVE: Sandbox route — lesson exercises; only on the react-lessons branch */}
-      <Route path="/sandbox" element={<SandboxPage />} />
     </Routes>
   );
 }
