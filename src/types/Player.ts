@@ -124,8 +124,8 @@ export class Player {
     // Floor Collision
     if (
       this.y > Floor.height &&
-      this.x < Floor.rightX &&
-      this.x > Floor.leftX
+      this.x <= Floor.rightX &&
+      this.x >= Floor.leftX
     ) {
       this.y = Floor.height;
       this.yVelocity = 0;

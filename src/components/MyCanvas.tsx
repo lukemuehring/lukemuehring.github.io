@@ -250,7 +250,9 @@ export default function MyCanvas({
       c.canvas.height > Bg0.height
         ? Bg0.height - 1.5 * MapRef.current.tsize
         : c.canvas.height - 1.5 * MapRef.current.tsize;
-    FloorRef.current = new Floor(floorHeight, -1000, 1000);
+
+    MapMaxX = 10000;
+    FloorRef.current = new Floor(floorHeight, -1000, MapMaxX);
 
     // #endregion
 
@@ -301,32 +303,15 @@ export default function MyCanvas({
     const foregroundObjects: ImageObject[] = [];
     const demos: Button[] = [];
 
-    setupTextBubblesObjectsAndDemos(
-      c,
-      CANVAS_DOM_ELEMENT,
-      FloorRef.current,
-      PlayerRef.current,
-      MapRef.current,
-      GrassMarkerImgRef.current,
-      CanShowTextRef,
-      IsUserInputAllowedRef,
-      cornerImage,
-      DialogTriangleImageRef.current,
-      textBubbleArray,
-      backgroundObjects,
-      WebsiteUiImgRef.current,
-      foregroundObjects,
-      demos,
-      handleOpenModal,
-    );
-
     TextBubbleArrayRef.current = textBubbleArray;
     BackgroundObjectsRef.current = backgroundObjects;
     ForegroundObjectsRef.current = foregroundObjects;
     DemosRef.current = demos;
 
     // #endregion
-    MapMaxX = textBubbleArray[CodingStory.length - 1].maxX;
+    // MapMaxX = textBubbleArray[CodingStory.length - 1].maxX;
+    // MapMaxX is set alongside the Floor above so the collision edge and the
+    // drawn end-cap stay in sync.
     resizeCamera(c, CameraRef.current);
     resizeMap(c, MapRef.current, FloorRef.current, MapMaxX);
     resizeText(c, DemosRef.current, TextBubbleArrayRef.current);
@@ -714,25 +699,6 @@ export default function MyCanvas({
           onClose={handleCloseModal}
         />
       )}
-      <div className="hidden">
-        <RecordingVisualizerMock
-          ref={visualizerRef}
-          isActive={true}
-          managed={false}
-          onCanvasReady={setRecordingVisualzer}
-        />
-      </div>
-      {/* <div className="absolute top-48 right-0 z-[50000]">
-        <button
-          className=" text-white"
-          onClick={() => visualizerRef.current?.start()}
-        >
-          Start
-        </button>
-        <button className="z-50" onClick={() => visualizerRef.current?.stop()}>
-          Stop
-        </button>
-      </div> */}
     </>
   );
 }

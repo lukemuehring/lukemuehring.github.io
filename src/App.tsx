@@ -3,7 +3,6 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import Blog from "./components/Blog/Blog";
 import MyCanvas from "./components/MyCanvas";
 import Nav from "./components/Nav/Nav";
-import SandboxPage from "./sandbox/SandboxPage";
 import "./tailwind.css";
 import "./style.css";
 import type { Button } from "./types/Button";
