@@ -154,8 +154,12 @@ export default function MyCanvas({
     preloadImages();
     // #endregion
     // #region Fonts
+    // The canvas draws with the "Handjet Solid" alias, which no DOM element
+    // uses, so nothing would trigger its download. Kick it off explicitly.
+    document.fonts.load("12px 'Handjet Solid'");
+
     const fontInterval = setInterval(() => {
-      if (document.fonts.check("12px 'VT323'")) {
+      if (document.fonts.check("12px 'Handjet Solid'")) {
         CanShowTextRef.current = true;
         AnimateText = true;
         clearInterval(fontInterval);
@@ -273,14 +277,31 @@ export default function MyCanvas({
       FONT_HEADING.H2 = 33;
       FONT_HEADING.P = 25;
     }
-    const welcomeStr = "HEY, I'M LUKE";
+    const welcomeStr = "luke muehring";
     const welcomeText = new GameText(
       welcomeStr,
       Math.floor(c.canvas.width / 2),
       c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
       calculateHeadingFontSize(c, welcomeStr, FONT_HEADING.H1),
       CanShowTextRef,
-      { sheen: true, sheenDuration: 9000, sheenDelay: 1000 },
+      {
+        sheen: true,
+        sheenDuration: 900,
+        introDuration: 1000,
+        introStagger: 90,
+        introScale: 3,
+        introOffsetX: 50,
+        introOffsetY: 50,
+        introSaturation: 100,
+        introLightness: 50,
+        introHueTurns: 1,
+        jumpHeight: 0.22,
+        introJumpHeight: 0.65,
+        jumpStagger: 40,
+        jumpDuration: 320,
+        introJumpDuration: 550,
+        jumpWithIntro: true,
+      },
     );
     WelcomeTextArrayRef.current = [welcomeText];
 
@@ -341,6 +362,12 @@ export default function MyCanvas({
     };
 
     const onClickListener = (_event: MouseEvent) => {
+      // Replay the welcome hop when its text is clicked. .hover is refreshed
+      // every frame from the cursor position, so no coordinates are needed here.
+      for (const text of WelcomeTextArrayRef.current ?? []) {
+        if (text.hover) text.playJump();
+      }
+
       const obj = checkIfObjectClicked(
         DemosRef.current ?? [],
         PlayerRef.current,
@@ -582,6 +609,7 @@ export default function MyCanvas({
        */
       for (let i = 0; i < WelcomeTextArray.length; i++) {
         WelcomeTextArray[i].draw(c, Camera.x, Camera.y, darkMode);
+        WelcomeTextArray[i].detectMouseHover(Mouse.x, Mouse.y);
       }
 
       for (let i = 0; i < TextBubbleArray.length; i++) {
@@ -639,7 +667,7 @@ export default function MyCanvas({
       }
 
       // Mouse Draw
-      Mouse.draw(c, Canvas, Demos, [Player]);
+      Mouse.draw(c, Canvas, Demos, [Player], WelcomeTextArray);
 
       // Waveform Vizualizer draw
       const RecVizCanvas = RecordingVisualizerRef.current;

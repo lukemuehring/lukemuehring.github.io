@@ -364,14 +364,14 @@ export function drawWhiteBoxWithText(
 
 /**
  * Gets the font string used for setting the CanvasRenderingContext2D.font property.
- * Checks if the web page has the font VT323 loaded.
+ * Checks if the web page has the font "Handjet Solid" loaded.
  * If not, we default to sans-serif.
  * @param {*} fontSize the font size
- * @returns the font string in the format "{fontSize}px VT323" or "{fontSize}px sans-serif"
+ * @returns the font string in the format "{fontSize}px Handjet Solid" or a monospace fallback
  */
 export function getCanvasFontString(fontSize: number) {
-  if (document.fonts.check("12px 'VT323'")) {
-    return fontSize + "px 'VT323'";
+  if (document.fonts.check("12px 'Handjet Solid'")) {
+    return fontSize + "px 'Handjet Solid'";
   } else {
     return fontSize - 8 + "px monospace";
   }
@@ -485,6 +485,7 @@ export function setupTextBubblesObjectsAndDemos(
   demos: Button[],
   demosOpenHandler: (demo: any) => void,
 ) {
+  
   let startX: number =
     context.canvas.width - Math.floor(context.canvas.width * 0.4);
   let endX: number;

@@ -1,7 +1,64 @@
 @reference "./tailwind.css";
 
+/* Self-hosted variable Handjet, aliased at a fixed point in its design space.
+   Canvas2D has no font-variation-settings, so the only way to get non-default
+   axis values onto ctx.font is to bake them into a named @font-face.
+
+   Measured, not guessed (rasterised and ink-counted):
+     ELSH  0      renders NOTHING. Never go below 1.
+     ELGR  1 -> 2 gets LIGHTER (more, smaller elements), not denser.
+     ELSH         is a shape dial, not a darkness dial -- ink coverage is
+                  non-monotonic across it, with dips around 4, 5 and 14.
+     wght         is the only monotonic darkness dial. Hence 800 here. */
+@font-face {
+  font-family: "Handjet Solid";
+  src: url("/fonts/Handjet.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-variation-settings:
+    "ELGR" 2,
+    "ELSH" 8,
+    "wght" 400;
+}
+
 * {
-  font-family: "VT323", sans-serif;
+  font-family: "Handjet", sans-serif;
+}
+
+/* DOM-only element morph. Put .handjet-anim on the element that holds the
+   text (not an ancestor). Does NOT affect canvas text -- ctx.font cannot
+   carry font-variation-settings; see the "Handjet Solid" alias above.
+
+   Both keyframes must list the same axes in the same order or the browser
+   cannot interpolate and snaps at 50%. ELSH stays in 1..3: it dips to near
+   zero ink around 4 and 5, so a wider sweep reads as a flicker. */
+.handjet-anim {
+  font-variation-settings:
+    "ELGR" 2,
+    "ELSH" 1,
+    "wght" 800;
+  animation: dot-matrix 4s ease-in-out infinite alternate;
+}
+
+@keyframes dot-matrix {
+  from {
+    font-variation-settings:
+      "ELGR" 2,
+      "ELSH" 1,
+      "wght" 800;
+  }
+  to {
+    font-variation-settings:
+      "ELGR" 1,
+      "ELSH" 3,
+      "wght" 800;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .handjet-anim {
+    animation: none;
+  }
 }
 
 :root {
