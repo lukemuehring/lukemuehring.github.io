@@ -139,15 +139,44 @@ function cutOffFloorEdgesInMap(Map: GameMap, maxX: number) {
   }
 }
 
-// todo make smooth
-// export function movePlayerToScreenCoords(Player: Player, x: number, y: number) {
-//   if (x < Player.x) {
-//     while (Player.x < x) {
-//       Player.x += 1;
-//     }
-//   }
-//   (Player.x = x), (Player.y = y);
-// }
+/**
+ * Steps the Player one frame along a nav-driven walk from startX to targetX (world space).
+ *
+ * Driven by `progress` (0..1 of the walk's fixed duration) rather than by acceleration,
+ * because the nav underline is paced by the character - a fixed duration is what keeps
+ * the bar's timing the same no matter how far the character has to travel. Gravity,
+ * friction and floor collision in Player.update are untouched; only horizontal motion is
+ * taken over.
+ *
+ * @returns true once the Player has landed on the target.
+ */
+export function stepPlayerTowards(
+  Player: Player,
+  startX: number,
+  targetX: number,
+  progress: number,
+): boolean {
+  if (progress >= 1) {
+    Player.x = targetX;
+    Player.xVelocity = 0;
+    return true;
+  }
+
+  // easeInOutCubic, which is close to the cubic-bezier(.4,0,.2,1) the nav underline
+  // used to transition with - the bar is paced by the character now, so this is what
+  // gives it back its original feel.
+  const eased =
+    progress < 0.5
+      ? 4 * progress ** 3
+      : 1 - (-2 * progress + 2) ** 3 / 2;
+
+  const nextX = startX + (targetX - startX) * eased;
+  // Player.update runs straight after this and applies `x += xVelocity`, so handing it
+  // the exact delta lands the character on nextX while the walk sprite and facing
+  // direction still key off xVelocity as they do for a held arrow key.
+  Player.xVelocity = nextX - Player.x;
+  return false;
+}
 // #endregion
 
 // #region --- Text Utilities ---

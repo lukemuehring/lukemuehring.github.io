@@ -1,4 +1,8 @@
-/* MOBILE */
+/* The nav overlays a full-screen canvas. Mobile is the default: a hamburger that opens a
+   full-screen frosted sheet. Desktop (>= 916px) collapses it into a centered glass pill. */
+
+/* ---------- MOBILE ---------- */
+
 #nav {
   display: flex;
   position: absolute;
@@ -6,184 +10,225 @@
   right: 0;
   width: 100%;
   height: 100vh;
-
-  .ham-menu {
-    position: relative;
-    height: 75px;
-    width: 75px;
-    justify-self: right;
-    margin-left: auto;
-    z-index: 10;
-    border-radius: 16px;
-
-    span {
-      height: 4px;
-      width: 50px;
-      background-color: rgb(75, 75, 75);
-      position: absolute;
-      border-radius: 16px;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      transition: 0.2s ease;
-    }
-
-    span:nth-child(1) {
-      top: 25%;
-    }
-
-    span:nth-child(3) {
-      top: 75%;
-    }
-  }
-
-  .ham-menu.active {
-    span:nth-child(1) {
-      top: 50%;
-      transform: translate(-50%, -50%) rotate(45deg);
-    }
-
-    span:nth-child(2) {
-      opacity: 0;
-    }
-
-    span:nth-child(3) {
-      top: 50%;
-      transform: translate(-50%, -50%) rotate(-45deg);
-    }
-  }
-
-  .ham-menu.dark {
-    span {
-      background-color: var(--font-color-dark);
-    }
-  }
-
-  .menu-container {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100vh;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s ease;
-
-    .menu {
-      position: fixed;
-      top: 0;
-      right: 0;
-      height: 100vh;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 4rem;
-      justify-content: center;
-      align-items: center;
-    }
-
-    background-color: rgba(255, 255, 255, 0.5);
-    backdrop-filter: saturate(180%) blur(15px);
-    overflow: hidden;
-  }
-
-  .menu-container.dark {
-    background-color: rgba(125, 125, 125, 0.5);
-  }
-
-  .menu-container.active {
-    pointer-events: all;
-    opacity: 1;
-  }
-
-  /* Add metallic sheen */
-  .menu-container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 20%; /* SHEEN IS ON THE TOP 20% OF THE MENU */
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    pointer-events: none;
-  }
-
-  .menu-container.dark::before {
-    background: transparent;
-  }
-
-  .menu-container .menu button {
-    --btn-font-size: 2rem;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-
-    font-size: var(--btn-font-size);
-    color: var(--font-color-light);
-    background-color: transparent;
-    padding: 8px;
-    border: none;
-    white-space: nowrap;
-
-    cursor: pointer;
-    transition: color 0.3s ease;
-  }
-
-  .menu-container .menu button:hover {
-    color: black;
-  }
-
-  .menu-container.dark .menu button {
-    color: var(--font-color-dark);
-  }
-
-  .menu-container.dark .menu button:hover {
-    color: white;
-  }
+  /* The canvas sits underneath and needs to keep receiving hover/cursor updates,
+     so only the interactive pieces below opt back into pointer events. */
+  pointer-events: none;
 }
 
-/* DESKTOP */
+#nav .ham-menu {
+  position: relative;
+  z-index: 10;
+  height: 75px;
+  width: 75px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 16px;
+  background-color: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+#nav .ham-menu span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 4px;
+  width: 50px;
+  border-radius: 16px;
+  background-color: rgb(75, 75, 75);
+  transform: translate(-50%, -50%);
+  transition: 0.2s ease;
+}
+
+#nav .ham-menu span:nth-child(1) {
+  top: 25%;
+}
+
+#nav .ham-menu span:nth-child(3) {
+  top: 75%;
+}
+
+#nav .ham-menu.active span:nth-child(1) {
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+#nav .ham-menu.active span:nth-child(2) {
+  opacity: 0;
+}
+
+#nav .ham-menu.active span:nth-child(3) {
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+#nav .ham-menu.dark span {
+  background-color: var(--font-color-dark);
+}
+
+#nav .menu-container {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: saturate(180%) blur(15px);
+  backdrop-filter: saturate(180%) blur(15px);
+  transition: opacity 0.3s ease;
+}
+
+#nav .menu-container.dark {
+  background-color: rgba(125, 125, 125, 0.5);
+}
+
+#nav .menu-container.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* metallic sheen across the top of the glass */
+#nav .menu-container::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 20%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.05)
+  );
+  pointer-events: none;
+}
+
+#nav .menu-container.dark::before {
+  background: transparent;
+}
+
+#nav .menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  width: 100%;
+  height: 100vh;
+}
+
+#nav .nav-btn {
+  --nav-btn-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  font-family: var(--font-ui);
+  font-size: var(--nav-btn-size);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--font-color-light);
+  cursor: pointer;
+  transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#nav .menu-container.dark .nav-btn {
+  color: var(--font-color-dark);
+}
+
+#nav .nav-btn:not(.selected):hover {
+  color: var(--font-color-light-secondary);
+}
+
+#nav .menu-container.dark .nav-btn:not(.selected):hover {
+  color: var(--font-color-dark-secondary);
+}
+
+/* Listed after the .dark rules above and matching their specificity, so the selected
+   item stays red in both themes. */
+#nav .nav-btn.selected,
+#nav .menu-container.dark .nav-btn.selected {
+  color: #d11100;
+}
+
+#nav .nav-btn--icon {
+  font-size: calc(var(--nav-btn-size) * 0.9);
+}
+
+/* The sliding underline only makes sense against a row; the mobile menu is a
+   stacked list, where colour alone marks the active item. */
+#nav .nav-underline {
+  display: none;
+}
+
+/* ---------- DESKTOP / TABLET ---------- */
+
 @media (min-width: 916px) {
   #nav {
+    position: fixed;
+    top: 1.5rem;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    width: fit-content;
     height: auto;
-    top: 0;
-
-    .ham-menu {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .menu-container {
-      opacity: 1;
-      height: fit-content;
-      pointer-events: all;
-
-      .menu {
-        position: relative;
-        flex-direction: row;
-        gap: 5rem;
-        height: fit-content;
-      }
-    }
-
-    .menu-container .menu button {
-      --btn-font-scale: 0.95;
-      font-size: calc(var(--btn-font-size) * var(--btn-font-scale));
-
-      width: auto;
-    }
+    z-index: 20;
   }
-}
 
-/* WIDE SCREEN */
-@media (min-width: 1024px) {
-  .menu-container .menu button {
-    --btn-font-scale: 1.05;
-    font-size: calc(var(--btn-font-size) * var(--btn-font-scale));
+  #nav .ham-menu {
+    display: none;
+  }
+
+  #nav .menu-container {
+    position: relative;
+    top: auto;
+    width: fit-content;
+    height: auto;
+    opacity: 1;
+    pointer-events: auto;
+    border-radius: 999px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  }
+
+  #nav .menu {
+    position: relative;
+    top: auto;
+    right: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 2.5rem;
+    width: auto;
+    height: auto;
+    /* extra room at the bottom so the underline sits inside the pill */
+    padding: 0.85rem 2rem 1.35rem;
+  }
+
+  #nav .nav-btn {
+    --nav-btn-size: 1.05rem;
+    width: auto;
+    padding: 0;
+  }
+
+  /* left/width are written every frame from the character's position (see Nav.tsx), so
+     there is deliberately no transition here - one would lag behind the character. */
+  #nav .nav-underline {
+    display: block;
+    position: absolute;
+    bottom: 0.6rem;
+    height: 2px;
+    pointer-events: none;
+  }
+
+  #nav .nav-underline rect {
+    fill: #d11100;
   }
 }

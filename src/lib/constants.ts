@@ -7,6 +7,24 @@ export const FRAME_DURATION = 1000 / FPS_TARGET; // ~16.67ms per frame (60fps)
 export const JUMP_HEIGHT = 20;
 export const GRAVITY = 1.5;
 
+/** Per-frame horizontal acceleration applied while a walk input is held. */
+export const WALK_ACCELERATION = 0.5;
+/**
+ * How long a nav-driven auto-walk takes, regardless of distance - 0.5s at 60fps, the
+ * same duration the nav underline used to CSS-transition for.
+ *
+ * Fixed duration rather than a fixed speed because the underline is paced by the
+ * character (see Nav.tsx), so the walk sets the tempo of both, and the bar keeps the
+ * same timing whatever the distance.
+ *
+ * The trade is that speed scales with distance: a 744px hop averages 25px/frame while a
+ * 6000px one averages 200px/frame and, since easeInOutCubic peaks at 3x its average,
+ * tops out near 500px/frame. That is deliberate - the long hops read as a blur. It also
+ * means widening the floor makes them faster still, so if a hop ever has to cover an
+ * order of magnitude more ground, scale this with distance rather than raising it flat.
+ */
+export const AUTO_WALK_DURATION_FRAMES = 30;
+
 // Fonts
 export const FONT_HEADING = {
   H1: 100,

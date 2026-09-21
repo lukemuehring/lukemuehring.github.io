@@ -6,6 +6,7 @@ import Nav from "./components/Nav/Nav";
 import "./tailwind.css";
 import "./style.css";
 import type { Button } from "./types/Button";
+import type { Controller } from "./types/Controller";
 import type { Player } from "./types/Player";
 import { useTheme } from "./context/ThemeContext";
 
@@ -15,6 +16,10 @@ export default function App() {
   const IsDemoModalOpenRef = useRef(false);
   const PlayerRef = useRef<Player | null>(null);
   const DemosRef = useRef<Button[] | null>(null);
+  // Handed to the nav so it can start walks and read the character's position each frame.
+  // Refs rather than context: re-rendering MyCanvas would redefine its animation loop
+  // while the previous one keeps running against a stale closure.
+  const ControllerRef = useRef<Controller | null>(null);
 
   // Dark mode now lives in ThemeContext (see context/ThemeContext.tsx).
   const { darkMode } = useTheme();
@@ -57,12 +62,15 @@ export default function App() {
               onRefChange={updateDerivedRef}
               PlayerRef={PlayerRef}
               DemosRef={DemosRef}
+              ControllerRef={ControllerRef}
               darkModeRef={darkModeRef}
               darkModeValue={darkMode}
             />
             <Nav
               IsNavMenuOpenRef={IsNavMenuOpenRef}
               onRefChange={updateDerivedRef}
+              PlayerRef={PlayerRef}
+              ControllerRef={ControllerRef}
             />
 
             <div id="toastContainer" className="toast-container"></div>

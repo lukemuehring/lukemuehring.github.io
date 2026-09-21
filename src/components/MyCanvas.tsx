@@ -42,6 +42,7 @@ export default function MyCanvas({
   onRefChange,
   PlayerRef,
   DemosRef,
+  ControllerRef,
   darkModeRef,
   darkModeValue,
 }: {
@@ -50,6 +51,7 @@ export default function MyCanvas({
   onRefChange: () => void;
   PlayerRef: React.RefObject<Player | null>;
   DemosRef: React.RefObject<Button[] | null>;
+  ControllerRef: React.RefObject<Controller | null>;
   darkModeRef: React.RefObject<boolean>;
   darkModeValue: boolean;
 }) {
@@ -79,7 +81,6 @@ export default function MyCanvas({
   const CanShowTextRef = useRef<boolean>(false);
   const CanvasRef = useRef<HTMLCanvasElement>(null);
   const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const ControllerRef = useRef<Controller | null>(null);
   const DialogTriangleImageRef = useRef<HTMLImageElement | null>(null);
   const ForegroundObjectsRef = useRef<ImageObject[] | null>(null);
   const FloorRef = useRef<Floor | null>(null);
@@ -267,6 +268,7 @@ export default function MyCanvas({
     // #region Controller setup
     ControllerRef.current = new Controller(
       PlayerRef.current,
+      FloorRef.current,
       IsUserInputAllowedRef,
     );
     // #endregion
@@ -399,6 +401,9 @@ export default function MyCanvas({
     };
     const touchMoveListener = (evt: TouchEvent) => {
       if (PlayerRef.current) {
+        // handleTouchMove writes xVelocity directly and has no Controller reference,
+        // so an auto-walk has to be cancelled here rather than inside it.
+        ControllerRef.current?.cancelAutoWalk();
         handleTouchMove(
           evt,
           IsUserInputAllowedRef.current ?? true,

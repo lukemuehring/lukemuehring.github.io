@@ -21,8 +21,21 @@
     "wght" 400;
 }
 
-* {
-  font-family: "Handjet", sans-serif;
+/* Inherited from body rather than forced with `*`, so components can set their own
+   family. Canvas text is unaffected either way - it goes through getCanvasFontString. */
+body {
+  font-family: var(--font-ui);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-pixel {
+  font-family: var(--font-pixel);
 }
 
 /* DOM-only element morph. Put .handjet-anim on the element that holds the
@@ -62,6 +75,13 @@
 }
 
 :root {
+  /* EB Garamond for headings and loud, official-looking elements.
+     Figtree for UI, buttons and body copy.
+     Handjet stays the pixel font (the canvas reaches it via getCanvasFontString). */
+  --font-display: "EB Garamond", Georgia, serif;
+  --font-ui: "Figtree", system-ui, sans-serif;
+  --font-pixel: "Handjet", monospace;
+
   --font-color-light: #111111;
   --font-color-light-secondary: #6a7282;
   --font-bg-light: #eeece9;

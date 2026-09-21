@@ -12,9 +12,17 @@
 }
 
 .blog * {
-  font-family: "San Francisco", Arial, sans-serif;
+  font-family: var(--font-ui);
   color: var(--font-color-light);
   background-color: var(--font-bg-light);
+}
+
+/* Headings are the loud elements, so they get the display serif. Needs to be its
+   own rule because `.blog *` above outranks a bare `h1` selector. */
+.blog h1,
+.blog h2,
+.blog h3 {
+  font-family: var(--font-display);
 }
 .blog.dark * {
   color: var(--font-color-dark);
