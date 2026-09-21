@@ -285,10 +285,20 @@ export default function MyCanvas({
       calculateHeadingFontSize(c, welcomeStr, FONT_HEADING.H1),
       CanShowTextRef,
       {
+        dots: true,
+        dotScale: 1,
+        explodeStrength: 90,
+        explodeRadius: 120,
+        explodeDuration: 450,
+        recoverDelay: 3000,
+        recoverDuration: 350,
+        rumbleDuration: 900,
+        rumbleAmplitude: 1.2,
+        rumbleStep: 60,
         sheen: true,
-        sheenDuration: 900,
-        introDuration: 1000,
-        introStagger: 90,
+        sheenDuration: 550,
+        introDuration: 600,
+        introStagger: 55,
         introScale: 3,
         introOffsetX: 50,
         introOffsetY: 50,
@@ -299,7 +309,7 @@ export default function MyCanvas({
         introJumpHeight: 0.65,
         jumpStagger: 40,
         jumpDuration: 320,
-        introJumpDuration: 550,
+        introJumpDuration: 400,
         jumpWithIntro: true,
       },
     );
@@ -364,8 +374,13 @@ export default function MyCanvas({
     const onClickListener = (_event: MouseEvent) => {
       // Replay the welcome hop when its text is clicked. .hover is refreshed
       // every frame from the cursor position, so no coordinates are needed here.
-      for (const text of WelcomeTextArrayRef.current ?? []) {
-        if (text.hover) text.playJump();
+      const mouse = MouseRef.current;
+      if (mouse) {
+        for (const text of WelcomeTextArrayRef.current ?? []) {
+          // Blow the dots apart from the click point. No hop: the click is
+          // only the explosion now.
+          if (text.hover) text.explode({ x: mouse.x, y: mouse.y });
+        }
       }
 
       const obj = checkIfObjectClicked(

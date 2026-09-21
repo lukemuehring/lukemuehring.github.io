@@ -1,5 +1,12 @@
 import { FONT_COLOR_DARK_MODE, FONT_COLOR_LIGHT_MODE } from "../lib/constants";
 import { getCanvasFontString } from "../lib/helpers";
+import {
+  CELLS_PER_EM,
+  advanceOf,
+  glyphFor,
+  hasDotsFor,
+  hash2,
+} from "../lib/handjetDots";
 
 type Hsl = { h: number; s: number; l: number };
 
@@ -56,6 +63,29 @@ function hexToHsl(hex: string): Hsl {
 }
 
 const easeOutCubic = (p: number) => 1 - Math.pow(1 - p, 3);
+
+/**
+ * Much harder deceleration than easeOutCubic: roughly three quarters of the
+ * distance is covered in the first fifth of the time. Used for the blast,
+ * where the dots should leave like they were hit and then drift to a stop.
+ */
+const easeOutExpo = (p: number) => (p >= 1 ? 1 : 1 - Math.pow(2, -10 * p));
+
+function hexToRgb(hex: string): [number, number, number] | null {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/** Blend two hex colours. Falls back to the base if either will not parse. */
+function mixHex(base: string, highlight: string, t: number): string {
+  const a = hexToRgb(base);
+  const b = hexToRgb(highlight);
+  if (!a || !b) return base;
+  const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
 const clamp01to100 = (n: number) => Math.max(0, Math.min(100, n));
 
 /**
@@ -101,6 +131,40 @@ export class GameText {
   /** null means "derive it from the preceding hop" */
   bounceDuration: number | null;
   jumpWithIntro: boolean;
+
+  // --- dots ---
+  dots: boolean;
+  dotScale: number;
+  explodeStrength: number;
+  explodeRadius: number;
+  explodeDuration: number;
+  recoverDelay: number;
+  recoverDuration: number;
+  rumbleDuration: number;
+  rumbleAmplitude: number;
+  rumbleStep: number;
+  /** when the pre-recovery judder started */
+  rumbleStartTime: number | null;
+  /** when the word was last clicked, for the idle return */
+  lastBlastTime: number | null;
+  /** the in-flight return home, and the displacement it started from */
+  recoverStartTime: number | null;
+  recoverFrom: number[] | null;
+  /** when the current blast went off, and where, in screen coords */
+  explodeStartTime: number | null;
+  explodeX: number;
+  explodeY: number;
+  /**
+   * Where every dot has been blown to and left, 2 entries per dot. Dots do not
+   * return home, so this is the accumulated result of every blast so far and a
+   * new blast is applied on top of it.
+   */
+  dotOffsets: number[];
+  /** the in-flight blast's per-dot delta, folded into dotOffsets when it lands */
+  blastImpulse: number[] | null;
+  /** index of each letter's first dot within dotOffsets */
+  dotIndexBase: number[] | null;
+  totalDots: number;
 
   // --- sheen: a single highlight sweep across the settled word ---
   sheen: boolean;
@@ -213,6 +277,50 @@ export class GameText {
        */
       jumpWithIntro?: boolean;
 
+      // --- dots: draw each glyph from Handjet's own element lattice ---
+
+      /**
+       * draw the word dot by dot instead of with fillText, which makes every
+       * element of every glyph individually addressable.
+       */
+      dots?: boolean;
+
+      /** dot size as a fraction of one grid cell. 1 fills the cell exactly */
+      dotScale?: number;
+
+      /** px a dot at the blast centre is thrown. 0 disables the explosion */
+      explodeStrength?: number;
+
+      /**
+       * px at which the blast has half its strength. Dots further from the
+       * click are thrown progressively less.
+       */
+      explodeRadius?: number;
+
+      /** ms the blast takes to throw every dot to its new resting place */
+      explodeDuration?: number;
+
+      /**
+       * ms of no clicking before the scattered dots travel back to their
+       * original positions, which is also what re-fires the sheen.
+       */
+      recoverDelay?: number;
+
+      /** ms the dots take to travel home once recovery starts */
+      recoverDuration?: number;
+
+      /** ms the dots judder in place before they are pulled home */
+      rumbleDuration?: number;
+
+      /** px a dot shakes at the peak of the rumble */
+      rumbleAmplitude?: number;
+
+      /**
+       * ms each judder position is held. Small values blur into a buzz, large
+       * ones read as a stutter; this is what makes it a rumble and not a wobble.
+       */
+      rumbleStep?: number;
+
       // --- sheen: one highlight sweep across the settled word ---
 
       sheen?: boolean;
@@ -257,6 +365,30 @@ export class GameText {
     this.introJumpDuration = options?.introJumpDuration ?? this.jumpDuration;
     this.bounceDuration = options?.bounceDuration ?? null;
     this.jumpWithIntro = options?.jumpWithIntro ?? false;
+
+    // Only take the dot path if every character has a lattice; otherwise a
+    // single missing glyph would silently vanish from the word.
+    this.dots = (options?.dots ?? false) && hasDotsFor(text);
+    this.dotScale = options?.dotScale ?? 1;
+    this.explodeStrength = options?.explodeStrength ?? 80;
+    this.explodeRadius = options?.explodeRadius ?? 120;
+    this.explodeDuration = options?.explodeDuration ?? 700;
+    this.recoverDelay = options?.recoverDelay ?? 3000;
+    this.recoverDuration = options?.recoverDuration ?? 700;
+    this.rumbleDuration = options?.rumbleDuration ?? 900;
+    this.rumbleAmplitude = options?.rumbleAmplitude ?? 3;
+    this.rumbleStep = options?.rumbleStep ?? 45;
+    this.rumbleStartTime = null;
+    this.lastBlastTime = null;
+    this.recoverStartTime = null;
+    this.recoverFrom = null;
+    this.explodeStartTime = null;
+    this.explodeX = 0;
+    this.explodeY = 0;
+    this.dotOffsets = [];
+    this.blastImpulse = null;
+    this.dotIndexBase = null;
+    this.totalDots = 0;
 
     this.sheen = options?.sheen ?? false;
     this.sheenDuration = options?.sheenDuration ?? 1400;
@@ -373,6 +505,108 @@ export class GameText {
     // it rather than letting it sweep over still-moving letters.
     const end = this.waveEnd(wave) + this.jumpSheenGap;
     this.sheenStartTime = Math.max(this.sheenStartTime ?? 0, end);
+  }
+
+  /**
+   * Blow the dots apart from a point, in screen coords. This is what a click
+   * does; it deliberately does not hop, so the two effects stay independent
+   * and either can be triggered on its own.
+   *
+   * Re-triggering simply restarts the blast, which is why repeated clicks feel
+   * responsive rather than queueing up behind each other.
+   */
+  explode(origin: { x: number; y: number }, now = Date.now()) {
+    if (this.explodeStrength <= 0) return;
+
+    // Freeze whatever is still in flight into the dots' resting positions, so
+    // this blast pushes on from where they actually are. A return home is
+    // abandoned mid-way for the same reason: dotOffsets already holds the
+    // partly-returned positions, so the new blast carries on from those.
+    this.settleBlast(now);
+    this.recoverStartTime = null;
+    this.recoverFrom = null;
+    // Clicking during the judder cancels it outright: the dots have only been
+    // shaking around their stored positions, never written to them, so this
+    // blast starts from exactly where they already are.
+    this.rumbleStartTime = null;
+
+    this.explodeStartTime = now;
+    this.explodeX = origin.x;
+    this.explodeY = origin.y;
+    this.lastBlastTime = now;
+
+    // No sheen on a word that is in pieces. It is re-armed by the idle
+    // snap-back in recoverIfIdle(), not scheduled here.
+    this.sheenStartTime = null;
+  }
+
+  /**
+   * After recoverDelay with no clicks, start the dots juddering in place. This
+   * is the tell that the word is about to pull itself together, and the window
+   * in which a click cancels the whole thing.
+   */
+  private startRumbleIfIdle(now: number) {
+    if (this.lastBlastTime === null) return;
+    if (this.rumbleStartTime !== null || this.recoverStartTime !== null) return;
+    // Wait for the blast itself to finish before starting the idle count.
+    if (this.explodeStartTime !== null) return;
+    if (now - this.lastBlastTime < this.recoverDelay) return;
+
+    this.rumbleStartTime = now;
+    this.lastBlastTime = null;
+  }
+
+  /**
+   * Once the judder has run its course with no click, send the dots home. The
+   * sheen is scheduled for the moment they arrive, so it sweeps the restored
+   * word rather than one still reassembling.
+   */
+  private startRecoveryAfterRumble(now: number) {
+    if (this.rumbleStartTime === null) return;
+    if (now - this.rumbleStartTime < this.rumbleDuration) return;
+
+    this.rumbleStartTime = null;
+    this.recoverFrom = this.dotOffsets.slice();
+    this.recoverStartTime = now;
+    this.sheenStartTime = now + this.recoverDuration;
+  }
+
+  /**
+   * Judder progress, 0..1, or null when not rumbling.
+   *
+   * Applied at draw time and never written into dotOffsets: baking a random
+   * shake into the stored positions would let the word drift a little further
+   * from home on every frame.
+   */
+  private rumbleProgress(now: number): number | null {
+    if (this.rumbleStartTime === null) return null;
+    const p = (now - this.rumbleStartTime) / this.rumbleDuration;
+    return p < 0 || p > 1 ? null : p;
+  }
+
+  /**
+   * Ease every dot from where the blast left it back to its home cell.
+   *
+   * This writes straight into dotOffsets, so the draw loop needs no knowledge
+   * of the return -- and if a click interrupts it, whatever is in dotOffsets at
+   * that instant is already the correct starting point for the next blast.
+   */
+  private applyRecovery(now: number) {
+    if (this.recoverStartTime === null || this.recoverFrom === null) return;
+
+    const p = (now - this.recoverStartTime) / this.recoverDuration;
+    if (p >= 1) {
+      this.dotOffsets.fill(0);
+      this.recoverStartTime = null;
+      this.recoverFrom = null;
+      return;
+    }
+
+    // Decelerating into place reads as the word pulling itself together.
+    const remaining = 1 - easeOutCubic(Math.max(0, p));
+    for (let k = 0; k < this.dotOffsets.length; k++) {
+      this.dotOffsets[k] = this.recoverFrom[k] * remaining;
+    }
   }
 
   /** Drops waves that have finished, so repeated clicks cannot grow the list. */
@@ -524,6 +758,20 @@ export class GameText {
     const baseColor =
       this.color ?? (darkMode ? FONT_COLOR_DARK_MODE : FONT_COLOR_LIGHT_MODE);
 
+    if (this.dots) {
+      this.drawDots(
+        context,
+        originX,
+        originY,
+        fontSize,
+        baseColor,
+        darkMode,
+        now,
+      );
+      context.restore();
+      return;
+    }
+
     const states: (LetterState | null)[] = [];
     let isAnimating = false;
     for (let i = 0; i < this.text.length; i++) {
@@ -598,6 +846,277 @@ export class GameText {
 
     context.restore();
   }
+
+  /**
+   * Draw the word from Handjet's element lattice, one fillRect per dot.
+   *
+   * Letter-level state still applies -- the intro, hop and bounce move whole
+   * letters exactly as they do in the fillText path -- and the dot layer adds
+   * a per-dot scatter on top, so the two compose rather than replace one
+   * another.
+   *
+   * The sheen survives this path: its gradient lives in canvas space, so one
+   * fillStyle spans every rect correctly.
+   */
+  private drawDots(
+    context: CanvasRenderingContext2D,
+    originX: number,
+    originY: number,
+    fontSize: number,
+    baseColor: string,
+    darkMode: boolean,
+    now: number,
+  ) {
+    this.ensureDotIndex();
+    this.startRumbleIfIdle(now);
+    this.startRecoveryAfterRumble(now);
+    this.applyRecovery(now);
+
+    const cellPx = fontSize / CELLS_PER_EM;
+    const dotPx = Math.max(1, Math.round(cellPx * this.dotScale));
+    const baseHsl = hexToHsl(baseColor);
+    const outerAlpha = context.globalAlpha;
+    const highlight = darkMode ? "#ffffff" : "#646464";
+    const wordCells = advanceOf(this.text);
+
+    const rumble = this.rumbleProgress(now);
+    // One tick index for the whole word, so every dot re-rolls its shake on
+    // the same beat. Holding each position for rumbleStep ms is what makes it
+    // judder rather than smear.
+    const rumbleTick =
+      rumble === null
+        ? 0
+        : Math.floor((now - this.rumbleStartTime!) / this.rumbleStep);
+
+    const travel = this.blastTravel(now);
+    // The impulse needs each dot's screen position, which only exists inside
+    // the draw loop, so it is computed on the blast's first frame and reused.
+    const computeImpulse = travel !== null && this.blastImpulse === null;
+    if (computeImpulse) this.blastImpulse = new Array(this.totalDots * 2).fill(0);
+    const impulse = this.blastImpulse;
+
+    // Hit box is accumulated from the dots as they are drawn, so blown-apart
+    // pixels stay clickable instead of the box staying at the resting word.
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    let penCells = 0;
+    for (let i = 0; i < this.text.length; i++) {
+      const glyph = glyphFor(this.text[i]);
+      if (!glyph) continue;
+
+      const state = this.letterState(i, now);
+      const alpha = state?.alpha ?? 1;
+      const scale = state?.scale ?? 1;
+      const hue = state?.hue ?? null;
+
+      if (alpha > 0 && glyph.dots.length > 0) {
+        const letterWidthPx = glyph.advance * cellPx;
+        const centerX = originX + penCells * cellPx + letterWidthPx / 2;
+        const translateX = centerX + (state?.offsetX ?? 0);
+        const translateY = originY + (state?.offsetY ?? 0);
+
+        // Where this letter sits along the word, 0..1, for the sheen sweep.
+        const fraction =
+          wordCells > 0 ? (penCells + glyph.advance / 2) / wordCells : 0;
+        const sheen = this.sheenAmountAt(fraction, now);
+
+        context.save();
+        context.globalAlpha = outerAlpha * alpha;
+        context.fillStyle =
+          hue !== null
+            ? this.introColor(hue, baseHsl)
+            : sheen > 0
+              ? mixHex(baseColor, highlight, sheen)
+              : baseColor;
+
+        // Scale about the letter's centre so a dot-drawn letter grows the same
+        // way a fillText one does.
+        context.translate(translateX, translateY);
+        if (scale !== 1) context.scale(scale, scale);
+
+        const base = this.dotIndexBase![i];
+
+        for (let d = 0; d < glyph.dots.length; d++) {
+          const [col, row] = glyph.dots[d];
+
+          // Cell coordinates are y-up from the baseline, and a dot's stored
+          // position is the bottom-left of its cell, so its top edge on screen
+          // is one whole cell higher.
+          const homeX = -letterWidthPx / 2 + col * cellPx;
+          const homeY = -(row + 1) * cellPx;
+
+          const k = (base + d) * 2;
+          let x = homeX + this.dotOffsets[k];
+          let y = homeY + this.dotOffsets[k + 1];
+
+          if (impulse !== null) {
+            if (computeImpulse) {
+              // Screen space, because the click that caused the blast is in
+              // screen space.
+              const kick = this.blastImpulseFor(
+                translateX + x * scale,
+                translateY + y * scale,
+                i,
+                d,
+              );
+              impulse[k] = kick.x;
+              impulse[k + 1] = kick.y;
+            }
+            // Dividing by scale converts the screen-space kick back into this
+            // letter's scaled local space, so the dot moves by the intended
+            // number of *screen* pixels either way.
+            x += (impulse[k] * (travel ?? 0)) / scale;
+            y += (impulse[k + 1] * (travel ?? 0)) / scale;
+          }
+
+          if (rumble !== null) {
+            // Amplitude builds towards the snap, so the shake reads as tension
+            // rather than a constant buzz.
+            const amp = this.rumbleAmplitude * (0.25 + 0.75 * rumble);
+            const angle = hash2(base + d, rumbleTick) * Math.PI * 2;
+            x += (Math.cos(angle) * amp) / scale;
+            y += (Math.sin(angle) * amp) / scale;
+          }
+
+          context.fillRect(Math.round(x), Math.round(y), dotPx, dotPx);
+
+          // Back out to screen space for the hit box: the context is
+          // translated (and possibly scaled) around this letter right now.
+          const screenX = translateX + x * scale;
+          const screenY = translateY + y * scale;
+          const size = dotPx * scale;
+          if (screenX < minX) minX = screenX;
+          if (screenY < minY) minY = screenY;
+          if (screenX + size > maxX) maxX = screenX + size;
+          if (screenY + size > maxY) maxY = screenY + size;
+        }
+
+        context.restore();
+      }
+
+      penCells += glyph.advance;
+    }
+
+    if (minX < maxX) {
+      this.bounds = {
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
+      };
+    }
+
+    // Once the blast has landed, bake it in. Dots stay where they were blown,
+    // and the next click pushes them on from there rather than from home.
+    if (travel === 1) this.settleBlast(now);
+  }
+
+  /** Lazily index every dot in the string so displacement can persist per dot. */
+  private ensureDotIndex() {
+    if (this.dotIndexBase !== null) return;
+
+    const base: number[] = [];
+    let n = 0;
+    for (let i = 0; i < this.text.length; i++) {
+      base.push(n);
+      n += glyphFor(this.text[i])?.dots.length ?? 0;
+    }
+    this.dotIndexBase = base;
+    this.totalDots = n;
+    this.dotOffsets = new Array(n * 2).fill(0);
+  }
+
+  /**
+   * Bake however far the current blast has travelled into dotOffsets and clear
+   * it, leaving every dot exactly where it is on screen right now.
+   *
+   * This is what makes a second click *add* to the first. Without it, starting
+   * a new blast while one is still in flight resets travel to 0 while the old
+   * impulse is still loaded, so the dots snap back to where the previous blast
+   * began and fly out along its vectors again instead of the new click's.
+   */
+  private settleBlast(now: number) {
+    const travel = this.blastTravel(now);
+    if (travel === null || this.blastImpulse === null) return;
+
+    for (let k = 0; k < this.blastImpulse.length; k++) {
+      this.dotOffsets[k] += this.blastImpulse[k] * travel;
+    }
+    this.blastImpulse = null;
+    this.explodeStartTime = null;
+  }
+
+  /**
+   * How far through the current blast, 0..1. Stays at 1 once it has landed:
+   * dots are blown apart and left there, so the displacement holds rather than
+   * easing back.
+   */
+  private blastTravel(now: number): number | null {
+    if (this.explodeStartTime === null) return null;
+    const p = (now - this.explodeStartTime) / this.explodeDuration;
+    return p <= 0 ? 0 : p >= 1 ? 1 : easeOutExpo(p);
+  }
+
+  /**
+   * How far one dot is thrown by a blast, in screen px, before easing.
+   *
+   * Direction is straight out from the click, so the word bursts away from
+   * wherever it was hit. Strength falls off with distance, which is what makes
+   * the click feel located: dots under the cursor are thrown hard, the far end
+   * of the word barely stirs.
+   */
+  private blastImpulseFor(
+    dotScreenX: number,
+    dotScreenY: number,
+    seedA: number,
+    seedB: number,
+  ): { x: number; y: number } {
+    let dx = dotScreenX - this.explodeX;
+    let dy = dotScreenY - this.explodeY;
+    let dist = Math.hypot(dx, dy);
+
+    // A dot sitting exactly under the cursor has no outward direction, so give
+    // it a stable arbitrary one rather than dividing by zero.
+    if (dist < 0.001) {
+      const angle = hash2(seedA, seedB) * Math.PI * 2;
+      dx = Math.cos(angle);
+      dy = Math.sin(angle);
+      dist = 1;
+    }
+
+    // Smooth inverse falloff: full strength at the centre, half at
+    // explodeRadius, never abruptly zero at an edge.
+    const falloff = this.explodeRadius / (this.explodeRadius + dist);
+    const magnitude = this.explodeStrength * falloff;
+    return { x: (dx / dist) * magnitude, y: (dy / dist) * magnitude };
+  }
+
+  /**
+   * Highlight strength, 0..1, for something at `fraction` along the word.
+   *
+   * The fillText path can use a canvas-space gradient, but the dot path
+   * translates per letter before filling, which drags a gradient along with
+   * each letter instead of leaving it spanning the word. Evaluating the band
+   * per letter sidesteps the transform entirely and is what makes the sweep
+   * travel letter by letter.
+   */
+  private sheenAmountAt(fraction: number, now: number): number {
+    if (!this.sheen || this.sheenStartTime === null) return 0;
+
+    const elapsed = now - this.sheenStartTime;
+    if (elapsed < 0 || elapsed > this.sheenDuration) return 0;
+
+    const bandWidth = 0.15; // half the width of the highlight band
+    // Travel from fully off the left edge to fully off the right edge.
+    const pos = (elapsed / this.sheenDuration) * (1 + bandWidth * 2) - bandWidth;
+
+    const d = Math.abs(fraction - pos);
+    return d >= bandWidth ? 0 : 1 - d / bandWidth;
+  }
+
 
   /**
    * The sheen sweep, as a fillStyle. Plays once, starting when the jump
