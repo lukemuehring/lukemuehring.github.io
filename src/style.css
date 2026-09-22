@@ -21,6 +21,15 @@
     "wght" 400;
 }
 
+/* Set for one synchronous moment while the theme flips (see ThemeContext), so colour
+   transitions don't trail behind the rest of the app. */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
 /* Inherited from body rather than forced with `*`, so components can set their own
    family. Canvas text is unaffected either way - it goes through getCanvasFontString. */
 body {
