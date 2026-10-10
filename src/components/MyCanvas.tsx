@@ -7,12 +7,12 @@ import {
 import {
   calculateHeadingFontSize,
   checkIfObjectClicked,
+  ensureResponsiveCanvasSize,
   handleCanvasResize,
   handleTouchCancel,
   handleTouchEnd,
   handleTouchMove,
   handleTouchStart,
-  resizeCamera,
   resizeCanvas,
   resizeMap,
   resizeText,
@@ -170,6 +170,7 @@ export default function MyCanvas({
     }, 1000); // fallback after 1s if browser doesn't load the font
 
     // #endregion
+    
     const CANVAS_DOM_ELEMENT = CanvasRef.current;
     const c = CANVAS_DOM_ELEMENT?.getContext("2d", {
       willReadFrequently: true,
@@ -187,10 +188,10 @@ export default function MyCanvas({
     );
 
     // change the canvas size to match the screen's to cover it completely.
-    if (
-      window.innerWidth != c.canvas.width ||
-      window.innerHeight != c.canvas.height
-    ) {
+    const width = window.visualViewport?.width ?? window.innerWidth;
+    const height = window.visualViewport?.height ?? window.innerHeight;
+
+    if (width != c.canvas.width || height != c.canvas.height) {
       resizeCanvas(c);
     }
 
@@ -327,7 +328,6 @@ export default function MyCanvas({
 
     // #endregion
     MapMaxX = textBubbleArray[CodingStory.length - 1].maxX;
-    resizeCamera(c, CameraRef.current);
     resizeMap(c, MapRef.current, FloorRef.current, MapMaxX);
     resizeText(c, DemosRef.current, TextBubbleArrayRef.current);
 
@@ -505,10 +505,7 @@ export default function MyCanvas({
       /*
        * Responsive Scaling
        */
-      if (
-        window.innerWidth != c.canvas.width ||
-        window.innerHeight != c.canvas.height
-      ) {
+      if (ensureResponsiveCanvasSize(c)) {
         handleCanvasResize(
           c,
           Camera,

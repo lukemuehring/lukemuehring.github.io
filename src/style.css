@@ -29,7 +29,8 @@ body {
   padding: 0;
   width: 100%;
   height: 100%;
-  min-height: 100vh;
+  min-height: 100vh;  /* fallback */
+  min-height: 100dvh; /* modern browsers */
   min-width: 100vw;
   background-color: var(--font-bg-light);
 }
@@ -73,23 +74,22 @@ canvas {
   top: 0;
   right: 0;
   width: 100%;
-  height: 100vh;
-
+  height: 100%;
   .ham-menu {
     position: relative;
-    height: 75px;
-    width: 75px;
+    height: 4.5rem;
+    width: 4.5rem;
     justify-self: right;
     margin-left: auto;
     z-index: 10;
-    border-radius: 16px;
+    border-radius: 1.2rem;
 
     span {
-      height: 4px;
-      width: 50px;
+      height: 0.25rem;
+      width: 3.2rem;
       background-color: rgb(75, 75, 75);
       position: absolute;
-      border-radius: 16px;
+      border-radius: 0.8rem;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);

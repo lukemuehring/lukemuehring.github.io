@@ -77,6 +77,18 @@ export function drawFlippedImage(
 }
 
 // #region --- Map and Responsive Scaling ---
+
+/**
+ * Returns true if the current browser is Mobile Safari (not Chrome, Firefox, Edge, etc. on iOS).
+ */
+export function isMobileSafari(): boolean {
+  const ua = navigator.userAgent;
+  return (
+    /iP(ad|hone|od)/.test(ua) &&
+    /WebKit/.test(ua) &&
+    !/CriOS|FxiOS|OPiOS|mercury|EdgiOS/.test(ua)
+  );
+}
 export function handleCanvasResize(
   context: CanvasRenderingContext2D,
   Camera: Camera,
@@ -93,16 +105,28 @@ export function handleCanvasResize(
 }
 
 export function resizeCanvas(context: CanvasRenderingContext2D) {
-  context.canvas.width = window.innerWidth;
-  context.canvas.height = window.innerHeight;
+  // Make canvas fill viewport in CSS units
+  const canvas = context.canvas;
+  canvas.style.width = '100dvw';
+  canvas.style.height = '100dvh';
+
+  // Get the actual displayed size (CSS pixels, zoom-responsive)
+  const rect = canvas.getBoundingClientRect();
+
+  canvas.width = Math.round(rect.width);
+  if (isMobileSafari()) {
+    canvas.height = Math.round(rect.height);
+  } else {
+    canvas.height = Math.round(rect.height);
+  }
 }
 
 export function resizeCamera(
   _context: CanvasRenderingContext2D,
   Camera: Camera,
 ) {
-  Camera.width = window.innerWidth;
-  Camera.height = window.innerHeight;
+  Camera.width = window.visualViewport?.width ?? window.innerWidth;
+  Camera.height = window.visualViewport?.height ?? window.innerHeight;
 }
 
 export function resizeMap(
@@ -149,6 +173,38 @@ function cutOffFloorEdgesInMap(Map: GameMap, maxX: number) {
 //   (Player.x = x), (Player.y = y);
 // }
 // #endregion
+
+// Multiplier for extra canvas height on mobile Safari
+export const MOBILE_SAFARI_CANVAS_HEIGHT_MULTIPLIER = 1.15;
+
+/**
+ * Ensures the canvas is sized correctly for the current device/browser.
+ * For mobile Safari, checks if the canvas height matches the expected 1.15x visualViewport height,
+ * and resizes if not. For other browsers, checks if canvas size matches window size and resizes if not.
+ * @param context CanvasRenderingContext2D
+ */
+export function ensureResponsiveCanvasSize(context: CanvasRenderingContext2D): boolean {
+  const canvas = context.canvas;
+  // Set CSS size for zoom-responsiveness
+  canvas.style.width = '100vw';
+  canvas.style.height = '100vh';
+  const rect = canvas.getBoundingClientRect();
+
+  const expectedWidth = Math.round(rect.width);
+  const expectedHeight = isMobileSafari()
+    ? Math.round(rect.height * MOBILE_SAFARI_CANVAS_HEIGHT_MULTIPLIER)
+    : Math.round(rect.height);
+
+  if (
+    canvas.width !== expectedWidth ||
+    Math.abs(canvas.height - expectedHeight) > 1 // allow for rounding error
+  ) {
+    canvas.width = expectedWidth;
+    canvas.height = expectedHeight;
+    return true;
+  }
+  return false;
+}
 
 // #region --- Text Utilities ---
 
@@ -660,7 +716,7 @@ export function setupTextBubblesObjectsAndDemos(
     websiteUiImage,
     undefined,
     328,
-    198
+    198,
   );
   backgroundObjects.push(websitePixelArt);
   // #endregion
