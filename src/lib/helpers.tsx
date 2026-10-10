@@ -543,9 +543,9 @@ export function setupAboutMe(
     currentX = endX;
   }
 
-  // extend floor to endx with 500px margin, and subtract to align with grid tilesize.
+  // extend floor to endx, and subtract to align with grid tilesize.
   // (targetForFraction depends on floor.rightX)
-  Floor.rightX = endX + 500 - ((endX + 500) % Map.tsize);
+  Floor.rightX = endX  - ((endX) % Map.tsize);
 
   // Get the "About" nav world X, now that the floor has been updated
   const worldTargets = getWorldTargets(Controller);

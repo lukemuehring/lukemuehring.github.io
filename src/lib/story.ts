@@ -8,4 +8,8 @@ export const CodingStory = [
   "Currently psyched on: experimenting with an alpine remote work setup. I'm running Macbook Pro + Apple Vision Pro + Starlink Mini + 2 Anker 165W power banks.",
   "Outside of work, I'm usually finding some way to move outside. My blog also has trip reports on the adventures I've taken.",
   "Thanks for listening. I'm going to jump off a cliff now!",
+  "3...     ",
+  "2...     ",
+  "1...     ",
+  "SEND IT!",
 ];
