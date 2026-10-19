@@ -3,6 +3,7 @@ import {
   ANIMATION_TIME_BUFFER,
   FONT_HEADING,
   FRAME_DURATION,
+  NAV_TARGETS,
 } from "../lib/constants";
 import {
   calculateHeadingFontSize,
@@ -28,6 +29,7 @@ import { Floor } from "../types/Floor";
 import { GameMap } from "../types/GameMap";
 import { GameText } from "../types/GameText";
 import { ImageObject } from "../types/ImageObject";
+import { Marker } from "../types/Marker";
 import { Mouse } from "../types/Mouse";
 import { Player } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
@@ -35,6 +37,9 @@ import DemoModal from "./DemoModal/DemoModal";
 import RecordingVisualizerMock, {
   type RecordingVisualizerHandle,
 } from "./RecordingPopup/RecordingVisualizerMock";
+
+/** grass1.png, the placeholder sprite standing at the blog spot. */
+const GRASS_MARKER_SIZE_PX = 55;
 
 export default function MyCanvas({
   IsUserInputAllowedRef,
@@ -45,6 +50,7 @@ export default function MyCanvas({
   ControllerRef,
   darkModeRef,
   darkModeValue,
+  startRouteTransition,
 }: {
   IsUserInputAllowedRef: React.RefObject<boolean>;
   IsDemoModalOpenRef: React.RefObject<boolean>;
@@ -54,6 +60,8 @@ export default function MyCanvas({
   ControllerRef: React.RefObject<Controller | null>;
   darkModeRef: React.RefObject<boolean>;
   darkModeValue: boolean;
+  /** Plays the full-screen wipe, then routes. Owned by App, which outlives this route. */
+  startRouteTransition: (to: string) => void;
 }) {
   const visualizerRef = useRef<RecordingVisualizerHandle>(null);
   const [demoModal, setDemoModal] = useState<any | null>(null);
@@ -93,6 +101,10 @@ export default function MyCanvas({
   const WelcomeTextArrayRef = useRef<GameText[] | null>(null);
   const WebsiteUiImgRef = useRef<HTMLImageElement | null>(null);
   const RecordingVisualizerRef = useRef<ImageObject | null>(null);
+  const BlogMarkerRef = useRef<Marker | null>(null);
+  /** The pending animation frame, so unmounting can stop the loop rather than leak it. */
+  const LoopFrameRef = useRef<number | null>(null);
+  const IsUnmountedRef = useRef(false);
 
   // #endregion
 
@@ -109,6 +121,10 @@ export default function MyCanvas({
 
   // runs after the component mounts + renders
   useEffect(() => {
+    // Reset rather than initialise: in StrictMode this effect is torn down and re-run,
+    // and the ref survives in between.
+    IsUnmountedRef.current = false;
+
     // #region Preloading Images
     const imageCache: Record<string, HTMLImageElement> = {};
     const imagePathArray = [
@@ -138,8 +154,8 @@ export default function MyCanvas({
 
     function trackProgress() {
       loadedImages++;
-      if (loadedImages === imagePathArray.length) {
-        window.requestAnimationFrame(loop);
+      if (loadedImages === imagePathArray.length && !IsUnmountedRef.current) {
+        LoopFrameRef.current = window.requestAnimationFrame(loop);
       }
     }
 
@@ -273,6 +289,24 @@ export default function MyCanvas({
     );
     // #endregion
 
+    // #region Blog marker
+    // Stands exactly where the nav's BLOG link walks to, so arriving on foot and
+    // arriving by nav put the character on the same spot. Placeholder art for now - it
+    // is the grass tuft the story markers use.
+    BlogMarkerRef.current = new Marker({
+      x: ControllerRef.current.targetForFraction(NAV_TARGETS.BLOG),
+      image: GrassMarkerImgRef.current,
+      width: GRASS_MARKER_SIZE_PX,
+      height: GRASS_MARKER_SIZE_PX,
+      label: "BLOG",
+      // The nav parks the character right on top of this, and they are drawn over it,
+      // so the label has to clear their head rather than sit just above the grass.
+      labelOffsetY: PlayerRef.current.height - GRASS_MARKER_SIZE_PX + 20,
+      onClick: () => startRouteTransition("/blog"),
+    });
+    BlogMarkerRef.current.standOn(FloorRef.current.height);
+    // #endregion
+
     // #region Text setup
     if (c.canvas.width <= 500) {
       FONT_HEADING.H1 = 80;
@@ -374,6 +408,15 @@ export default function MyCanvas({
     };
 
     const onClickListener = (_event: MouseEvent) => {
+      // The marker routes away, so it only answers while the game is taking input: a
+      // click that lands during a respawn, or with the nav menu open, is not a click on
+      // the world.
+      const blogMarker = BlogMarkerRef.current;
+      if (blogMarker?.hover && IsUserInputAllowedRef.current) {
+        blogMarker.onClick();
+        return;
+      }
+
       // Replay the welcome hop when its text is clicked. .hover is refreshed
       // every frame from the cursor position, so no coordinates are needed here.
       const mouse = MouseRef.current;
@@ -436,6 +479,15 @@ export default function MyCanvas({
     // Cleanup useEffect - runs on component unmount
     // Remove all event listeners to prevent memory leaks
     return () => {
+      // Routing to the blog unmounts this component while the loop is still queued. Left
+      // alone it would spin forever against a dead canvas, and coming back to "/" would
+      // start a second one alongside it - two loops, everything at double speed.
+      IsUnmountedRef.current = true;
+      if (LoopFrameRef.current !== null) {
+        window.cancelAnimationFrame(LoopFrameRef.current);
+        LoopFrameRef.current = null;
+      }
+
       for (const src in imageCache) {
         imageCache[src].removeEventListener("load", trackProgress);
       }
@@ -481,6 +533,7 @@ export default function MyCanvas({
     const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
     const WelcomeTextArray: GameText[] | null = WelcomeTextArrayRef.current;
     const WebsiteUiImg: HTMLImageElement | null = WebsiteUiImgRef.current;
+    const BlogMarker: Marker | null = BlogMarkerRef.current;
 
     // check if dark mode changed
     let darkModeChanged = false;
@@ -644,6 +697,22 @@ export default function MyCanvas({
       }
       c.restore();
 
+      /*
+       * Blog Marker Draw - before the Player, so the character walks in front of the
+       * marker rather than disappearing behind it when they come to a stop on it.
+       */
+      if (BlogMarker) {
+        // Re-parked every frame so the sprite follows the floor if it ever moves; it is
+        // a subtraction, and a marker floating in mid-air is a worse bug than the cost.
+        BlogMarker.standOn(Floor.height);
+        if (IsUserInputAllowedRef.current) {
+          BlogMarker.detectMouseHover(Mouse.x, Mouse.y, Camera.x);
+        } else {
+          BlogMarker.hover = false;
+        }
+        BlogMarker.draw(c, Camera.x, darkMode);
+      }
+
       Player.draw(
         c,
         Floor.height,
@@ -687,7 +756,7 @@ export default function MyCanvas({
       }
 
       // Mouse Draw
-      Mouse.draw(c, Canvas, Demos, [Player], WelcomeTextArray);
+      Mouse.draw(c, Canvas, Demos, [Player], WelcomeTextArray, [BlogMarker]);
 
       // Waveform Vizualizer draw
       const RecVizCanvas = RecordingVisualizerRef.current;
@@ -706,7 +775,8 @@ export default function MyCanvas({
     /*
      * Call next frame of animation
      */
-    window.requestAnimationFrame(loop);
+    if (IsUnmountedRef.current) return;
+    LoopFrameRef.current = window.requestAnimationFrame(loop);
   }
   // #endregion Animation Loop
 

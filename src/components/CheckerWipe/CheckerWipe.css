@@ -1,0 +1,95 @@
+/*
+ * Full-screen route transition: a grid of squares that fills in from the middle
+ * outwards, then empties the same way once the page underneath has been swapped.
+ *
+ * The pacing is data, not CSS. CheckerWipe.tsx hands every square its own --d (when it
+ * starts) and hands the sheet a --checker-scale (how fast the whole pass runs), so the
+ * uncover pass is the same delays replayed at a smaller scale - there is deliberately
+ * no second set of numbers in here to drift out of sync with the first.
+ */
+
+.checker-wipe {
+  --cell-ms: 220ms;
+  --checker-scale: 1;
+
+  position: fixed;
+  inset: 0;
+  /* Above the toast container (9999), which is the highest thing on the canvas page. */
+  z-index: 10000;
+  display: grid;
+  /* The squares are opaque but the gaps between them are not, so the sheet has to
+     swallow clicks aimed at whatever is still showing through. */
+  pointer-events: auto;
+}
+
+.checker-wipe__cell {
+  background-color: #ffffff;
+  transform: scale(0);
+  animation-name: checker-fill;
+  animation-duration: calc(var(--cell-ms) * var(--checker-scale));
+  animation-delay: calc(var(--d) * var(--checker-scale));
+  /* Four chunky jumps rather than a smooth grow, to match the pixel art it covers.
+     "start" so a square appears the instant its turn comes up. */
+  animation-timing-function: steps(4, start);
+  animation-fill-mode: forwards;
+}
+
+.checker-wipe--out .checker-wipe__cell {
+  transform: scale(1.05);
+  animation-name: checker-clear;
+}
+
+/* Squares overshoot their cell by 5% so neighbours overlap: at exactly 1 the fractional
+   grid tracks leave hairlines of the page showing through the seams. */
+@keyframes checker-fill {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes checker-clear {
+  from {
+    transform: scale(1.05);
+  }
+  to {
+    transform: scale(0);
+  }
+}
+
+/* Same cover, no travelling edge: every square is already in place and the sheet just
+   fades. The timings the component runs on are unchanged, so the route still swaps at
+   the same moment. */
+@media (prefers-reduced-motion: reduce) {
+  .checker-wipe__cell {
+    transform: scale(1.05);
+    animation-name: checker-fade-in;
+    animation-duration: calc(300ms * var(--checker-scale));
+    animation-delay: 0ms;
+    animation-timing-function: ease;
+  }
+
+  .checker-wipe--out .checker-wipe__cell {
+    animation-name: checker-fade-out;
+  }
+
+  @keyframes checker-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes checker-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}

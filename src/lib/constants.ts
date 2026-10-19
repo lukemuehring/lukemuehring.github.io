@@ -25,6 +25,19 @@ export const WALK_ACCELERATION = 0.5;
  */
 export const AUTO_WALK_DURATION_FRAMES = 30;
 
+/**
+ * Where each destination sits as a fraction of the walkable floor. Fractions rather than
+ * absolute x so the spots stay on solid ground when the floor is widened.
+ *
+ * Shared because two things have to agree on them: the nav walks the character here, and
+ * MyCanvas stands a Marker on the same spot.
+ */
+export const NAV_TARGETS = {
+  BLOG: 0.15,
+  PROJECTS: 0.45,
+  ABOUT: 0.75,
+} as const;
+
 // Fonts
 export const FONT_HEADING = {
   H1: 100,

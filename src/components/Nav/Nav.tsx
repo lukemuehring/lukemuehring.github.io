@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FiMoon, FiSun } from "react-icons/fi";
 import "./Nav.css";
+import { NAV_TARGETS } from "../../lib/constants";
 import { useTheme } from "../../context/ThemeContext";
 import type { Controller } from "../../types/Controller";
 import type { Player } from "../../types/Player";
@@ -13,9 +14,9 @@ import type { Player } from "../../types/Player";
  * Must stay in ascending target order - the underline interpolates across them.
  */
 const NAV_ITEMS = [
-  { label: "BLOG", target: 0.15 },
-  { label: "PROJECTS", target: 0.45 },
-  { label: "ABOUT", target: 0.75 },
+  { label: "BLOG", target: NAV_TARGETS.BLOG },
+  { label: "PROJECTS", target: NAV_TARGETS.PROJECTS },
+  { label: "ABOUT", target: NAV_TARGETS.ABOUT },
 ] as const;
 
 /**
