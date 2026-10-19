@@ -53,13 +53,12 @@ const WELCOME_WIDTH_SCALE = 1.25;
 const WELCOME_LETTER_SPACING = 0.5;
 
 /**
- * Game Boy wordmark palette. These are waypoints for the intro sweep, not the colour
- * the word ends up - every letter washes out to WELCOME_COLOR as it lands.
+ * Game Boy wordmark palette, at the saturation the flash wants rather than the print
+ * pastels of the logo - the hues are the logo's, the chroma is not. These are waypoints
+ * for the intro sweep only; every letter washes out to the themed text colour as it
+ * lands, which is what keeps the resting word legible on both backgrounds.
  */
-const WELCOME_PALETTE = ["#5c6fd0", "#63ad5e", "#e3aede", "#c75f4d"];
-
-/** What the word settles on once the intro has played out. */
-const WELCOME_COLOR = "#ffffff";
+const WELCOME_PALETTE = ["#3b5af7", "#1ed411", "#f349e3", "#ee472b"];
 
 /**
  * The lean builds across the word rather than sitting flat on every letter. The Game
@@ -332,7 +331,6 @@ export default function MyCanvas({
       ),
       CanShowTextRef,
       {
-        color: WELCOME_COLOR,
         dots: true,
         dotScale: 1.4,
         widthScale: WELCOME_WIDTH_SCALE,
