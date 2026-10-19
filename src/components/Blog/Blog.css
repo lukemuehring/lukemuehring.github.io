@@ -114,3 +114,96 @@ figure {
   font-size: 2rem;
   cursor: pointer;
 }
+/* --- Image skeletons -------------------------------------------------------------
+ *
+ * These posts carry 3-6MB photos a dozen at a time, so each one is held open at its
+ * real aspect ratio until it arrives. The ratio comes in as --ratio from BlogImage,
+ * sourced from src/data/blog-image-dims.json (see scripts/extract-image-dims.py); the
+ * 3/2 fallback only applies to an image missing from that manifest.
+ *
+ * Every selector here is .blog-scoped on purpose. `.blog *` above paints every
+ * descendant with the page background, and at equal specificity it would win on source
+ * order and flatten the skeleton to invisibility.
+ */
+.blog .blog-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--ratio, 3 / 2);
+  overflow: hidden;
+  background-color: color-mix(in srgb, var(--font-bg-light) 88%, black);
+}
+
+.blog.dark .blog-image {
+  background-color: color-mix(in srgb, var(--font-bg-dark) 82%, white);
+}
+
+/* The sweep. Stepped rather than a smooth gradient slide, so it sits with the pixel art
+   the rest of the site is built from. */
+.blog .blog-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.35) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: blog-image-sweep 1.4s steps(12, end) infinite;
+}
+
+.blog.dark .blog-image::after {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.08) 50%,
+    transparent 100%
+  );
+}
+
+.blog .blog-image.is-loaded {
+  background-color: transparent;
+}
+
+.blog .blog-image.is-loaded::after {
+  content: none;
+}
+
+.blog .blog-image img {
+  width: 100%;
+  height: 100%;
+  /* The box is the image's own ratio, so this crops nothing. It is here to keep a stale
+     manifest entry from stretching a photo. */
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.blog .blog-image.is-loaded img {
+  opacity: 1;
+}
+
+/* Full-bleed shots: capped at the viewport height, with the width capped to match so
+   the ratio survives the cap rather than the box going wide and short. */
+.blog .blog-image--full {
+  max-height: 100vh;
+  max-width: calc(100vh * var(--ratio, 1.5));
+  margin-inline: auto;
+}
+
+@keyframes blog-image-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog .blog-image::after {
+    animation: none;
+  }
+
+  .blog .blog-image img {
+    transition: none;
+  }
+}
