@@ -19,6 +19,7 @@ import {
   FONT_COLOR_DARK_MODE,
   FONT_COLOR_LIGHT_MODE,
   FONT_HEADING,
+  NAV_TARGETS,
 } from "./constants";
 import { CodingStory } from "./story";
 
@@ -526,28 +527,41 @@ export function setupAboutMe(
 
   // determines how much horizontal distance is given to each text bubble
   const ReadingSpeedPixelsPerCharacter = 7;
+  /**
+   * The closing bubble is given a flat slot instead of one scaled to its length, so the
+   * story does not end the instant the last word does. It only feeds the width solve
+   * below - the bubble itself is pinned to the floor's edge when it is placed.
+   */
+  const LAST_STORY_ENTRY_WIDTH = 500;
   const TEXT_BUBBLE_MAX_LINE_WIDTH: number = Math.floor(
     context.canvas.width / 1.5,
   );
 
-  // build textBubbles starting from the About Me nav section.
-  // first, run through enitre story array to find out when the endX is
-  let currentX = 0;
-  let endX = 0;
-  for (let i = 0; i < CodingStory.length; i++) {
-    if (i == CodingStory.length - 1) {
-      endX = currentX + 500 - ((currentX + 500) % Map.tsize);
-    } else {
-      endX = currentX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
-    }
-    currentX = endX;
-  }
+  // The story runs from the ABOUT nav target to the end of the floor, and that target is
+  // a fraction of the floor's length - so there is exactly one floor length where both
+  // are true:
+  //
+  //     rightX = ABOUT * rightX + storyWidth   ->   rightX = storyWidth / (1 - ABOUT)
+  //
+  // Solving it in one step is what breaks the chicken-and-egg. The previous version
+  // picked a length, read the target off it, then widened the floor again to make room,
+  // which moved the target out from under the text that had just been placed against
+  // it - the story went in at 7200 while ABOUT walked to 12600.
+  //
+  // Everything downstream of this is positioned against targetForFraction, so nothing
+  // may write Floor.rightX after this point.
+  const storyWidth = CodingStory.reduce(
+    (total, entry, i) =>
+      total +
+      (i === CodingStory.length - 1
+        ? LAST_STORY_ENTRY_WIDTH
+        : entry.length * ReadingSpeedPixelsPerCharacter),
+    0,
+  );
+  const solvedRightX = Math.floor(storyWidth / (1 - NAV_TARGETS.ABOUT));
+  Floor.rightX = solvedRightX - (solvedRightX % Map.tsize);
 
-  // extend floor to endx, and subtract to align with grid tilesize.
-  // (targetForFraction depends on floor.rightX)
-  Floor.rightX = endX  - ((endX) % Map.tsize);
-
-  // Get the "About" nav world X, now that the floor has been updated
+  // Read once, now that the floor is final and will not move again.
   const worldTargets = getWorldTargets(Controller);
   const AboutMeWorldX = worldTargets?.find(
     (wt) => wt.label === "ABOUT",
@@ -556,37 +570,18 @@ export function setupAboutMe(
     console.error("nav not set up. Can not setup About me section.");
     return;
   }
-  console.log(worldTargets, "world targs in  me world X")
 
-  // Insert textBubbles starting at AboutMeWorldX, and move Floor.rightx to reflect adding the AboutMeWorldX - - - Coding Story - - - Floor.rightX
-
-  // The Bug:
-  // Before:
-  // currentX = 0
-  // AboutMeWorldX - - - Coding Story - - - Floor.rightX
-  // 0 ------------------------------------- endX
-
-  // After:
-  // AboutMeWorldX - - - Coding Story - - - Floor.rightX
-  // About Me x ---------------------------- Floor.rightX
-
-  // editing the Floor rightX is messing up the AboutMe world target. 
-  // either the start or the end will be misaligned. 
-  // a bit of a chicken and the egg problem.
-  // the problem is that since the targets are relative, any changes to the width affects the entire website. Adding the coding story will affect the widths of each section, which in turn affects
-  // where we insert the coding story.
-
-  // the center of the world is also off - see the reload screen!
-
-  currentX = AboutMeWorldX;
-  Floor.rightX += AboutMeWorldX;
+  let currentX = AboutMeWorldX;
+  let endX = 0;
 
   for (let i = 0; i < CodingStory.length; i++) {
-    if (i == CodingStory.length - 1) {
-      endX = currentX + 500 - ((currentX + 500) % Map.tsize);
-    } else {
-      endX = currentX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
-    }
+    // The last bubble is pinned to the floor's edge rather than measured like the
+    // others: rightX was rounded down to the tile grid, and absorbing that remainder
+    // here is what makes the story end exactly where the ground does.
+    endX =
+      i === CodingStory.length - 1
+        ? Floor.rightX
+        : currentX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
     textBubbleArray.push(
       new TextBubble(
         CodingStory[i],

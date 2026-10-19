@@ -33,7 +33,6 @@ import { Mouse } from "../types/Mouse";
 import { Player } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
-import { getWorldTargets } from "./Nav/Nav";
 
 /** grass1.png, the placeholder sprite standing at the blog spot. */
 const GRASS_MARKER_SIZE_PX = 55;
@@ -391,10 +390,7 @@ export default function MyCanvas({
     });
     BlogMarkerRef.current.standOn(FloorRef.current.height);
     // #endregion
-    console.log(MapMaxX, "map")
-    console.log(FloorRef.current.rightX, "flort")
-    const worldTargets = getWorldTargets(ControllerRef.current);
-    console.log(worldTargets,"targs")
+
     // MapMaxX is set so the collision edge and the floor end-cap stay in sync.
     resizeCamera(c, CameraRef.current);
     resizeMap(c, MapRef.current, FloorRef.current, MapMaxX);
