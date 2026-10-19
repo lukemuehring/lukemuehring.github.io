@@ -61,6 +61,17 @@ const WELCOME_LETTER_SPACING = 0.5;
 const WELCOME_PALETTE = ["#3b5af7", "#1ed411", "#f349e3", "#ee472b"];
 
 /**
+ * Stretches the entrance - the letters' fade-in, the stagger between them and the hop
+ * that rides along with it.
+ *
+ * Not the sheen: it is scheduled off the end of the wave rather than at a fixed time,
+ * so it still waits for the slower entrance to finish and then sweeps at its own pace.
+ * Nor the click hop, which is its own interaction and a long way from here by then.
+ */
+const WELCOME_INTRO_SLOWDOWN = 1.3;
+const slowed = (ms: number) => Math.round(ms * WELCOME_INTRO_SLOWDOWN);
+
+/**
  * The lean builds across the word rather than sitting flat on every letter. The Game
  * Boy wordmark itself is upright, so set the end to 0 to match it exactly.
  */
@@ -348,8 +359,8 @@ export default function MyCanvas({
         rumbleStep: 60,
         sheen: true,
         sheenDuration: 550,
-        introDuration: 600,
-        introStagger: 55,
+        introDuration: slowed(600),
+        introStagger: slowed(55),
         introScale: 3,
         introOffsetX: 50,
         introOffsetY: 50,
@@ -360,7 +371,7 @@ export default function MyCanvas({
         introJumpHeight: 0.65,
         jumpStagger: 40,
         jumpDuration: 320,
-        introJumpDuration: 400,
+        introJumpDuration: slowed(400),
         jumpWithIntro: true,
       },
     );
