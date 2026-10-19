@@ -1,23 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FiMoon, FiSun } from "react-icons/fi";
 import "./Nav.css";
-import { NAV_TARGETS } from "../../lib/constants";
+import { NAV_ITEMS, getWorldTargets } from "../../lib/navTargets";
 import { useTheme } from "../../context/ThemeContext";
 import type { Controller } from "../../types/Controller";
 import type { Player } from "../../types/Player";
-
-/**
- * Each link walks the character to a spot in the game world instead of routing away.
- * Targets are fractions of the walkable floor rather than absolute coordinates, so they
- * stay on solid ground when the floor is widened (see Controller.targetForFraction).
- *
- * Must stay in ascending target order - the underline interpolates across them.
- */
-const NAV_ITEMS = [
-  { label: "BLOG", target: NAV_TARGETS.BLOG },
-  { label: "PROJECTS", target: NAV_TARGETS.PROJECTS },
-  { label: "ABOUT", target: NAV_TARGETS.ABOUT },
-] as const;
 
 /**
  * How close the character has to be to a target for that item to light up. Being between
@@ -68,19 +55,6 @@ function itemAt(worlds: number[], x: number): number | null {
     }
   });
   return best;
-}
-
-type WorldTarget = { label: String; target: number };
-
-// array of { nav item label, x coordinate in the world }
-export function getWorldTargets(
-  controller: Controller | null | undefined,
-): WorldTarget[] | null {
-  if (!controller) return null;
-  return NAV_ITEMS.map((item) => ({
-    label: item.label,
-    target: controller.targetForFraction(item.target),
-  }));
 }
 
 type NavProps = {

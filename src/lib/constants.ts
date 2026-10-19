@@ -33,7 +33,7 @@ export const AUTO_WALK_DURATION_FRAMES = 30;
  * MyCanvas stands a Marker on the same spot.
  */
 export const NAV_TARGETS = {
-  BLOG: 0.15,
+  BLOG: 0.05,
   PROJECTS: 0.45,
   ABOUT: 0.75,
 } as const;

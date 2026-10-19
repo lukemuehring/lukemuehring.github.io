@@ -1,4 +1,3 @@
-import { getWorldTargets } from "../components/Nav/Nav";
 import { Button } from "../types/Button";
 import type { Camera } from "../types/Camera";
 import { Controller } from "../types/Controller";
@@ -21,6 +20,7 @@ import {
   FONT_HEADING,
   NAV_TARGETS,
 } from "./constants";
+import { getWorldTargets } from "./navTargets";
 import { CodingStory } from "./story";
 
 /**
