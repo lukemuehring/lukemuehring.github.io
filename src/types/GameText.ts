@@ -86,37 +86,31 @@ function mixHex(base: string, highlight: string, t: number): string {
   const c = a.map((v, i) => Math.round(v + (b[i] - v) * t));
   return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 }
-const toHexPair = (n: number) =>
-  Math.max(0, Math.min(255, Math.round(n)))
-    .toString(16)
-    .padStart(2, "0");
+/** Shortest way round the wheel, so blue to green goes through cyan and not red. */
+function lerpHue(a: number, b: number, t: number): number {
+  const delta = ((b - a + 540) % 360) - 180;
+  return (a + delta * t + 360) % 360;
+}
 
 /**
- * Colour at 0..1 along a list of hex stops, linear between the two it falls between.
+ * The palette at 0..1, interpolated in HSL between the two stops it falls between.
  *
- * Returns hex rather than the rgb() string mixHex produces, because the result goes
- * straight back through mixHex and hexToHsl for the sheen and the intro, and neither
- * of those can parse rgb().
+ * HSL rather than RGB because the stops are far apart in hue, and straight RGB drags
+ * the colours between them through grey - green to pink passes right through it. Going
+ * round the wheel keeps every intermediate as saturated as the stops either side, which
+ * is what makes it read as a rainbow rather than a fade.
  */
-function sampleGradient(stops: string[], t: number, blend: boolean): string {
-  if (stops.length === 0) return "#000000";
-  if (stops.length === 1) return stops[0];
-  const clamped = Math.min(1, Math.max(0, t));
-
-  // Even bands, one stop each, rather than a ramp. Blending two stops that are far
-  // apart in hue drags the letters between them through grey - green to pink in RGB
-  // passes straight through it - and banding is what the pixel wordmarks do anyway.
-  if (!blend) {
-    return stops[Math.min(stops.length - 1, Math.floor(clamped * stops.length))];
-  }
-
-  const span = clamped * (stops.length - 1);
+function samplePaletteHsl(stops: string[], t: number): Hsl {
+  const span = Math.min(1, Math.max(0, t)) * (stops.length - 1);
   const i = Math.min(stops.length - 2, Math.floor(span));
-  const a = hexToRgb(stops[i]);
-  const b = hexToRgb(stops[i + 1]);
-  if (!a || !b) return stops[i];
   const f = span - i;
-  return "#" + a.map((v, k) => toHexPair(v + (b[k] - v) * f)).join("");
+  const a = hexToHsl(stops[i]);
+  const b = hexToHsl(stops[i + 1]);
+  return {
+    h: lerpHue(a.h, b.h, f),
+    s: a.s + (b.s - a.s) * f,
+    l: a.l + (b.l - a.l) * f,
+  };
 }
 
 /**
@@ -179,8 +173,7 @@ export class GameText {
   letterSpacing: number;
   italicSlantStart: number;
   italicSlantEnd: number;
-  gradient: string[] | null;
-  gradientBlend: boolean;
+  introPalette: string[] | null;
   explodeStrength: number;
   explodeRadius: number;
   explodeDuration: number;
@@ -367,18 +360,13 @@ export class GameText {
       italicSlantEnd?: number;
 
       /**
-       * Hex stops sampled across the word, one colour per letter by its position.
-       * Replaces the themed text colour, so the stops have to read on both
-       * backgrounds themselves. Dot path only - the fillText path has no per-letter
-       * colour to give.
+       * Hex stops the intro sweeps through before the letters settle on their
+       * resting colour. Interpolated in HSL, so the stops are waypoints on a
+       * saturated path rather than ends of a fade.
+       *
+       * Replaces the plain hue turn of introHueTurns when set.
        */
-      gradient?: string[];
-
-      /**
-       * Whether to ramp between the stops or hand each an even band of the word.
-       * Defaults to banded: it is what the pixel wordmarks do, and it avoids the
-       * grey that RGB interpolation drags distant hues through. */
-      gradientBlend?: boolean;
+      introPalette?: string[];
 
       /** px a dot at the blast centre is thrown. 0 disables the explosion */
       explodeStrength?: number;
@@ -466,8 +454,7 @@ export class GameText {
     this.letterSpacing = options?.letterSpacing ?? 0;
     this.italicSlantStart = options?.italicSlantStart ?? 0;
     this.italicSlantEnd = options?.italicSlantEnd ?? 0;
-    this.gradient = options?.gradient ?? null;
-    this.gradientBlend = options?.gradientBlend ?? false;
+    this.introPalette = options?.introPalette ?? null;
     this.explodeStrength = options?.explodeStrength ?? 80;
     this.explodeRadius = options?.explodeRadius ?? 120;
     this.explodeDuration = options?.explodeDuration ?? 700;
@@ -795,13 +782,23 @@ export class GameText {
     // saturation for most of the run and snaps to the theme colour at the end.
     const e = p * p * p;
 
-    const hue = (baseHsl.h + p * 360 * this.introHueTurns) % 360;
-    const sat = clamp01to100(
-      this.introSaturation + (baseHsl.s - this.introSaturation) * e,
-    );
-    const light = clamp01to100(
-      this.introLightness + (baseHsl.l - this.introLightness) * e,
-    );
+    // Where the letter starts out: a waypoint on the palette, or a plain turn of the
+    // wheel when no palette is given.
+    const from =
+      this.introPalette && this.introPalette.length > 1
+        ? samplePaletteHsl(this.introPalette, p)
+        : {
+            h: (baseHsl.h + p * 360 * this.introHueTurns) % 360,
+            s: this.introSaturation,
+            l: this.introLightness,
+          };
+
+    // Every channel eases to the resting colour, hue included, so the letter lands
+    // exactly on it rather than near it. Resting white is s 0 / l 100, which is why
+    // the sweep washes out as it arrives.
+    const hue = lerpHue(from.h, baseHsl.h, e);
+    const sat = clamp01to100(from.s + (baseHsl.s - from.s) * e);
+    const light = clamp01to100(from.l + (baseHsl.l - from.l) * e);
     return `hsl(${hue.toFixed(1)}, ${sat.toFixed(1)}%, ${light.toFixed(1)}%)`;
   }
 
@@ -1042,12 +1039,8 @@ export class GameText {
           wordCells > 0 ? (penCells + glyph.advance / 2) / wordCells : 0;
         const sheen = this.sheenAmountAt(fraction, now);
 
-        // Both of these key off the letter's position in the word, so a letter keeps
-        // its colour and its lean wherever its dots are thrown to.
-        const letterColor = this.gradient
-          ? sampleGradient(this.gradient, fraction, this.gradientBlend)
-          : baseColor;
-        const letterHsl = this.gradient ? hexToHsl(letterColor) : baseHsl;
+        // Keyed off the letter's position in the word, so a letter keeps its lean
+        // wherever its dots are thrown to.
         const slant =
           this.italicSlantStart +
           (this.italicSlantEnd - this.italicSlantStart) * fraction;
@@ -1056,10 +1049,10 @@ export class GameText {
         context.globalAlpha = outerAlpha * alpha;
         context.fillStyle =
           hue !== null
-            ? this.introColor(hue, letterHsl)
+            ? this.introColor(hue, baseHsl)
             : sheen > 0
-              ? mixHex(letterColor, highlight, sheen)
-              : letterColor;
+              ? mixHex(baseColor, highlight, sheen)
+              : baseColor;
 
         // Scale about the letter's centre so a dot-drawn letter grows the same
         // way a fillText one does.
