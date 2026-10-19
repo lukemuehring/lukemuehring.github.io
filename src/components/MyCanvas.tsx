@@ -278,24 +278,6 @@ export default function MyCanvas({
     );
     // #endregion
 
-    // #region Blog marker
-    // Stands exactly where the nav's BLOG link walks to, so arriving on foot and
-    // arriving by nav put the character on the same spot. Placeholder art for now - it
-    // is the grass tuft the story markers use.
-    BlogMarkerRef.current = new Marker({
-      x: ControllerRef.current.targetForFraction(NAV_TARGETS.BLOG),
-      image: GrassMarkerImgRef.current,
-      width: GRASS_MARKER_SIZE_PX,
-      height: GRASS_MARKER_SIZE_PX,
-      label: "BLOG",
-      // The nav parks the character right on top of this, and they are drawn over it,
-      // so the label has to clear their head rather than sit just above the grass.
-      labelOffsetY: PlayerRef.current.height - GRASS_MARKER_SIZE_PX + 20,
-      onClick: () => startRouteTransition("/blog"),
-    });
-    BlogMarkerRef.current.standOn(FloorRef.current.height);
-    // #endregion
-
     // #region Text setup
     if (c.canvas.width <= 500) {
       FONT_HEADING.H1 = 80;
@@ -386,6 +368,29 @@ export default function MyCanvas({
     );
 
     MapMaxX = FloorRef.current.rightX;
+
+    // #region Blog marker
+    // Stands exactly where the nav's BLOG link walks to, so arriving on foot and
+    // arriving by nav put the character on the same spot. Placeholder art for now - it
+    // is the grass tuft the story markers use.
+    //
+    // Built after setupAboutMe, not next to the Controller: setupAboutMe moves
+    // Floor.rightX to fit the coding story, and every nav target is a fraction of that,
+    // so a marker placed before the move ends up ~1000px from the link meant to lead to
+    // it. Anything else positioned against a nav target has to come after this line too.
+    BlogMarkerRef.current = new Marker({
+      x: ControllerRef.current.targetForFraction(NAV_TARGETS.BLOG),
+      image: GrassMarkerImgRef.current,
+      width: GRASS_MARKER_SIZE_PX,
+      height: GRASS_MARKER_SIZE_PX,
+      label: "BLOG",
+      // The nav parks the character right on top of this, and they are drawn over it,
+      // so the label has to clear their head rather than sit just above the grass.
+      labelOffsetY: PlayerRef.current.height - GRASS_MARKER_SIZE_PX + 20,
+      onClick: () => startRouteTransition("/blog"),
+    });
+    BlogMarkerRef.current.standOn(FloorRef.current.height);
+    // #endregion
     console.log(MapMaxX, "map")
     console.log(FloorRef.current.rightX, "flort")
     const worldTargets = getWorldTargets(ControllerRef.current);
