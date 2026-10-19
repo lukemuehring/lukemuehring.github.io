@@ -187,15 +187,21 @@ export function calculateHeadingFontSize(
   c: CanvasRenderingContext2D,
   text: string,
   initialFontSize: number,
+  /** Horizontal stretch the caller will draw with; see GameText's widthScale. */
+  widthScale: number = 1,
 ) {
   c.save();
 
   let currentFontSize = initialFontSize;
   c.font = getCanvasFontString(currentFontSize);
 
+  // Measured unstretched and budgeted against a narrowed screen, because the font has
+  // no idea the dot path is about to widen what it drew.
+  const maxWidth = (c.canvas.width - 50) / widthScale;
+
   // Scale down font size until it fits the screen.
   let currentFontWidthInPx = c.measureText(text).width;
-  while (currentFontWidthInPx > c.canvas.width - 50) {
+  while (currentFontWidthInPx > maxWidth) {
     currentFontSize -= 10;
     c.font = getCanvasFontString(currentFontSize);
     currentFontWidthInPx = c.measureText(text).width;

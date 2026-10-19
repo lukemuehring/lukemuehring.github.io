@@ -37,6 +37,13 @@ import DemoModal from "./DemoModal/DemoModal";
 /** grass1.png, the placeholder sprite standing at the blog spot. */
 const GRASS_MARKER_SIZE_PX = 55;
 
+/**
+ * Horizontal stretch of the welcome word. Shared between the GameText that draws it and
+ * the fit loop that sizes it, which would otherwise measure an unstretched word and let
+ * the drawn one run off the screen.
+ */
+const WELCOME_WIDTH_SCALE = 1.25;
+
 export default function MyCanvas({
   IsUserInputAllowedRef,
   IsDemoModalOpenRef,
@@ -283,16 +290,22 @@ export default function MyCanvas({
       FONT_HEADING.H2 = 33;
       FONT_HEADING.P = 25;
     }
-    const welcomeStr = "luke muehring";
+    const welcomeStr = "SHAFWONG";
     const welcomeText = new GameText(
       welcomeStr,
       Math.floor(c.canvas.width / 2),
       c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
-      calculateHeadingFontSize(c, welcomeStr, FONT_HEADING.H1),
+      calculateHeadingFontSize(
+        c,
+        welcomeStr,
+        FONT_HEADING.H1,
+        WELCOME_WIDTH_SCALE,
+      ),
       CanShowTextRef,
       {
         dots: true,
-        dotScale: 1,
+        dotScale: 1.4,
+        widthScale: WELCOME_WIDTH_SCALE,
         explodeStrength: 90,
         explodeRadius: 120,
         explodeDuration: 450,
@@ -809,7 +822,7 @@ export default function MyCanvas({
     <>
       <canvas id="canvas" ref={CanvasRef}>
         <header>
-          <h1>Luke Muehring</h1>
+          <h1>ＳＨＡＦＷＯＮＧ</h1>
         </header>
         <main>
           <p>climbing, coding & creating</p>

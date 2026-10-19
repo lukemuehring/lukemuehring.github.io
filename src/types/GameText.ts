@@ -135,6 +135,7 @@ export class GameText {
   // --- dots ---
   dots: boolean;
   dotScale: number;
+  widthScale: number;
   explodeStrength: number;
   explodeRadius: number;
   explodeDuration: number;
@@ -285,8 +286,19 @@ export class GameText {
        */
       dots?: boolean;
 
-      /** dot size as a fraction of one grid cell. 1 fills the cell exactly */
+      /**
+       * dot size as a fraction of one grid cell. 1 fills the cell exactly, so
+       * anything above it overlaps the neighbouring dots and fuses the strokes -
+       * that is what reads as bold. Past about 1.6 the counters in e, a and u
+       * close up and the word turns into a block.
+       */
       dotScale?: number;
+
+      /**
+       * horizontal stretch of the lattice. Widens the cells, and the dots with
+       * them, so the letters get wider without getting taller or gappier.
+       */
+      widthScale?: number;
 
       /** px a dot at the blast centre is thrown. 0 disables the explosion */
       explodeStrength?: number;
@@ -370,6 +382,7 @@ export class GameText {
     // single missing glyph would silently vanish from the word.
     this.dots = (options?.dots ?? false) && hasDotsFor(text);
     this.dotScale = options?.dotScale ?? 1;
+    this.widthScale = options?.widthScale ?? 1;
     this.explodeStrength = options?.explodeStrength ?? 80;
     this.explodeRadius = options?.explodeRadius ?? 120;
     this.explodeDuration = options?.explodeDuration ?? 700;
@@ -731,7 +744,13 @@ export class GameText {
     context.font = getCanvasFontString(fontSize);
 
     const metrics = context.measureText(this.text);
-    const textWidth = metrics.width;
+    // The dot path lays the word out from Handjet's lattice rather than from the
+    // font's metrics. The two agree at widthScale 1 -- the lattice was extracted
+    // from this same font -- but not once the letters are stretched, and measuring
+    // the wrong one slides the word off centre and leaves the hit box behind.
+    const textWidth = this.dots
+      ? advanceOf(this.text) * (fontSize / CELLS_PER_EM) * this.widthScale
+      : metrics.width;
     const textX = this.x - cameraX - textWidth / 2;
     const textY = this.y - cameraY;
 
@@ -873,7 +892,14 @@ export class GameText {
     this.applyRecovery(now);
 
     const cellPx = fontSize / CELLS_PER_EM;
-    const dotPx = Math.max(1, Math.round(cellPx * this.dotScale));
+    const cellPxX = cellPx * this.widthScale;
+    // Dots grow from their cell rather than from a point, so they are inset back by
+    // half the overflow. Left anchored at the corner, turning up dotScale would walk
+    // the whole word down and to the right as it got heavier.
+    const dotW = Math.max(1, Math.round(cellPxX * this.dotScale));
+    const dotH = Math.max(1, Math.round(cellPx * this.dotScale));
+    const dotInsetX = (cellPxX - dotW) / 2;
+    const dotInsetY = (cellPx - dotH) / 2;
     const baseHsl = hexToHsl(baseColor);
     const outerAlpha = context.globalAlpha;
     const highlight = darkMode ? "#ffffff" : "#646464";
@@ -913,7 +939,7 @@ export class GameText {
       const hue = state?.hue ?? null;
 
       if (alpha > 0 && glyph.dots.length > 0) {
-        const letterWidthPx = glyph.advance * cellPx;
+        const letterWidthPx = glyph.advance * cellPxX;
         const centerX = originX + penCells * cellPx + letterWidthPx / 2;
         const translateX = centerX + (state?.offsetX ?? 0);
         const translateY = originY + (state?.offsetY ?? 0);
@@ -945,7 +971,7 @@ export class GameText {
           // Cell coordinates are y-up from the baseline, and a dot's stored
           // position is the bottom-left of its cell, so its top edge on screen
           // is one whole cell higher.
-          const homeX = -letterWidthPx / 2 + col * cellPx;
+          const homeX = -letterWidthPx / 2 + col * cellPxX;
           const homeY = -(row + 1) * cellPx;
 
           const k = (base + d) * 2;
@@ -981,17 +1007,23 @@ export class GameText {
             y += (Math.sin(angle) * amp) / scale;
           }
 
-          context.fillRect(Math.round(x), Math.round(y), dotPx, dotPx);
+          context.fillRect(
+            Math.round(x + dotInsetX),
+            Math.round(y + dotInsetY),
+            dotW,
+            dotH,
+          );
 
           // Back out to screen space for the hit box: the context is
           // translated (and possibly scaled) around this letter right now.
-          const screenX = translateX + x * scale;
-          const screenY = translateY + y * scale;
-          const size = dotPx * scale;
+          const screenX = translateX + (x + dotInsetX) * scale;
+          const screenY = translateY + (y + dotInsetY) * scale;
+          const sizeX = dotW * scale;
+          const sizeY = dotH * scale;
           if (screenX < minX) minX = screenX;
           if (screenY < minY) minY = screenY;
-          if (screenX + size > maxX) maxX = screenX + size;
-          if (screenY + size > maxY) maxY = screenY + size;
+          if (screenX + sizeX > maxX) maxX = screenX + sizeX;
+          if (screenY + sizeY > maxY) maxY = screenY + sizeY;
         }
 
         context.restore();
