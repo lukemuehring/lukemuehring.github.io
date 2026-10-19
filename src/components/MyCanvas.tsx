@@ -5,6 +5,7 @@ import {
   FRAME_DURATION,
   NAV_TARGETS,
 } from "../lib/constants";
+import { advanceOf } from "../lib/handjetDots";
 import {
   calculateHeadingFontSize,
   checkIfObjectClicked,
@@ -43,6 +44,13 @@ const GRASS_MARKER_SIZE_PX = 55;
  * the drawn one run off the screen.
  */
 const WELCOME_WIDTH_SCALE = 1.25;
+
+/**
+ * Extra space between the welcome word's letters, in grid cells. Handjet sets F beside
+ * W half a cell apart where most pairs get two, and the heavier dots eat into that from
+ * both sides, so without this they very nearly touch.
+ */
+const WELCOME_LETTER_SPACING = 0.5;
 
 export default function MyCanvas({
   IsUserInputAllowedRef,
@@ -299,13 +307,19 @@ export default function MyCanvas({
         c,
         welcomeStr,
         FONT_HEADING.H1,
-        WELCOME_WIDTH_SCALE,
+        // The fit loop measures with the font, which knows about neither the stretch
+        // nor the tracking, so both are folded into the scale it budgets against.
+        WELCOME_WIDTH_SCALE *
+          (1 +
+            (WELCOME_LETTER_SPACING * (welcomeStr.length - 1)) /
+              advanceOf(welcomeStr)),
       ),
       CanShowTextRef,
       {
         dots: true,
         dotScale: 1.4,
         widthScale: WELCOME_WIDTH_SCALE,
+        letterSpacing: WELCOME_LETTER_SPACING,
         explodeStrength: 90,
         explodeRadius: 120,
         explodeDuration: 450,

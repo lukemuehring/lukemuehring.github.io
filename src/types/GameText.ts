@@ -136,6 +136,7 @@ export class GameText {
   dots: boolean;
   dotScale: number;
   widthScale: number;
+  letterSpacing: number;
   explodeStrength: number;
   explodeRadius: number;
   explodeDuration: number;
@@ -300,6 +301,16 @@ export class GameText {
        */
       widthScale?: number;
 
+      /**
+       * extra space between letters, in grid cells. Stretches with widthScale, so
+       * it stays proportional to the letters rather than drifting as they widen.
+       *
+       * Handjet's own bearings are uneven -- F followed by W leaves half a cell
+       * where most pairs leave two -- so this opens up the tight pairs and the
+       * roomy ones alike. It cannot even them out.
+       */
+      letterSpacing?: number;
+
       /** px a dot at the blast centre is thrown. 0 disables the explosion */
       explodeStrength?: number;
 
@@ -383,6 +394,7 @@ export class GameText {
     this.dots = (options?.dots ?? false) && hasDotsFor(text);
     this.dotScale = options?.dotScale ?? 1;
     this.widthScale = options?.widthScale ?? 1;
+    this.letterSpacing = options?.letterSpacing ?? 0;
     this.explodeStrength = options?.explodeStrength ?? 80;
     this.explodeRadius = options?.explodeRadius ?? 120;
     this.explodeDuration = options?.explodeDuration ?? 700;
@@ -749,7 +761,7 @@ export class GameText {
     // from this same font -- but not once the letters are stretched, and measuring
     // the wrong one slides the word off centre and leaves the hit box behind.
     const textWidth = this.dots
-      ? advanceOf(this.text) * (fontSize / CELLS_PER_EM) * this.widthScale
+      ? this.wordCells() * (fontSize / CELLS_PER_EM) * this.widthScale
       : metrics.width;
     const textX = this.x - cameraX - textWidth / 2;
     const textY = this.y - cameraY;
@@ -877,6 +889,14 @@ export class GameText {
    * The sheen survives this path: its gradient lives in canvas space, so one
    * fillStyle spans every rect correctly.
    */
+  /** Total advance of the word in grid cells, tracking included. */
+  private wordCells(): number {
+    return (
+      advanceOf(this.text) +
+      Math.max(0, this.text.length - 1) * this.letterSpacing
+    );
+  }
+
   private drawDots(
     context: CanvasRenderingContext2D,
     originX: number,
@@ -903,7 +923,7 @@ export class GameText {
     const baseHsl = hexToHsl(baseColor);
     const outerAlpha = context.globalAlpha;
     const highlight = darkMode ? "#ffffff" : "#646464";
-    const wordCells = advanceOf(this.text);
+    const wordCells = this.wordCells();
 
     const rumble = this.rumbleProgress(now);
     // One tick index for the whole word, so every dot re-rolls its shake on
@@ -940,7 +960,7 @@ export class GameText {
 
       if (alpha > 0 && glyph.dots.length > 0) {
         const letterWidthPx = glyph.advance * cellPxX;
-        const centerX = originX + penCells * cellPx + letterWidthPx / 2;
+        const centerX = originX + penCells * cellPxX + letterWidthPx / 2;
         const translateX = centerX + (state?.offsetX ?? 0);
         const translateY = originY + (state?.offsetY ?? 0);
 
@@ -1029,7 +1049,7 @@ export class GameText {
         context.restore();
       }
 
-      penCells += glyph.advance;
+      penCells += glyph.advance + this.letterSpacing;
     }
 
     if (minX < maxX) {
