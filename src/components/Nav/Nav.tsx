@@ -49,7 +49,11 @@ function boxForWorldX(boxes: Box[], worlds: number[], x: number): Box {
   let i = 0;
   while (i < worlds.length - 2 && x > worlds[i + 1]) i++;
   const span = worlds[i + 1] - worlds[i];
-  return lerpBox(boxes[i], boxes[i + 1], span === 0 ? 0 : (x - worlds[i]) / span);
+  return lerpBox(
+    boxes[i],
+    boxes[i + 1],
+    span === 0 ? 0 : (x - worlds[i]) / span,
+  );
 }
 
 /** Index of the item the character is standing at, or null if they're between spots. */
@@ -64,6 +68,19 @@ function itemAt(worlds: number[], x: number): number | null {
     }
   });
   return best;
+}
+
+type WorldTarget = { label: String; target: number };
+
+// array of { nav item label, x coordinate in the world }
+export function getWorldTargets(
+  controller: Controller | null | undefined,
+): WorldTarget[] | null {
+  if (!controller) return null;
+  return NAV_ITEMS.map((item) => ({
+    label: item.label,
+    target: controller.targetForFraction(item.target),
+  }));
 }
 
 type NavProps = {
@@ -96,10 +113,8 @@ export default function Nav({
   /** The bar stays hidden until the nav is first used or the character reaches a spot. */
   const engagedRef = useRef(false);
 
-  const worldTargets = useCallback((): number[] | null => {
-    const controller = ControllerRef?.current;
-    if (!controller) return null;
-    return NAV_ITEMS.map((item) => controller.targetForFraction(item.target));
+  const worldTargets = useCallback(() => {
+    return getWorldTargets(ControllerRef?.current);
   }, [ControllerRef]);
 
   const onClose = () => {
@@ -146,7 +161,11 @@ export default function Nav({
     const walk = walkRef.current;
     const worlds = worldTargets();
     if (walk && worlds && boxesRef.current) {
-      walk.box = boxForWorldX(boxesRef.current, worlds, walk.x);
+      walk.box = boxForWorldX(
+        boxesRef.current,
+        worlds.map((w) => w.target),
+        walk.x,
+      );
     }
   }, [worldTargets]);
 
@@ -172,7 +191,10 @@ export default function Nav({
     if (!svg || !rect || !boxes) return;
 
     if (player && worlds) {
-      const at = itemAt(worlds, player.x);
+      const at = itemAt(
+        worlds.map((w) => w.target),
+        player.x,
+      );
       highlightRef.current = at;
       if (at !== null) engagedRef.current = true;
 
@@ -206,14 +228,21 @@ export default function Nav({
     const walk = walkRef.current;
     let box: Box;
 
-    if (walk && player && worlds && controller && controller.autoWalkTargetX !== null) {
-      const span = worlds[walk.index] - walk.x;
+    const worldsAsTargetArray = worlds?.map((w) => w.target);
+    if (
+      walk &&
+      player &&
+      worldsAsTargetArray &&
+      controller &&
+      controller.autoWalkTargetX !== null
+    ) {
+      const span = worldsAsTargetArray[walk.index] - walk.x;
       const progress =
         span === 0 ? 1 : Math.min(1, Math.max(0, (player.x - walk.x) / span));
       box = lerpBox(walk.box, boxes[walk.index], progress);
-    } else if (player && worlds) {
+    } else if (player && worldsAsTargetArray) {
       walkRef.current = null;
-      box = boxForWorldX(boxes, worlds, player.x);
+      box = boxForWorldX(boxes, worldsAsTargetArray, player.x);
     } else {
       box = currentBoxRef.current ?? boxes[0];
     }
@@ -258,17 +287,25 @@ export default function Nav({
     return () => cancelAnimationFrame(frame);
   }, [sync]);
 
-  const handleWalkTo = (index: number) => {
+  // Walks the player to the nav bar item with the label.
+  const handleWalkTo = (label: string) => {
     const boxes = boxesRef.current;
     const player = PlayerRef?.current;
     const worlds = worldTargets();
+    const index = worlds?.findIndex((item) => item.label === label) ?? null;
 
     // Anchor the bar where it is now and the character where they are now; everything
     // between here and arrival is a blend of those two against the destination.
-    if (boxes && player && worlds) {
+    if (boxes && player && worlds && index) {
       walkRef.current = {
         index,
-        box: currentBoxRef.current ?? boxForWorldX(boxes, worlds, player.x),
+        box:
+          currentBoxRef.current ??
+          boxForWorldX(
+            boxes,
+            worlds.map((w) => w.target),
+            player.x,
+          ),
         x: player.x,
       };
     }
@@ -277,7 +314,12 @@ export default function Nav({
     // Close first: onClose flips IsNavMenuOpenRef, which lets App re-enable game input
     // before the next frame, so the walk survives the Controller's first gate check.
     onClose();
-    ControllerRef?.current?.walkToFraction(NAV_ITEMS[index].target);
+    const targetNavItem = NAV_ITEMS.find((item) => item.label === label);
+    if (!targetNavItem) {
+      console.error("No target nav item to walk to.");
+      return;
+    }
+    ControllerRef?.current?.walkToFraction(targetNavItem.target);
   };
 
   const handleToggleNightMode = () => {
@@ -311,7 +353,7 @@ export default function Nav({
                 btnRefs.current[index] = el;
               }}
               className="nav-btn"
-              onClick={() => handleWalkTo(index)}
+              onClick={() => handleWalkTo(item.label)}
             >
               {item.label}
             </button>
@@ -320,7 +362,9 @@ export default function Nav({
           <button
             className="nav-btn nav-btn--icon"
             onClick={handleToggleNightMode}
-            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            aria-label={
+              darkMode ? "Switch to light mode" : "Switch to dark mode"
+            }
           >
             {darkMode ? <FiSun /> : <FiMoon />}
           </button>

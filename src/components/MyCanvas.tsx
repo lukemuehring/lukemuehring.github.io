@@ -17,9 +17,8 @@ import {
   resizeCanvas,
   resizeMap,
   resizeText,
-  setupTextBubblesObjectsAndDemos,
+  setupAboutMe,
 } from "../lib/helpers";
-import { CodingStory } from "../lib/story";
 import "../style.css";
 import { Background } from "../types/Background";
 import { Button } from "../types/Button";
@@ -34,9 +33,7 @@ import { Mouse } from "../types/Mouse";
 import { Player } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
-import RecordingVisualizerMock, {
-  type RecordingVisualizerHandle,
-} from "./RecordingPopup/RecordingVisualizerMock";
+import { getWorldTargets } from "./Nav/Nav";
 
 /** grass1.png, the placeholder sprite standing at the blog spot. */
 const GRASS_MARKER_SIZE_PX = 55;
@@ -63,15 +60,7 @@ export default function MyCanvas({
   /** Plays the full-screen wipe, then routes. Owned by App, which outlives this route. */
   startRouteTransition: (to: string) => void;
 }) {
-  const visualizerRef = useRef<RecordingVisualizerHandle>(null);
-  const [demoModal, setDemoModal] = useState<any | null>(null);
-  const handleOpenModal = (demo: any) => {
-    setDemoModal(demo);
-    IsUserInputAllowedRef.current = false;
-    IsDemoModalOpenRef.current = true;
-    Button.IsModalOpen = true;
-    onRefChange();
-  };
+    const [demoModal, setDemoModal] = useState<any | null>(null);
 
   const handleCloseModal = () => {
     setDemoModal(null);
@@ -376,9 +365,32 @@ export default function MyCanvas({
     DemosRef.current = demos;
 
     // #endregion
-    // MapMaxX = textBubbleArray[CodingStory.length - 1].maxX;
-    // MapMaxX is set alongside the Floor above so the collision edge and the
-    // drawn end-cap stay in sync.
+    
+    // #region About Me Setup
+    setupAboutMe(
+      c,
+      CANVAS_DOM_ELEMENT,
+      FloorRef.current,
+      ControllerRef.current,
+      PlayerRef.current,
+      MapRef.current,
+      GrassMarkerImgRef.current,
+      CanShowTextRef,
+      IsUserInputAllowedRef,
+      cornerImage, // why is this not a ref? No need to switch in dark mode?
+      DialogTriangleImageRef.current,
+      textBubbleArray,
+      backgroundObjects,
+      WebsiteUiImgRef.current,
+      foregroundObjects
+    );
+
+    MapMaxX = FloorRef.current.rightX;
+    console.log(MapMaxX, "map")
+    console.log(FloorRef.current.rightX, "flort")
+    const worldTargets = getWorldTargets(ControllerRef.current);
+    console.log(worldTargets,"targs")
+    // MapMaxX is set so the collision edge and the floor end-cap stay in sync.
     resizeCamera(c, CameraRef.current);
     resizeMap(c, MapRef.current, FloorRef.current, MapMaxX);
     resizeText(c, DemosRef.current, TextBubbleArrayRef.current);
@@ -628,6 +640,7 @@ export default function MyCanvas({
 
       Controller.update();
       Player.update(Floor, Map, Mouse, Camera);
+    
       Camera.update();
       // #endregion Updating game state - Camera, Controller, Player
 

@@ -1,7 +1,7 @@
-import RecordingWrapper from "../components/RecordingPopup/RecordingWrapper";
+import { getWorldTargets } from "../components/Nav/Nav";
 import { Button } from "../types/Button";
 import type { Camera } from "../types/Camera";
-import type { Controller } from "../types/Controller";
+import { Controller } from "../types/Controller";
 import type { Floor } from "../types/Floor";
 import type { GameMap } from "../types/GameMap";
 import { ImageObject } from "../types/ImageObject";
@@ -166,9 +166,7 @@ export function stepPlayerTowards(
   // used to transition with - the bar is paced by the character now, so this is what
   // gives it back its original feel.
   const eased =
-    progress < 0.5
-      ? 4 * progress ** 3
-      : 1 - (-2 * progress + 2) ** 3 / 2;
+    progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
 
   const nextX = startX + (targetX - startX) * eased;
   // Player.update runs straight after this and applies `x += xVelocity`, so handing it
@@ -495,11 +493,12 @@ export function resizeText(
   FONT_HEADING.P = context.canvas.width <= 500 ? 25 : 30;
 }
 
-// sets up the text bubbles for the story, the background objects and foreground objects
-export function setupTextBubblesObjectsAndDemos(
+// sets up the text bubbles for the story, and the grass marker images
+export function setupAboutMe(
   context: CanvasRenderingContext2D,
   _CANVAS_DOM_ELEMENT: HTMLElement,
   Floor: Floor,
+  Controller: Controller,
   Player: Player,
   Map: GameMap,
   grassMarkerImage: HTMLImageElement,
@@ -511,13 +510,19 @@ export function setupTextBubblesObjectsAndDemos(
   backgroundObjects: ImageObject[],
   websiteUiImage: HTMLImageElement,
   foregroundObjects: ImageObject[],
-  demos: Button[],
-  demosOpenHandler: (demo: any) => void,
 ) {
-  
-  let startX: number =
-    context.canvas.width - Math.floor(context.canvas.width * 0.4);
-  let endX: number;
+  // #region My Story
+
+  function insertGrassMarkerAt(xCoordinate: number): void {
+    const grassMarkerImageHeight = 55;
+    foregroundObjects.push(
+      new ImageObject(
+        xCoordinate,
+        Floor.height - grassMarkerImageHeight,
+        grassMarkerImage,
+      ),
+    );
+  }
 
   // determines how much horizontal distance is given to each text bubble
   const ReadingSpeedPixelsPerCharacter = 7;
@@ -525,140 +530,62 @@ export function setupTextBubblesObjectsAndDemos(
     context.canvas.width / 1.5,
   );
 
-  for (let i = 0; i < 1; i++) {
-    endX = startX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
-
-    textBubbleArray.push(
-      new TextBubble(
-        CodingStory[i],
-        Player.x,
-        Player.y,
-        CanShowTextRef,
-        startX,
-        endX,
-        TEXT_BUBBLE_MAX_LINE_WIDTH,
-        Player,
-        cornerImage,
-        triangleImage,
-      ),
-    );
-
-    // the grass image is 55 pixels tall
-    foregroundObjects.push(
-      new ImageObject(startX, Floor.height - 55, grassMarkerImage),
-    );
-    startX = endX;
-  }
-
-  // #region Demo setup
-  let imageURLS = [
-    "../../images/rr_images/rr1.webp",
-    "../../images/rr_images/rr2.webp",
-    "../../images/rr_images/rr3.webp",
-    "../../images/rr_images/rr4.webp",
-    "../../images/rr_images/rr5.webp",
-    "../../images/rr_images/rr6.webp",
-  ];
-
-  let images = new Array(imageURLS.length);
-  for (let i = 0; i < images.length; i++) {
-    images[i] = new Image();
-    images[i].src = imageURLS[i];
-  }
-
-  let websiteDemoHeader: string = "Rest and Relax Vacation .com";
-  let fontSize = calculateHeadingFontSize(
-    context,
-    websiteDemoHeader,
-    FONT_HEADING.H1,
-  );
-  const BTN_MAX_LINE_WIDTH = Math.min(1000, context.canvas.width - 50);
-
-  const websiteDemo = new Button(
-    textBubbleArray[0].maxX,
-    Math.floor(Floor.height / 2) - 100,
-    images,
-    websiteDemoHeader,
-    fontSize,
-    "A rental website for Rest & Relax Vacation in Gulf Shores, AL.\nBuilt with React 18 and Tailwind CSS.",
-    "https://restandrelaxvacation.com",
-    BTN_MAX_LINE_WIDTH,
-    CanShowTextRef,
-    cornerImage,
-    () => {
-      demosOpenHandler(websiteDemo);
-    },
-  );
-  websiteDemo.initializeDimensions(context);
-  websiteDemo.x += Math.floor(websiteDemo.width / 2);
-
-  demos.push(websiteDemo);
-
-  // waveform recording demo
-  let voiceDictHeader: string = "AI Powered Voice Dictation";
-  let fontSize2 = calculateHeadingFontSize(
-    context,
-    voiceDictHeader,
-    FONT_HEADING.H1,
-  );
-
-  let gap = 50;
-  const voiceDictDemo = new Button(
-    websiteDemo.x + websiteDemo.width / 2 + gap,
-    Math.floor(Floor.height / 2) - 100,
-    [], // todo images
-    voiceDictHeader,
-    fontSize2,
-    "",
-    "",
-    BTN_MAX_LINE_WIDTH,
-    CanShowTextRef,
-    cornerImage,
-    () => {
-      demosOpenHandler(voiceDictDemo);
-    },
-  );
-  voiceDictDemo.initializeDimensions(context);
-  voiceDictDemo.x += Math.floor(voiceDictDemo.width / 2);
-
-  voiceDictDemo.content = (props: { darkMode: boolean }) => (
-    <RecordingWrapper darkMode={props.darkMode} />
-  );
-
-  demos.push(voiceDictDemo);
-  // #endregion Demo setup
-
-  // #region Continue story from "Here are some of my projects"
-  // set endX to the last demo's X coordinate + 1/2 of its width
-  endX =
-    demos[demos.length - 1].x + Math.floor(demos[demos.length - 1].width / 2);
-
-  textBubbleArray.push(
-    new TextBubble(
-      CodingStory[1],
-      Player.x,
-      Player.y,
-      CanShowTextRef,
-      startX,
-      endX,
-      TEXT_BUBBLE_MAX_LINE_WIDTH,
-      Player,
-      cornerImage,
-      triangleImage,
-    ),
-  );
-
-  foregroundObjects.push(
-    new ImageObject(startX, Floor.height - 55, grassMarkerImage),
-  );
-  startX = endX;
-
-  for (let i = 2; i < CodingStory.length; i++) {
+  // build textBubbles starting from the About Me nav section.
+  // first, run through enitre story array to find out when the endX is
+  let currentX = 0;
+  let endX = 0;
+  for (let i = 0; i < CodingStory.length; i++) {
     if (i == CodingStory.length - 1) {
-      endX = startX + 500 - ((startX + 500) % Map.tsize);
-      Floor.rightX = startX + 500 - ((startX + 500) % Map.tsize);
+      endX = currentX + 500 - ((currentX + 500) % Map.tsize);
     } else {
-      endX = startX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
+      endX = currentX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
+    }
+    currentX = endX;
+  }
+
+  // extend floor to endx, and subtract to align with grid tilesize.
+  // (targetForFraction depends on floor.rightX)
+  Floor.rightX = endX  - ((endX) % Map.tsize);
+
+  // Get the "About" nav world X, now that the floor has been updated
+  const worldTargets = getWorldTargets(Controller);
+  const AboutMeWorldX = worldTargets?.find(
+    (wt) => wt.label === "ABOUT",
+  )?.target;
+  if (!worldTargets || !AboutMeWorldX) {
+    console.error("nav not set up. Can not setup About me section.");
+    return;
+  }
+  console.log(worldTargets, "world targs in  me world X")
+
+  // Insert textBubbles starting at AboutMeWorldX, and move Floor.rightx to reflect adding the AboutMeWorldX - - - Coding Story - - - Floor.rightX
+
+  // The Bug:
+  // Before:
+  // currentX = 0
+  // AboutMeWorldX - - - Coding Story - - - Floor.rightX
+  // 0 ------------------------------------- endX
+
+  // After:
+  // AboutMeWorldX - - - Coding Story - - - Floor.rightX
+  // About Me x ---------------------------- Floor.rightX
+
+  // editing the Floor rightX is messing up the AboutMe world target. 
+  // either the start or the end will be misaligned. 
+  // a bit of a chicken and the egg problem.
+  // the problem is that since the targets are relative, any changes to the width affects the entire website. Adding the coding story will affect the widths of each section, which in turn affects
+  // where we insert the coding story.
+
+  // the center of the world is also off - see the reload screen!
+
+  currentX = AboutMeWorldX;
+  Floor.rightX += AboutMeWorldX;
+
+  for (let i = 0; i < CodingStory.length; i++) {
+    if (i == CodingStory.length - 1) {
+      endX = currentX + 500 - ((currentX + 500) % Map.tsize);
+    } else {
+      endX = currentX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
     }
     textBubbleArray.push(
       new TextBubble(
@@ -666,7 +593,7 @@ export function setupTextBubblesObjectsAndDemos(
         Player.x,
         Player.y,
         CanShowTextRef,
-        startX,
+        currentX,
         endX,
         TEXT_BUBBLE_MAX_LINE_WIDTH,
         Player,
@@ -675,10 +602,8 @@ export function setupTextBubblesObjectsAndDemos(
       ),
     );
 
-    foregroundObjects.push(
-      new ImageObject(startX, Floor.height - 55, grassMarkerImage),
-    );
-    startX = endX;
+    insertGrassMarkerAt(currentX);
+    currentX = endX;
   }
   // #endregion
 
@@ -690,7 +615,7 @@ export function setupTextBubblesObjectsAndDemos(
     websiteUiImage,
     undefined,
     328,
-    198
+    198,
   );
   backgroundObjects.push(websitePixelArt);
   // #endregion
