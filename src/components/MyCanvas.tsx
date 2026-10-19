@@ -52,6 +52,22 @@ const WELCOME_WIDTH_SCALE = 1.25;
  */
 const WELCOME_LETTER_SPACING = 0.5;
 
+/**
+ * Game Boy Color wordmark palette, sampled across the welcome word. Per letter rather
+ * than per pixel, so a letter keeps one colour however far its dots are blown.
+ *
+ * These replace the themed text colour outright, so they have to carry themselves on
+ * both backgrounds - all four are mid-tone for that reason.
+ */
+const WELCOME_GRADIENT = ["#5c6fd0", "#63ad5e", "#e3aede", "#c75f4d"];
+
+/**
+ * The lean builds across the word rather than sitting flat on every letter. The Game
+ * Boy wordmark itself is upright, so set the end to 0 to match it exactly.
+ */
+const WELCOME_ITALIC_SLANT_START = 0;
+const WELCOME_ITALIC_SLANT_END = 0.12;
+
 export default function MyCanvas({
   IsUserInputAllowedRef,
   IsDemoModalOpenRef,
@@ -320,6 +336,9 @@ export default function MyCanvas({
         dotScale: 1.4,
         widthScale: WELCOME_WIDTH_SCALE,
         letterSpacing: WELCOME_LETTER_SPACING,
+        italicSlantStart: WELCOME_ITALIC_SLANT_START,
+        italicSlantEnd: WELCOME_ITALIC_SLANT_END,
+        gradient: WELCOME_GRADIENT,
         explodeStrength: 90,
         explodeRadius: 120,
         explodeDuration: 450,
