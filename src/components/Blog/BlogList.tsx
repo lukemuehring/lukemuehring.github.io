@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import SearchBar from "../SearchBar";
 import "./Blog.css";
 import BlogNavHeader from "./BlogNavHeader";
 import { posts } from "./posts";
@@ -11,7 +10,7 @@ interface BlogListProps {
 
 export default function BlogList(props: BlogListProps) {
   const { startRouteTransition } = props;
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery] = useState("");
   const cleanedQuery = searchQuery.trim().toLowerCase();
   const filteredPosts =
     cleanedQuery === ""

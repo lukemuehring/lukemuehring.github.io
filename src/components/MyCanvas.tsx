@@ -890,17 +890,6 @@ export default function MyCanvas({
   }
   // #endregion Animation Loop
 
-  function setRecordingVisualzer(el: HTMLCanvasElement | null): void {
-    const demos = DemosRef.current;
-
-    if (!el || !demos) return;
-    el.width = demos[1].width;
-    const destX = demos[1].x - el.width / 2;
-    const destY = demos[1].y - el.height / 2;
-    RecordingVisualizerRef.current = new ImageObject(destX, destY, el, "hue");
-  }
-  // #endregion
-
   return (
     <>
       <canvas id="canvas" ref={CanvasRef}>
