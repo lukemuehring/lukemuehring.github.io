@@ -614,9 +614,10 @@ export function setupAboutMe(
   // #endregion
 
   // #region background objects
+  // Centered over the "I really enjoy attending to the details in my craft" entry.
   const websitePixelArt = new ImageObject(
-    textBubbleArray[3].minX +
-      Math.floor((textBubbleArray[3].maxX - textBubbleArray[3].minX) / 2),
+    textBubbleArray[5].minX +
+      Math.floor((textBubbleArray[5].maxX - textBubbleArray[5].minX) / 2),
     Math.floor(Floor.height / 2) - 100,
     websiteUiImage,
     undefined,
