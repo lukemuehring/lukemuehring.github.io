@@ -75,3 +75,6 @@ export const BORDER_COLORS_LEFT_RIGHT_DARK = ["#ececec", "#aeb1b7", "#474e57", "
 // Text layout
 export const TextLeading = 10;
 export const ElementPadding = 10;
+// Caps the story bubble at a readable measure (~55 characters of 30px Handjet) on wide
+// screens; narrow screens still wrap at a fraction of the canvas width.
+export const StoryBubbleMaxLineWidth = 560;

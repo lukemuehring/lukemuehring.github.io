@@ -19,6 +19,7 @@ import {
   FONT_COLOR_LIGHT_MODE,
   FONT_HEADING,
   NAV_TARGETS,
+  StoryBubbleMaxLineWidth,
 } from "./constants";
 import { getWorldTargets } from "./navTargets";
 import { CodingStory } from "./story";
@@ -489,7 +490,10 @@ export function resizeText(
   TextBubbleArray: TextBubble[],
 ) {
   for (let i = 0; i < TextBubbleArray.length; i++) {
-    TextBubbleArray[i].maxLineWidth = context.canvas.width / 1.3;
+    TextBubbleArray[i].maxLineWidth = Math.min(
+      context.canvas.width / 1.3,
+      StoryBubbleMaxLineWidth,
+    );
   }
   for (let i = 0; i < Demos.length; i++) {
     Demos[i].maxLineWidth = context.canvas.width / 1.3;
@@ -539,8 +543,9 @@ export function setupAboutMe(
    * below - the bubble itself is pinned to the floor's edge when it is placed.
    */
   const LAST_STORY_ENTRY_WIDTH = 500;
-  const TEXT_BUBBLE_MAX_LINE_WIDTH: number = Math.floor(
-    context.canvas.width / 1.5,
+  const TEXT_BUBBLE_MAX_LINE_WIDTH: number = Math.min(
+    Math.floor(context.canvas.width / 1.5),
+    StoryBubbleMaxLineWidth,
   );
 
   // The story runs from the ABOUT nav target to the end of the floor, and that target is
