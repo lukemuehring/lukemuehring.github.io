@@ -4,6 +4,7 @@ import {
   FONT_HEADING,
   FRAME_DURATION,
   NAV_TARGETS,
+  StoryBubbleMaxLineWidth,
 } from "../lib/constants";
 import { advanceOf } from "../lib/handjetDots";
 import {
@@ -32,7 +33,7 @@ import { ImageObject } from "../types/ImageObject";
 import { Marker } from "../types/Marker";
 import { Mouse } from "../types/Mouse";
 import { Player } from "../types/Player";
-import type { TextBubble } from "../types/TextBubble";
+import { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
 
 /** computer_off.png and its on frames: Cave Story's PC, cut from the sheet at 6x. */
@@ -80,6 +81,9 @@ const slowed = (ms: number) => Math.round(ms * WELCOME_INTRO_SLOWDOWN);
  */
 const WELCOME_ITALIC_SLANT_START = 0;
 const WELCOME_ITALIC_SLANT_END = 0.12;
+
+/** Bubble reach either side of PROJECTS, matching Nav's HIGHLIGHT_RADIUS_PX. */
+const PROJECTS_BUBBLE_REACH_PX = 400;
 
 export default function MyCanvas({
   IsUserInputAllowedRef,
@@ -302,10 +306,21 @@ export default function MyCanvas({
     TileSheetImgRef.current.src = darkModeValue
       ? "./images/tiles_dark.png"
       : "./images/tiles.png";
+    /**
+     * navCoverPx is how much of the canvas bottom the nav sits over. Phones float it
+     * there (see Nav.css), so the ground is laid against its top edge instead of the
+     * screen's, or the nav would cover the dirt and the floor reads low.
+     */
+    const navTop = document.getElementById("nav")?.getBoundingClientRect().top;
+    const navCoverPx =
+      navTop !== undefined && navTop > c.canvas.height / 2
+        ? c.canvas.height - navTop
+        : 0;
+    const visibleHeight = c.canvas.height - navCoverPx;
     let floorHeight =
-      c.canvas.height > Bg0.height
+      visibleHeight > Bg0.height
         ? Bg0.height - 1.5 * MapRef.current.tsize
-        : c.canvas.height - 1.5 * MapRef.current.tsize;
+        : visibleHeight - 1.5 * MapRef.current.tsize;
 
     MapMaxX = 10000;
     FloorRef.current = new Floor(floorHeight, -1000, MapMaxX);
@@ -429,6 +444,27 @@ export default function MyCanvas({
     );
 
     MapMaxX = FloorRef.current.rightX;
+
+    // #region Projects placeholder
+    // Nothing is built at the PROJECTS spot yet, so the character says so while there.
+    const projectsWorldX = ControllerRef.current.targetForFraction(
+      NAV_TARGETS.PROJECTS,
+    );
+    textBubbleArray.push(
+      new TextBubble(
+        "filling this in later...",
+        PlayerRef.current.x,
+        PlayerRef.current.y,
+        CanShowTextRef,
+        projectsWorldX - PROJECTS_BUBBLE_REACH_PX,
+        projectsWorldX + PROJECTS_BUBBLE_REACH_PX,
+        StoryBubbleMaxLineWidth,
+        PlayerRef.current,
+        cornerImage,
+        DialogTriangleImageRef.current,
+      ),
+    );
+    // #endregion
 
     // #region Blog marker
     BlogMarkerRef.current = new Marker({

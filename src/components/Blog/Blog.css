@@ -68,6 +68,11 @@ figure {
 .blog-link > span:hover {
   @apply !underline;
 }
+
+.blog .blog-link,
+.blog .blog-link * {
+  background-color: transparent;
+}
 .blog a {
   text-decoration: underline;
   color: rgb(21, 92, 162);

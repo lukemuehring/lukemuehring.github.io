@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { FiMoon, FiSun } from "react-icons/fi";
+import { useCallback, useEffect, useRef } from "react";
+import type { IconType } from "react-icons";
+import { FiBookOpen, FiCode, FiMoon, FiSun, FiUser } from "react-icons/fi";
 import "./Nav.css";
 import { NAV_ITEMS, getWorldTargets } from "../../lib/navTargets";
 import { useTheme } from "../../context/ThemeContext";
@@ -12,6 +13,13 @@ import type { Player } from "../../types/Player";
  * here". Targets sit 3000px apart today, so these windows never overlap.
  */
 const HIGHLIGHT_RADIUS_PX = 400;
+
+/** Shown in place of each item's label on phones, where the words don't fit. */
+const NAV_ICONS: Record<(typeof NAV_ITEMS)[number]["label"], IconType> = {
+  BLOG: FiBookOpen,
+  PROJECTS: FiCode,
+  ABOUT: FiUser,
+};
 
 /** Where a button sits inside the menu, in px relative to the menu box. */
 type Box = { left: number; width: number };
@@ -58,19 +66,12 @@ function itemAt(worlds: number[], x: number): number | null {
 }
 
 type NavProps = {
-  IsNavMenuOpenRef?: React.RefObject<boolean>;
-  onRefChange?: () => void;
   PlayerRef?: React.RefObject<Player | null>;
   ControllerRef?: React.RefObject<Controller | null>;
 };
 
-export default function Nav({
-  IsNavMenuOpenRef,
-  onRefChange,
-  PlayerRef,
-  ControllerRef,
-}: NavProps) {
-  const [isActive, setIsActive] = useState(false);
+export default function Nav(props: NavProps) {
+  const { PlayerRef, ControllerRef } = props;
   const { darkMode, toggle } = useTheme();
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -90,34 +91,6 @@ export default function Nav({
   const worldTargets = useCallback(() => {
     return getWorldTargets(ControllerRef?.current);
   }, [ControllerRef]);
-
-  const onClose = () => {
-    setIsActive(false);
-    if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = false;
-    if (onRefChange) onRefChange();
-  };
-
-  const handleMenuToggle = () => {
-    setIsActive((prev) => {
-      const newState = !prev;
-      if (IsNavMenuOpenRef) IsNavMenuOpenRef.current = newState; // update IsNavMenuOpenRef so we can derive IsUserInputAllowedRef in App.tsx
-      if (onRefChange) onRefChange(); // update App.tsx IsUserInputAllowedRef to block user input if nav menu is open.
-      return newState;
-    });
-  };
-
-  // Listen for ESC key
-  useEffect(() => {
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    document.addEventListener("keydown", handleEsc);
-    return () => {
-      document.removeEventListener("keydown", handleEsc);
-    };
-  }, []);
 
   const measureBoxes = useCallback(() => {
     const menu = menuRef.current;
@@ -172,8 +145,8 @@ export default function Nav({
       highlightRef.current = at;
       if (at !== null) engagedRef.current = true;
 
-      // Applied every frame rather than on change: any re-render (dark mode, opening the
-      // menu) rewrites className from the JSX below, which would otherwise drop it.
+      // Applied every frame rather than on change: any re-render (dark mode) rewrites
+      // className from the JSX below, which would otherwise drop it.
       // classList.toggle with an explicit force is a no-op when already correct.
       NAV_ITEMS.forEach((_, i) => {
         const btn = btnRefs.current[i];
@@ -285,9 +258,6 @@ export default function Nav({
     }
     engagedRef.current = true;
 
-    // Close first: onClose flips IsNavMenuOpenRef, which lets App re-enable game input
-    // before the next frame, so the walk survives the Controller's first gate check.
-    onClose();
     const world = worlds?.find((world) => world.label === label);
     if (!world) {
       console.error("No target nav item to walk to.");
@@ -296,46 +266,31 @@ export default function Nav({
     ControllerRef?.current?.walkTo(world.target);
   };
 
-  const handleToggleNightMode = () => {
-    toggle();
-    onClose();
-  };
-
   return (
     <nav id="nav" className={darkMode ? "dark" : ""}>
-      {/* hamburger menu icon btn */}
-      <button
-        className={`ham-menu ${isActive ? "active" : ""} ${darkMode ? "dark" : ""}`}
-        onClick={handleMenuToggle}
-        aria-label="Toggle menu"
-        aria-expanded={isActive}
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
-      {/* menu options */}
-      <div
-        className={`menu-container ${isActive ? "active" : ""} ${darkMode ? "dark" : ""}`}
-      >
+      <div className={`menu-container ${darkMode ? "dark" : ""}`}>
         <div className="menu" ref={menuRef}>
-          {NAV_ITEMS.map((item, index) => (
-            <button
-              key={item.label}
-              ref={(el) => {
-                btnRefs.current[index] = el;
-              }}
-              className="nav-btn"
-              onClick={() => handleWalkTo(item.label)}
-            >
-              {item.label}
-            </button>
-          ))}
+          {NAV_ITEMS.map((item, index) => {
+            const NavIcon = NAV_ICONS[item.label];
+            return (
+              <button
+                key={item.label}
+                ref={(el) => {
+                  btnRefs.current[index] = el;
+                }}
+                className="nav-btn"
+                onClick={() => handleWalkTo(item.label)}
+                aria-label={item.label}
+              >
+                <NavIcon className="nav-icon" />
+                <div className="nav-label">{item.label}</div>
+              </button>
+            );
+          })}
 
           <button
             className="nav-btn nav-btn--icon"
-            onClick={handleToggleNightMode}
+            onClick={toggle}
             aria-label={
               darkMode ? "Switch to light mode" : "Switch to dark mode"
             }

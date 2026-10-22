@@ -13,7 +13,6 @@ import { useTheme } from "./context/ThemeContext";
 
 export default function App() {
   const IsUserInputAllowedRef = useRef(true);
-  const IsNavMenuOpenRef = useRef(false);
   const IsDemoModalOpenRef = useRef(false);
   const IsRouteTransitionRef = useRef(false);
   const PlayerRef = useRef<Player | null>(null);
@@ -34,9 +33,7 @@ export default function App() {
 
   const updateDerivedRef = () => {
     IsUserInputAllowedRef.current =
-      !IsNavMenuOpenRef.current &&
-      !IsDemoModalOpenRef.current &&
-      !IsRouteTransitionRef.current;
+      !IsDemoModalOpenRef.current && !IsRouteTransitionRef.current;
   };
 
   const location = useLocation();
@@ -88,12 +85,7 @@ export default function App() {
                 darkModeValue={darkMode}
                 startRouteTransition={startRouteTransition}
               />
-              <Nav
-                IsNavMenuOpenRef={IsNavMenuOpenRef}
-                onRefChange={updateDerivedRef}
-                PlayerRef={PlayerRef}
-                ControllerRef={ControllerRef}
-              />
+              <Nav PlayerRef={PlayerRef} ControllerRef={ControllerRef} />
 
               <div id="toastContainer" className="toast-container"></div>
             </div>

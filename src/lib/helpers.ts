@@ -43,25 +43,6 @@ export function checkIfObjectClicked(demos: Button[], Player: Player | null) {
   return null;
 }
 
-// closes the hamburger menu
-export function closeMenu(
-  IsDemoModalOpenRef: React.RefObject<boolean>,
-  onRefChange: () => void,
-) {
-  const hamMenu = document.querySelector(".ham-menu");
-  if (hamMenu && hamMenu.classList.contains("active")) {
-    hamMenu.classList.remove("active");
-  }
-
-  const menuContainer = document.querySelector(".menu-container");
-  if (menuContainer && menuContainer.classList.contains("active")) {
-    menuContainer.classList.remove("active");
-  }
-
-  IsDemoModalOpenRef.current = false;
-  onRefChange();
-}
-
 // draws the image but flips it horizontally
 export function drawFlippedImage(
   context: CanvasRenderingContext2D,

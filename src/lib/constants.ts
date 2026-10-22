@@ -31,11 +31,16 @@ export const AUTO_WALK_DURATION_FRAMES = 30;
  *
  * Shared because two things have to agree on them: the nav walks the character here, and
  * MyCanvas stands a Marker on the same spot.
+ *
+ * The floor is sized to fit the story after ABOUT (see setupAboutMe), so these also set
+ * how much ground comes before it. With the current story they put the computer ~1300px
+ * out, as before, and PROJECTS and ABOUT each ~1800px further - about a screen apart,
+ * since PROJECTS is only a placeholder. They stretch with the story if it grows.
  */
 export const NAV_TARGETS = {
-  BLOG: 0.05,
-  PROJECTS: 0.45,
-  ABOUT: 0.75,
+  BLOG: 0.115,
+  PROJECTS: 0.27,
+  ABOUT: 0.43,
 } as const;
 
 // Fonts

@@ -1,93 +1,27 @@
-/* The nav overlays a full-screen canvas. Mobile is the default: a hamburger that opens a
-   full-screen frosted sheet. Desktop (>= 916px) collapses it into a centered glass pill. */
-
-/* ---------- MOBILE ---------- */
+/* The nav floats over a full-screen canvas as a centered glass pill. Phones get it at
+   the bottom, within reach of a thumb, with an icon per item since the words don't fit.
+   Desktop (>= 916px) moves it to the top and spells the words out. */
 
 #nav {
-  display: flex;
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100vh;
-  /* The canvas sits underneath and needs to keep receiving hover/cursor updates,
-     so only the interactive pieces below opt back into pointer events. */
-  pointer-events: none;
-}
-
-#nav .ham-menu {
-  position: relative;
-  z-index: 10;
-  height: 75px;
-  width: 75px;
-  margin-left: auto;
-  padding: 0;
-  border: none;
-  border-radius: 16px;
-  background-color: transparent;
-  cursor: pointer;
-  pointer-events: auto;
-}
-
-#nav .ham-menu span {
-  position: absolute;
-  top: 50%;
+  position: fixed;
+  bottom: 1rem;
   left: 50%;
-  height: 4px;
-  width: 50px;
-  border-radius: 16px;
-  background-color: rgb(75, 75, 75);
-  transform: translate(-50%, -50%);
-  transition: 0.2s ease;
-}
-
-#nav .ham-menu span:nth-child(1) {
-  top: 25%;
-}
-
-#nav .ham-menu span:nth-child(3) {
-  top: 75%;
-}
-
-#nav .ham-menu.active span:nth-child(1) {
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-#nav .ham-menu.active span:nth-child(2) {
-  opacity: 0;
-}
-
-#nav .ham-menu.active span:nth-child(3) {
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(-45deg);
-}
-
-#nav .ham-menu.dark span {
-  background-color: var(--font-color-dark);
+  transform: translateX(-50%);
+  z-index: 20;
 }
 
 #nav .menu-container {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 100vh;
-  opacity: 0;
-  pointer-events: none;
+  position: relative;
   overflow: hidden;
   background-color: rgba(255, 255, 255, 0.5);
   -webkit-backdrop-filter: saturate(180%) blur(15px);
   backdrop-filter: saturate(180%) blur(15px);
-  transition: opacity 0.3s ease;
+  border-radius: 999px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
 }
 
 #nav .menu-container.dark {
   background-color: rgba(125, 125, 125, 0.5);
-}
-
-#nav .menu-container.active {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 /* metallic sheen across the top of the glass */
@@ -109,25 +43,25 @@
 }
 
 #nav .menu {
-  position: fixed;
-  top: 0;
-  right: 0;
+  /* On phones the gaps soak up the width, so the bar runs to 1.25rem from either edge
+     whatever the phone: 11rem is the four 2rem icons plus 1.5rem of padding each side,
+     and the three gaps share what is left. Capped so tablets don't sprawl. */
+  --nav-gap: clamp(2rem, calc((100vw - 13.5rem) / 3), 4rem);
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3rem;
-  width: 100%;
-  height: 100vh;
+  gap: var(--nav-gap);
+  /* extra room at the bottom so the underline sits inside the pill */
+  padding: 1rem 1.5rem 1.5rem;
 }
 
 #nav .nav-btn {
   --nav-btn-size: 2rem;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 8px;
+  padding: 0;
   border: none;
   background-color: transparent;
   font-family: var(--font-ui);
@@ -141,16 +75,30 @@
   transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* An icon alone is a small thing to tap, so the hit area reaches halfway across the gap
+   on either side - neighbours meet in the middle and the whole bar answers a tap.
+   Padding would do the same, but the underline is measured off the button's box (see
+   Nav.tsx) and would grow with it. */
+#nav .nav-btn::after {
+  content: "";
+  position: absolute;
+  inset: -0.75rem calc(var(--nav-gap) / -2);
+}
+
 #nav .menu-container.dark .nav-btn {
   color: var(--font-color-dark);
 }
 
-#nav .nav-btn:not(.selected):hover {
-  color: var(--font-color-light-secondary);
-}
+/* Hover only where there is a pointer to hover with. On a phone the tapped icon would
+   otherwise stay grey until the next tap somewhere else. */
+@media (hover: hover) {
+  #nav .nav-btn:not(.selected):hover {
+    color: var(--font-color-light-secondary);
+  }
 
-#nav .menu-container.dark .nav-btn:not(.selected):hover {
-  color: var(--font-color-dark-secondary);
+  #nav .menu-container.dark .nav-btn:not(.selected):hover {
+    color: var(--font-color-dark-secondary);
+  }
 }
 
 /* Listed after the .dark rules above and matching their specificity, so the selected
@@ -160,75 +108,50 @@
   color: #d11100;
 }
 
-#nav .nav-btn--icon {
-  font-size: calc(var(--nav-btn-size) * 0.9);
+#nav .nav-label {
+  display: none;
 }
 
-/* The sliding underline only makes sense against a row; the mobile menu is a
-   stacked list, where colour alone marks the active item. */
+/* left/width are written every frame from the character's position (see Nav.tsx), so
+   there is deliberately no transition here - one would lag behind the character. */
 #nav .nav-underline {
-  display: none;
+  position: absolute;
+  bottom: 0.6rem;
+  height: 2px;
+  pointer-events: none;
+}
+
+#nav .nav-underline rect {
+  fill: #d11100;
 }
 
 /* ---------- DESKTOP / TABLET ---------- */
 
 @media (min-width: 916px) {
   #nav {
-    position: fixed;
     top: 1.5rem;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
-    width: fit-content;
-    height: auto;
-    z-index: 20;
-  }
-
-  #nav .ham-menu {
-    display: none;
-  }
-
-  #nav .menu-container {
-    position: relative;
-    top: auto;
-    width: fit-content;
-    height: auto;
-    opacity: 1;
-    pointer-events: auto;
-    border-radius: 999px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    bottom: auto;
   }
 
   #nav .menu {
-    position: relative;
-    top: auto;
-    right: auto;
-    flex-direction: row;
-    align-items: center;
-    gap: 2.5rem;
-    width: auto;
-    height: auto;
-    /* extra room at the bottom so the underline sits inside the pill */
+    --nav-gap: 4rem;
     padding: 0.85rem 2rem 1.35rem;
   }
 
   #nav .nav-btn {
     --nav-btn-size: 1.05rem;
-    width: auto;
-    padding: 0;
   }
 
-  /* left/width are written every frame from the character's position (see Nav.tsx), so
-     there is deliberately no transition here - one would lag behind the character. */
-  #nav .nav-underline {
+  #nav .nav-icon {
+    display: none;
+  }
+
+  #nav .nav-label {
     display: block;
-    position: absolute;
-    bottom: 0.6rem;
-    height: 2px;
-    pointer-events: none;
   }
 
-  #nav .nav-underline rect {
-    fill: #d11100;
+  /* The theme toggle is still an icon here, sized down to sit with the capitals. */
+  #nav .nav-btn--icon {
+    font-size: calc(var(--nav-btn-size) * 0.9);
   }
 }
