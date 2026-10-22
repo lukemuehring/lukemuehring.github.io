@@ -16,6 +16,7 @@ import {
   handleTouchEnd,
   handleTouchMove,
   handleTouchStart,
+  resizeCamera,
   resizeCanvas,
   resizeMap,
   resizeText,
@@ -254,6 +255,10 @@ export default function MyCanvas({
     if (width != c.canvas.width || height != c.canvas.height) {
       resizeCanvas(c);
     }
+    // The camera was built from the canvas's default 300x150, so it has to catch up.
+    // Dev hides this: StrictMode runs the effect twice, and the second run builds the
+    // camera from the canvas the first run already resized.
+    resizeCamera(c, CameraRef.current);
 
     SpawnX = c.canvas.width / 2;
     PlayerRef.current = new Player(
