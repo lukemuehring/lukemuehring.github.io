@@ -21,14 +21,8 @@ npm run start
 
 ## deploying
 
-npm run build
-
-checkout deploy branch
-copy over dist folder CONTENTS
-
-duplicate index.html -> 404.html
-
-push to remote to trigger deploy process
+git checkout master
+npm run deploy
 
 
 ### Notes
