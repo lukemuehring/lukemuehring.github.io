@@ -29,11 +29,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return hour >= 19 || hour < 7;
   });
 
+  // DARK MODE
   // Sync the choice to localStorage and the <html>/<body> `dark` class.
   useEffect(() => {
     localStorage.setItem("darkMode", String(darkMode));
     const htmlElement = document.documentElement;
     const bodyElement = htmlElement.getElementsByTagName("body")[0];
+
+    htmlElement.classList.add("theme-switching");
+
     if (darkMode) {
       htmlElement.classList.add("dark");
       bodyElement.classList.add("dark");
@@ -41,6 +45,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       htmlElement.classList.remove("dark");
       bodyElement.classList.remove("dark");
     }
+
+    // Reading a layout property forces the new colours to be applied now, while
+    // transitions are still off, so removing the class cannot animate back.
+    void htmlElement.offsetHeight;
+    htmlElement.classList.remove("theme-switching");
   }, [darkMode]);
 
   const toggle = () => setDarkMode((prev) => !prev);

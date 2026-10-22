@@ -1,189 +1,157 @@
-/* MOBILE */
+/* The nav floats over a full-screen canvas as a centered glass pill. Phones get it at
+   the bottom, within reach of a thumb, with an icon per item since the words don't fit.
+   Desktop (>= 916px) moves it to the top and spells the words out. */
+
 #nav {
-  display: flex;
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+#nav .menu-container {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: saturate(180%) blur(15px);
+  backdrop-filter: saturate(180%) blur(15px);
+  border-radius: 999px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+}
+
+#nav .menu-container.dark {
+  background-color: rgba(125, 125, 125, 0.5);
+}
+
+/* metallic sheen across the top of the glass */
+#nav .menu-container::before {
+  content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100vh;
+  inset: 0 0 auto 0;
+  height: 20%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.05)
+  );
+  pointer-events: none;
+}
 
-  .ham-menu {
-    position: relative;
-    height: 75px;
-    width: 75px;
-    justify-self: right;
-    margin-left: auto;
-    z-index: 10;
-    border-radius: 16px;
+#nav .menu-container.dark::before {
+  background: transparent;
+}
 
-    span {
-      height: 4px;
-      width: 50px;
-      background-color: rgb(75, 75, 75);
-      position: absolute;
-      border-radius: 16px;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      transition: 0.2s ease;
-    }
+#nav .menu {
+  /* On phones the gaps soak up the width, so the bar runs to 1.25rem from either edge
+     whatever the phone: 11rem is the four 2rem icons plus 1.5rem of padding each side,
+     and the three gaps share what is left. Capped so tablets don't sprawl. */
+  --nav-gap: clamp(2rem, calc((100vw - 13.5rem) / 3), 4rem);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--nav-gap);
+  /* extra room at the bottom so the underline sits inside the pill */
+  padding: 1rem 1.5rem 1.5rem;
+}
 
-    span:nth-child(1) {
-      top: 25%;
-    }
+#nav .nav-btn {
+  --nav-btn-size: 2rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  font-family: var(--font-ui);
+  font-size: var(--nav-btn-size);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--font-color-light);
+  cursor: pointer;
+  transition: color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-    span:nth-child(3) {
-      top: 75%;
-    }
+/* An icon alone is a small thing to tap, so the hit area reaches halfway across the gap
+   on either side - neighbours meet in the middle and the whole bar answers a tap.
+   Padding would do the same, but the underline is measured off the button's box (see
+   Nav.tsx) and would grow with it. */
+#nav .nav-btn::after {
+  content: "";
+  position: absolute;
+  inset: -0.75rem calc(var(--nav-gap) / -2);
+}
+
+#nav .menu-container.dark .nav-btn {
+  color: var(--font-color-dark);
+}
+
+/* Hover only where there is a pointer to hover with. On a phone the tapped icon would
+   otherwise stay grey until the next tap somewhere else. */
+@media (hover: hover) {
+  #nav .nav-btn:not(.selected):hover {
+    color: var(--font-color-light-secondary);
   }
 
-  .ham-menu.active {
-    span:nth-child(1) {
-      top: 50%;
-      transform: translate(-50%, -50%) rotate(45deg);
-    }
-
-    span:nth-child(2) {
-      opacity: 0;
-    }
-
-    span:nth-child(3) {
-      top: 50%;
-      transform: translate(-50%, -50%) rotate(-45deg);
-    }
-  }
-
-  .ham-menu.dark {
-    span {
-      background-color: var(--font-color-dark);
-    }
-  }
-
-  .menu-container {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100vh;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s ease;
-
-    .menu {
-      position: fixed;
-      top: 0;
-      right: 0;
-      height: 100vh;
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 4rem;
-      justify-content: center;
-      align-items: center;
-    }
-
-    background-color: rgba(255, 255, 255, 0.5);
-    backdrop-filter: saturate(180%) blur(15px);
-    overflow: hidden;
-  }
-
-  .menu-container.dark {
-    background-color: rgba(125, 125, 125, 0.5);
-  }
-
-  .menu-container.active {
-    pointer-events: all;
-    opacity: 1;
-  }
-
-  /* Add metallic sheen */
-  .menu-container::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 20%; /* SHEEN IS ON THE TOP 20% OF THE MENU */
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.3),
-      rgba(255, 255, 255, 0.05)
-    );
-    pointer-events: none;
-  }
-
-  .menu-container.dark::before {
-    background: transparent;
-  }
-
-  .menu-container .menu button {
-    --btn-font-size: 2rem;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-
-    font-size: var(--btn-font-size);
-    color: var(--font-color-light);
-    background-color: transparent;
-    padding: 8px;
-    border: none;
-    white-space: nowrap;
-
-    cursor: pointer;
-    transition: color 0.3s ease;
-  }
-
-  .menu-container .menu button:hover {
-    color: black;
-  }
-
-  .menu-container.dark .menu button {
-    color: var(--font-color-dark);
-  }
-
-  .menu-container.dark .menu button:hover {
-    color: white;
+  #nav .menu-container.dark .nav-btn:not(.selected):hover {
+    color: var(--font-color-dark-secondary);
   }
 }
 
-/* DESKTOP */
+/* Listed after the .dark rules above and matching their specificity, so the selected
+   item stays red in both themes. */
+#nav .nav-btn.selected,
+#nav .menu-container.dark .nav-btn.selected {
+  color: #d11100;
+}
+
+#nav .nav-label {
+  display: none;
+}
+
+/* left/width are written every frame from the character's position (see Nav.tsx), so
+   there is deliberately no transition here - one would lag behind the character. */
+#nav .nav-underline {
+  position: absolute;
+  bottom: 0.6rem;
+  height: 2px;
+  pointer-events: none;
+}
+
+#nav .nav-underline rect {
+  fill: #d11100;
+}
+
+/* ---------- DESKTOP / TABLET ---------- */
+
 @media (min-width: 916px) {
   #nav {
-    height: auto;
-    top: 0;
-
-    .ham-menu {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .menu-container {
-      opacity: 1;
-      height: fit-content;
-      pointer-events: all;
-
-      .menu {
-        position: relative;
-        flex-direction: row;
-        gap: 5rem;
-        height: fit-content;
-      }
-    }
-
-    .menu-container .menu button {
-      --btn-font-scale: 0.95;
-      font-size: calc(var(--btn-font-size) * var(--btn-font-scale));
-
-      width: auto;
-    }
+    top: 1.5rem;
+    bottom: auto;
   }
-}
 
-/* WIDE SCREEN */
-@media (min-width: 1024px) {
-  .menu-container .menu button {
-    --btn-font-scale: 1.05;
-    font-size: calc(var(--btn-font-size) * var(--btn-font-scale));
+  #nav .menu {
+    --nav-gap: 4rem;
+    padding: 0.85rem 2rem 1.35rem;
+  }
+
+  #nav .nav-btn {
+    --nav-btn-size: 1.05rem;
+  }
+
+  #nav .nav-icon {
+    display: none;
+  }
+
+  #nav .nav-label {
+    display: block;
+  }
+
+  /* The theme toggle is still an icon here, sized down to sit with the capitals. */
+  #nav .nav-btn--icon {
+    font-size: calc(var(--nav-btn-size) * 0.9);
   }
 }

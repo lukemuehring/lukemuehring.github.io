@@ -1,3 +1,5 @@
+import { FiSearch } from "react-icons/fi";
+
 type SearchBarProps = {
   searchQuery: string;
   onSearchChange: (value: string) => void;
@@ -10,13 +12,14 @@ export default function SearchBar({
   const hasQuery = searchQuery.length > 0;
 
   return (
-    <div className="relative mb-4">
+    <div className="blog-search-field relative mb-4">
+      <FiSearch className="blog-search-icon" aria-hidden="true" />
       <input
         type="text"
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        placeholder="Type to search..."
-        className="w-full min-w-0 rounded border p-2 pr-10"
+        placeholder="Search"
+        className="blog-search w-full min-w-0 rounded border p-2 pr-10"
         aria-label="Search posts"
       ></input>
       <button

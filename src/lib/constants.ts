@@ -7,6 +7,42 @@ export const FRAME_DURATION = 1000 / FPS_TARGET; // ~16.67ms per frame (60fps)
 export const JUMP_HEIGHT = 20;
 export const GRAVITY = 1.5;
 
+/** Per-frame horizontal acceleration applied while a walk input is held. */
+export const WALK_ACCELERATION = 0.5;
+/**
+ * How long a nav-driven auto-walk takes, regardless of distance - 0.5s at 60fps, the
+ * same duration the nav underline used to CSS-transition for.
+ *
+ * Fixed duration rather than a fixed speed because the underline is paced by the
+ * character (see Nav.tsx), so the walk sets the tempo of both, and the bar keeps the
+ * same timing whatever the distance.
+ *
+ * The trade is that speed scales with distance: a 744px hop averages 25px/frame while a
+ * 6000px one averages 200px/frame and, since easeInOutCubic peaks at 3x its average,
+ * tops out near 500px/frame. That is deliberate - the long hops read as a blur. It also
+ * means widening the floor makes them faster still, so if a hop ever has to cover an
+ * order of magnitude more ground, scale this with distance rather than raising it flat.
+ */
+export const AUTO_WALK_DURATION_FRAMES = 30;
+
+/**
+ * Where each destination sits as a fraction of the walkable floor. Fractions rather than
+ * absolute x so the spots stay on solid ground when the floor is widened.
+ *
+ * Shared because two things have to agree on them: the nav walks the character here, and
+ * MyCanvas stands a Marker on the same spot.
+ *
+ * The floor is sized to fit the story after ABOUT (see setupAboutMe), so these also set
+ * how much ground comes before it. With the current story they put the computer ~1300px
+ * out, as before, and PROJECTS and ABOUT each ~1800px further - about a screen apart,
+ * since PROJECTS is only a placeholder. They stretch with the story if it grows.
+ */
+export const NAV_TARGETS = {
+  BLOG: 0.115,
+  PROJECTS: 0.27,
+  ABOUT: 0.43,
+} as const;
+
 // Fonts
 export const FONT_HEADING = {
   H1: 100,
@@ -44,3 +80,6 @@ export const BORDER_COLORS_LEFT_RIGHT_DARK = ["#ececec", "#aeb1b7", "#474e57", "
 // Text layout
 export const TextLeading = 10;
 export const ElementPadding = 10;
+// Caps the story bubble at a readable measure (~55 characters of 30px Handjet) on wide
+// screens; narrow screens still wrap at a fraction of the canvas width.
+export const StoryBubbleMaxLineWidth = 560;

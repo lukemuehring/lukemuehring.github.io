@@ -1,9 +1,10 @@
 import "./Blog.css";
+import BlogImage from "./BlogImage";
 
 export default function BlogPicture({
   imageSrc,
   caption,
-  fullSize
+  fullSize,
 }: {
   imageSrc: string;
   caption: string | undefined;
@@ -11,7 +12,12 @@ export default function BlogPicture({
 }) {
   return (
     <figure className="flex flex-col items-center">
-      <img src={imageSrc} className={fullSize ? "max-h-screen w-auto object-contain" : "w-full md:w-[50%]"} />
+      <BlogImage
+        src={imageSrc}
+        alt={caption}
+        fullSize={fullSize}
+        className={fullSize ? "" : "md:w-[50%]"}
+      />
       <figcaption className="blog-caption text-center">{caption}</figcaption>
     </figure>
   );

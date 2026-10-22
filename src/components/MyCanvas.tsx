@@ -3,7 +3,10 @@ import {
   ANIMATION_TIME_BUFFER,
   FONT_HEADING,
   FRAME_DURATION,
+  NAV_TARGETS,
+  StoryBubbleMaxLineWidth,
 } from "../lib/constants";
+import { advanceOf } from "../lib/handjetDots";
 import {
   calculateHeadingFontSize,
   checkIfObjectClicked,
@@ -16,9 +19,8 @@ import {
   resizeCanvas,
   resizeMap,
   resizeText,
-  setupTextBubblesObjectsAndDemos,
+  setupAboutMe,
 } from "../lib/helpers";
-import { CodingStory } from "../lib/story";
 import "../style.css";
 import { Background } from "../types/Background";
 import { Button } from "../types/Button";
@@ -28,13 +30,60 @@ import { Floor } from "../types/Floor";
 import { GameMap } from "../types/GameMap";
 import { GameText } from "../types/GameText";
 import { ImageObject } from "../types/ImageObject";
+import { Marker } from "../types/Marker";
 import { Mouse } from "../types/Mouse";
 import { Player } from "../types/Player";
-import type { TextBubble } from "../types/TextBubble";
+import { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
-import RecordingVisualizerMock, {
-  type RecordingVisualizerHandle,
-} from "./RecordingPopup/RecordingVisualizerMock";
+
+/** computer_off.png and its on frames: Cave Story's PC, cut from the sheet at 6x. */
+const COMPUTER_MARKER_WIDTH_PX = 156;
+const COMPUTER_MARKER_HEIGHT_PX = 102;
+/** The chair, measured from the sprite's left edge - where the nav parks the character. */
+const COMPUTER_MARKER_CHAIR_X_PX = 45;
+
+/**
+ * Horizontal stretch of the welcome word. Shared between the GameText that draws it and
+ * the fit loop that sizes it, which would otherwise measure an unstretched word and let
+ * the drawn one run off the screen.
+ */
+const WELCOME_WIDTH_SCALE = 1.25;
+
+/**
+ * Extra space between the welcome word's letters, in grid cells. Handjet sets F beside
+ * W half a cell apart where most pairs get two, and the heavier dots eat into that from
+ * both sides, so without this they very nearly touch.
+ */
+const WELCOME_LETTER_SPACING = 0.5;
+
+/**
+ * Game Boy wordmark palette, at the saturation the flash wants rather than the print
+ * pastels of the logo - the hues are the logo's, the chroma is not. These are waypoints
+ * for the intro sweep only; every letter washes out to the themed text colour as it
+ * lands, which is what keeps the resting word legible on both backgrounds.
+ */
+const WELCOME_PALETTE = ["#3b5af7", "#1ed411", "#f349e3", "#ee472b"];
+
+/**
+ * Stretches the entrance - the letters' fade-in, the stagger between them and the hop
+ * that rides along with it.
+ *
+ * Not the sheen: it is scheduled off the end of the wave rather than at a fixed time,
+ * so it still waits for the slower entrance to finish and then sweeps at its own pace.
+ * Nor the click hop, which is its own interaction and a long way from here by then.
+ */
+const WELCOME_INTRO_SLOWDOWN = 1.3;
+const slowed = (ms: number) => Math.round(ms * WELCOME_INTRO_SLOWDOWN);
+
+/**
+ * The lean builds across the word rather than sitting flat on every letter. The Game
+ * Boy wordmark itself is upright, so set the end to 0 to match it exactly.
+ */
+const WELCOME_ITALIC_SLANT_START = 0;
+const WELCOME_ITALIC_SLANT_END = 0.12;
+
+/** Bubble reach either side of PROJECTS, matching Nav's HIGHLIGHT_RADIUS_PX. */
+const PROJECTS_BUBBLE_REACH_PX = 400;
 
 export default function MyCanvas({
   IsUserInputAllowedRef,
@@ -42,26 +91,23 @@ export default function MyCanvas({
   onRefChange,
   PlayerRef,
   DemosRef,
+  ControllerRef,
   darkModeRef,
   darkModeValue,
+  startRouteTransition,
 }: {
   IsUserInputAllowedRef: React.RefObject<boolean>;
   IsDemoModalOpenRef: React.RefObject<boolean>;
   onRefChange: () => void;
   PlayerRef: React.RefObject<Player | null>;
   DemosRef: React.RefObject<Button[] | null>;
+  ControllerRef: React.RefObject<Controller | null>;
   darkModeRef: React.RefObject<boolean>;
   darkModeValue: boolean;
+  /** Plays the full-screen wipe, then routes. Owned by App, which outlives this route. */
+  startRouteTransition: (to: string) => void;
 }) {
-  const visualizerRef = useRef<RecordingVisualizerHandle>(null);
-  const [demoModal, setDemoModal] = useState<any | null>(null);
-  const handleOpenModal = (demo: any) => {
-    setDemoModal(demo);
-    IsUserInputAllowedRef.current = false;
-    IsDemoModalOpenRef.current = true;
-    Button.IsModalOpen = true;
-    onRefChange();
-  };
+    const [demoModal, setDemoModal] = useState<any | null>(null);
 
   const handleCloseModal = () => {
     setDemoModal(null);
@@ -79,7 +125,6 @@ export default function MyCanvas({
   const CanShowTextRef = useRef<boolean>(false);
   const CanvasRef = useRef<HTMLCanvasElement>(null);
   const ContextRef = useRef<CanvasRenderingContext2D | null>(null);
-  const ControllerRef = useRef<Controller | null>(null);
   const DialogTriangleImageRef = useRef<HTMLImageElement | null>(null);
   const ForegroundObjectsRef = useRef<ImageObject[] | null>(null);
   const FloorRef = useRef<Floor | null>(null);
@@ -92,6 +137,10 @@ export default function MyCanvas({
   const WelcomeTextArrayRef = useRef<GameText[] | null>(null);
   const WebsiteUiImgRef = useRef<HTMLImageElement | null>(null);
   const RecordingVisualizerRef = useRef<ImageObject | null>(null);
+  const BlogMarkerRef = useRef<Marker | null>(null);
+  /** The pending animation frame, so unmounting can stop the loop rather than leak it. */
+  const LoopFrameRef = useRef<number | null>(null);
+  const IsUnmountedRef = useRef(false);
 
   // #endregion
 
@@ -108,6 +157,10 @@ export default function MyCanvas({
 
   // runs after the component mounts + renders
   useEffect(() => {
+    // Reset rather than initialise: in StrictMode this effect is torn down and re-run,
+    // and the ref survives in between.
+    IsUnmountedRef.current = false;
+
     // #region Preloading Images
     const imageCache: Record<string, HTMLImageElement> = {};
     const imagePathArray = [
@@ -131,14 +184,17 @@ export default function MyCanvas({
       "./images/grass1_dark.png",
       "./images/website_pixel.png",
       "./images/website_pixel_dark.png",
+      "./images/computer_off.png",
+      "./images/computer_on.png",
+      "./images/computer_on_2.png",
     ];
 
     let loadedImages = 0;
 
     function trackProgress() {
       loadedImages++;
-      if (loadedImages === imagePathArray.length) {
-        window.requestAnimationFrame(loop);
+      if (loadedImages === imagePathArray.length && !IsUnmountedRef.current) {
+        LoopFrameRef.current = window.requestAnimationFrame(loop);
       }
     }
 
@@ -154,8 +210,12 @@ export default function MyCanvas({
     preloadImages();
     // #endregion
     // #region Fonts
+    // The canvas draws with the "Handjet Solid" alias, which no DOM element
+    // uses, so nothing would trigger its download. Kick it off explicitly.
+    document.fonts.load("12px 'Handjet Solid'");
+
     const fontInterval = setInterval(() => {
-      if (document.fonts.check("12px 'VT323'")) {
+      if (document.fonts.check("12px 'Handjet Solid'")) {
         CanShowTextRef.current = true;
         AnimateText = true;
         clearInterval(fontInterval);
@@ -247,11 +307,24 @@ export default function MyCanvas({
     TileSheetImgRef.current.src = darkModeValue
       ? "./images/tiles_dark.png"
       : "./images/tiles.png";
+    /**
+     * navCoverPx is how much of the canvas bottom the nav sits over. Phones float it
+     * there (see Nav.css), so the ground is laid against its top edge instead of the
+     * screen's, or the nav would cover the dirt and the floor reads low.
+     */
+    const navTop = document.getElementById("nav")?.getBoundingClientRect().top;
+    const navCoverPx =
+      navTop !== undefined && navTop > c.canvas.height / 2
+        ? c.canvas.height - navTop
+        : 0;
+    const visibleHeight = c.canvas.height - navCoverPx;
     let floorHeight =
-      c.canvas.height > Bg0.height
+      visibleHeight > Bg0.height
         ? Bg0.height - 1.5 * MapRef.current.tsize
-        : c.canvas.height - 1.5 * MapRef.current.tsize;
-    FloorRef.current = new Floor(floorHeight, -1000, 1000);
+        : visibleHeight - 1.5 * MapRef.current.tsize;
+
+    MapMaxX = 10000;
+    FloorRef.current = new Floor(floorHeight, -1000, MapMaxX);
 
     // #endregion
 
@@ -262,6 +335,7 @@ export default function MyCanvas({
     // #region Controller setup
     ControllerRef.current = new Controller(
       PlayerRef.current,
+      FloorRef.current,
       IsUserInputAllowedRef,
     );
     // #endregion
@@ -272,14 +346,56 @@ export default function MyCanvas({
       FONT_HEADING.H2 = 33;
       FONT_HEADING.P = 25;
     }
-    const welcomeStr = "HEY, I'M LUKE";
+    const welcomeStr = "luke muehring";
     const welcomeText = new GameText(
       welcomeStr,
       Math.floor(c.canvas.width / 2),
       c.canvas.height <= 730 ? 200 : c.canvas.height / 2,
-      calculateHeadingFontSize(c, welcomeStr, FONT_HEADING.H1),
+      calculateHeadingFontSize(
+        c,
+        welcomeStr,
+        FONT_HEADING.H1,
+        // The fit loop measures with the font, which knows about neither the stretch
+        // nor the tracking, so both are folded into the scale it budgets against.
+        WELCOME_WIDTH_SCALE *
+          (1 +
+            (WELCOME_LETTER_SPACING * (welcomeStr.length - 1)) /
+              advanceOf(welcomeStr)),
+      ),
       CanShowTextRef,
-      { sheen: true, sheenDuration: 9000, sheenDelay: 1000 },
+      {
+        dots: true,
+        dotScale: 1.4,
+        widthScale: WELCOME_WIDTH_SCALE,
+        letterSpacing: WELCOME_LETTER_SPACING,
+        italicSlantStart: WELCOME_ITALIC_SLANT_START,
+        italicSlantEnd: WELCOME_ITALIC_SLANT_END,
+        introPalette: WELCOME_PALETTE,
+        explodeStrength: 90,
+        explodeRadius: 120,
+        explodeDuration: 450,
+        recoverDelay: 3000,
+        recoverDuration: 350,
+        rumbleDuration: 900,
+        rumbleAmplitude: 1.2,
+        rumbleStep: 60,
+        sheen: true,
+        sheenDuration: 550,
+        introDuration: slowed(600),
+        introStagger: slowed(55),
+        introScale: 3,
+        introOffsetX: 50,
+        introOffsetY: 50,
+        introSaturation: 100,
+        introLightness: 50,
+        introHueTurns: 1,
+        jumpHeight: 0.22,
+        introJumpHeight: 0.65,
+        jumpStagger: 40,
+        jumpDuration: 320,
+        introJumpDuration: slowed(400),
+        jumpWithIntro: true,
+      },
     );
     WelcomeTextArrayRef.current = [welcomeText];
 
@@ -302,32 +418,76 @@ export default function MyCanvas({
     const foregroundObjects: ImageObject[] = [];
     const demos: Button[] = [];
 
-    setupTextBubblesObjectsAndDemos(
-      c,
-      CANVAS_DOM_ELEMENT,
-      FloorRef.current,
-      PlayerRef.current,
-      MapRef.current,
-      GrassMarkerImgRef.current,
-      CanShowTextRef,
-      IsUserInputAllowedRef,
-      cornerImage,
-      DialogTriangleImageRef.current,
-      textBubbleArray,
-      backgroundObjects,
-      WebsiteUiImgRef.current,
-      foregroundObjects,
-      demos,
-      handleOpenModal,
-    );
-
     TextBubbleArrayRef.current = textBubbleArray;
     BackgroundObjectsRef.current = backgroundObjects;
     ForegroundObjectsRef.current = foregroundObjects;
     DemosRef.current = demos;
 
     // #endregion
-    MapMaxX = textBubbleArray[CodingStory.length - 1].maxX;
+
+    // #region About Me Setup
+    setupAboutMe(
+      c,
+      CANVAS_DOM_ELEMENT,
+      FloorRef.current,
+      ControllerRef.current,
+      PlayerRef.current,
+      MapRef.current,
+      GrassMarkerImgRef.current,
+      CanShowTextRef,
+      IsUserInputAllowedRef,
+      cornerImage, // why is this not a ref? No need to switch in dark mode?
+      DialogTriangleImageRef.current,
+      textBubbleArray,
+      backgroundObjects,
+      WebsiteUiImgRef.current,
+      foregroundObjects
+    );
+
+    MapMaxX = FloorRef.current.rightX;
+
+    // #region Projects placeholder
+    // Nothing is built at the PROJECTS spot yet, so the character says so while there.
+    const projectsWorldX = ControllerRef.current.targetForFraction(
+      NAV_TARGETS.PROJECTS,
+    );
+    textBubbleArray.push(
+      new TextBubble(
+        "filling this in later...",
+        PlayerRef.current.x,
+        PlayerRef.current.y,
+        CanShowTextRef,
+        projectsWorldX - PROJECTS_BUBBLE_REACH_PX,
+        projectsWorldX + PROJECTS_BUBBLE_REACH_PX,
+        StoryBubbleMaxLineWidth,
+        PlayerRef.current,
+        cornerImage,
+        DialogTriangleImageRef.current,
+      ),
+    );
+    // #endregion
+
+    // #region Blog marker
+    BlogMarkerRef.current = new Marker({
+      x: ControllerRef.current.targetForFraction(NAV_TARGETS.BLOG),
+      image: imageCache["./images/computer_off.png"],
+      width: COMPUTER_MARKER_WIDTH_PX,
+      height: COMPUTER_MARKER_HEIGHT_PX,
+      anchorX: COMPUTER_MARKER_CHAIR_X_PX,
+      activeFrames: [
+        imageCache["./images/computer_on.png"],
+        imageCache["./images/computer_on_2.png"],
+      ],
+      label: "BLOG",
+      // The nav parks the character right on top of this, and they are drawn over it,
+      // so the label has to clear their head rather than sit just above the monitor.
+      labelOffsetY: PlayerRef.current.height - COMPUTER_MARKER_HEIGHT_PX + 20,
+      onClick: () => startRouteTransition("/blog"),
+    });
+    BlogMarkerRef.current.standOn(FloorRef.current.height);
+    // #endregion
+
+    // MapMaxX is set so the collision edge and the floor end-cap stay in sync.
     resizeMap(c, MapRef.current, FloorRef.current, MapMaxX);
     resizeText(c, DemosRef.current, TextBubbleArrayRef.current);
 
@@ -356,6 +516,26 @@ export default function MyCanvas({
     };
 
     const onClickListener = (_event: MouseEvent) => {
+      // The marker routes away, so it only answers while the game is taking input: a
+      // click that lands during a respawn, or with the nav menu open, is not a click on
+      // the world.
+      const blogMarker = BlogMarkerRef.current;
+      if (blogMarker?.hover && IsUserInputAllowedRef.current) {
+        blogMarker.click();
+        return;
+      }
+
+      // Replay the welcome hop when its text is clicked. .hover is refreshed
+      // every frame from the cursor position, so no coordinates are needed here.
+      const mouse = MouseRef.current;
+      if (mouse) {
+        for (const text of WelcomeTextArrayRef.current ?? []) {
+          // Blow the dots apart from the click point. No hop: the click is
+          // only the explosion now.
+          if (text.hover) text.explode({ x: mouse.x, y: mouse.y });
+        }
+      }
+
       const obj = checkIfObjectClicked(
         DemosRef.current ?? [],
         PlayerRef.current,
@@ -372,6 +552,9 @@ export default function MyCanvas({
     };
     const touchMoveListener = (evt: TouchEvent) => {
       if (PlayerRef.current) {
+        // handleTouchMove writes xVelocity directly and has no Controller reference,
+        // so an auto-walk has to be cancelled here rather than inside it.
+        ControllerRef.current?.cancelAutoWalk();
         handleTouchMove(
           evt,
           IsUserInputAllowedRef.current ?? true,
@@ -404,6 +587,15 @@ export default function MyCanvas({
     // Cleanup useEffect - runs on component unmount
     // Remove all event listeners to prevent memory leaks
     return () => {
+      // Routing to the blog unmounts this component while the loop is still queued. Left
+      // alone it would spin forever against a dead canvas, and coming back to "/" would
+      // start a second one alongside it - two loops, everything at double speed.
+      IsUnmountedRef.current = true;
+      if (LoopFrameRef.current !== null) {
+        window.cancelAnimationFrame(LoopFrameRef.current);
+        LoopFrameRef.current = null;
+      }
+
       for (const src in imageCache) {
         imageCache[src].removeEventListener("load", trackProgress);
       }
@@ -449,6 +641,7 @@ export default function MyCanvas({
     const TileSheet: HTMLImageElement | null = TileSheetImgRef.current;
     const WelcomeTextArray: GameText[] | null = WelcomeTextArrayRef.current;
     const WebsiteUiImg: HTMLImageElement | null = WebsiteUiImgRef.current;
+    const BlogMarker: Marker | null = BlogMarkerRef.current;
 
     // check if dark mode changed
     let darkModeChanged = false;
@@ -540,6 +733,7 @@ export default function MyCanvas({
 
       Controller.update();
       Player.update(Floor, Map, Mouse, Camera);
+    
       Camera.update();
       // #endregion Updating game state - Camera, Controller, Player
 
@@ -594,6 +788,7 @@ export default function MyCanvas({
        */
       for (let i = 0; i < WelcomeTextArray.length; i++) {
         WelcomeTextArray[i].draw(c, Camera.x, Camera.y, darkMode);
+        WelcomeTextArray[i].detectMouseHover(Mouse.x, Mouse.y);
       }
 
       for (let i = 0; i < TextBubbleArray.length; i++) {
@@ -607,6 +802,23 @@ export default function MyCanvas({
         }
       }
       c.restore();
+
+      /*
+       * Blog Marker Draw - before the Player, so the character walks in front of the
+       * marker rather than disappearing behind it when they come to a stop on it.
+       */
+      if (BlogMarker) {
+        // Re-parked every frame so the sprite follows the floor if it ever moves; it is
+        // a subtraction, and a marker floating in mid-air is a worse bug than the cost.
+        BlogMarker.standOn(Floor.height);
+        BlogMarker.detectPlayerNear(Player.x);
+        if (IsUserInputAllowedRef.current) {
+          BlogMarker.detectMouseHover(Mouse.x, Mouse.y, Camera.x);
+        } else {
+          BlogMarker.hover = false;
+        }
+        BlogMarker.draw(c, Camera.x, darkMode);
+      }
 
       Player.draw(
         c,
@@ -651,7 +863,7 @@ export default function MyCanvas({
       }
 
       // Mouse Draw
-      Mouse.draw(c, Canvas, Demos, [Player]);
+      Mouse.draw(c, Canvas, Demos, [Player], WelcomeTextArray, [BlogMarker]);
 
       // Waveform Vizualizer draw
       const RecVizCanvas = RecordingVisualizerRef.current;
@@ -670,26 +882,16 @@ export default function MyCanvas({
     /*
      * Call next frame of animation
      */
-    window.requestAnimationFrame(loop);
+    if (IsUnmountedRef.current) return;
+    LoopFrameRef.current = window.requestAnimationFrame(loop);
   }
   // #endregion Animation Loop
-
-  function setRecordingVisualzer(el: HTMLCanvasElement | null): void {
-    const demos = DemosRef.current;
-
-    if (!el || !demos) return;
-    el.width = demos[1].width;
-    const destX = demos[1].x - el.width / 2;
-    const destY = demos[1].y - el.height / 2;
-    RecordingVisualizerRef.current = new ImageObject(destX, destY, el, "hue");
-  }
-  // #endregion
 
   return (
     <>
       <canvas id="canvas" ref={CanvasRef}>
         <header>
-          <h1>Luke Muehring</h1>
+          <h1>ｌｕｋｅ　ｍｕｅｈｒｉｎｇ</h1>
         </header>
         <main>
           <p>climbing, coding & creating</p>
@@ -711,25 +913,6 @@ export default function MyCanvas({
           onClose={handleCloseModal}
         />
       )}
-      <div className="hidden">
-        <RecordingVisualizerMock
-          ref={visualizerRef}
-          isActive={true}
-          managed={false}
-          onCanvasReady={setRecordingVisualzer}
-        />
-      </div>
-      {/* <div className="absolute top-48 right-0 z-[50000]">
-        <button
-          className=" text-white"
-          onClick={() => visualizerRef.current?.start()}
-        >
-          Start
-        </button>
-        <button className="z-50" onClick={() => visualizerRef.current?.stop()}>
-          Stop
-        </button>
-      </div> */}
     </>
   );
 }

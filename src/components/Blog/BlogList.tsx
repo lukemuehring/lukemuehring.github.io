@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import SearchBar from "../SearchBar";
 import "./Blog.css";
 import BlogNavHeader from "./BlogNavHeader";
 import { posts } from "./posts";
 
-export default function BlogList() {
-  const [searchQuery, setSearchQuery] = useState("");
+interface BlogListProps {
+  startRouteTransition: (to: string) => void;
+}
+
+export default function BlogList(props: BlogListProps) {
+  const { startRouteTransition } = props;
+  const [searchQuery] = useState("");
   const cleanedQuery = searchQuery.trim().toLowerCase();
   const filteredPosts =
     cleanedQuery === ""
@@ -17,16 +21,21 @@ export default function BlogList() {
     // <div className="flex flex-col mx-auto w-full min-h-screen md:max-w-5xl p-2 md:p-8">
     <div className="flex flex-col items-center justify-center p-2 md:p-8">
       <div className="w-[80%] mx-auto md:max-w-4xl">
-        <BlogNavHeader text={"Back to Website"} route={"/"} />
+        <BlogNavHeader
+          text={"Back to Website"}
+          route={"/"}
+          startRouteTransition={startRouteTransition}
+        />
         <div className="">
           <h1 className="md:text-7xl text-6xl mb-8">Blog</h1>
           {/* SEARCH BAR */}
-          <SearchBar
+          {/* uncomment when needed */}
+          {/* <SearchBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-          />
+          /> */}
           {/* BLOG LIST */}
-          <ul className="flex flex-col gap-10 no-dot">
+          <ul className="flex flex-col gap-10 no-dot mt-8">
             {filteredPosts.map((post) => (
               <li key={post.id}>
                 <Link to={`/blog/${post.id}`} className={"blog-link"}>

@@ -12,9 +12,21 @@
 }
 
 .blog * {
-  font-family: "San Francisco", Arial, sans-serif;
+  font-family: var(--font-ui);
   color: var(--font-color-light);
   background-color: var(--font-bg-light);
+}
+
+/* Headings are the loud elements, so they get the display serif. Needs to be its
+   own rule because `.blog *` above outranks a bare `h1` selector. The post links on the
+   list page are titles too, set to match the h1 they open onto - and named down to the
+   span inside them, which `.blog *` would otherwise hand the UI font directly. */
+.blog h1,
+.blog h2,
+.blog h3,
+.blog .blog-link,
+.blog .blog-link * {
+  font-family: var(--font-display);
 }
 .blog.dark * {
   color: var(--font-color-dark);
@@ -56,6 +68,11 @@ figure {
 .blog-link > span:hover {
   @apply !underline;
 }
+
+.blog .blog-link,
+.blog .blog-link * {
+  background-color: transparent;
+}
 .blog a {
   text-decoration: underline;
   color: rgb(21, 92, 162);
@@ -71,6 +88,44 @@ figure {
   color: var(--font-color-dark-secondary);
 }
 
+/* Search box: underlined at rest, boxed while the field is hovered or the input focused.
+   The other three sides keep their width as transparent, so the box drawing in doesn't
+   nudge the text. The line is the text colour at a quarter strength, faint in both
+   themes without a .dark override of its own. Hover is taken on the whole field so the
+   box stays up over the icon and the clear button too. */
+.blog .blog-search {
+  border-color: transparent;
+  border-bottom-color: color-mix(in srgb, currentColor 25%, transparent);
+  padding-left: 2.5rem;
+  transition: border-color 150ms ease;
+}
+
+.blog .blog-search-field:hover .blog-search,
+.blog .blog-search:focus {
+  border-color: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+/* Sits in the input's left padding, in the secondary text colour - about the grey of
+   the placeholder beside it. Named down to the svg's own shapes, which `.blog *` would
+   otherwise paint at full strength. Clicks fall through to the input. */
+.blog .blog-search-icon {
+  position: absolute;
+  left: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.blog .blog-search-icon,
+.blog .blog-search-icon * {
+  color: var(--font-color-light-secondary);
+}
+
+.blog.dark .blog-search-icon,
+.blog.dark .blog-search-icon * {
+  color: var(--font-color-dark-secondary);
+}
+
 
 .blog pre > code * {
   font-family:
@@ -83,6 +138,12 @@ figure {
     Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   color: rgb(151, 0, 0);
+}
+
+/* Post body. The text-lg/xl on .blog bring their own line-heights - 1.4 at desktop
+   size - which is tight for paragraphs this long. */
+.blog .markdown {
+  line-height: 1.65;
 }
 
 /* Lists in markdown content */
@@ -105,4 +166,134 @@ figure {
 .menu-button {
   font-size: 2rem;
   cursor: pointer;
+}
+
+/* Back link and theme toggle, pinned to the top so they are one scroll up away from
+   anywhere in a long post. BlogNavHeader slides them off while reading down. The page
+   background `.blog *` paints on every element is what hides the post scrolling under
+   it, and the z-index keeps it over the image skeletons, which are positioned. */
+.blog .blog-nav-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-block: 1rem;
+  transition: transform 200ms ease;
+  /* The 80% column and a fractional scroll offset put the header between pixels. Its
+     background snaps to a whole pixel while a photo under it is drawn across the seam,
+     leaving a 1px sliver of photo along its top and left edges. This paints the
+     background a pixel further out on the top and sides; the -1px keeps the bottom
+     flush, so it still hides fully when scrolled away. */
+  box-shadow: 0 -1px 0 1px var(--font-bg-light);
+}
+
+.blog.dark .blog-nav-header {
+  box-shadow: 0 -1px 0 1px var(--font-bg-dark);
+}
+
+.blog .blog-nav-header.is-scrolled-away {
+  transform: translateY(-100%);
+}
+
+/* Tabbing onto a link that is off screen would hide the focus ring, so keyboard focus
+   brings it back. :focus-visible rather than :focus-within, so clicking the theme
+   toggle doesn't hold it open. */
+.blog .blog-nav-header:has(:focus-visible) {
+  transform: none;
+}
+/* --- Image skeletons -------------------------------------------------------------
+ *
+ * These posts carry 3-6MB photos a dozen at a time, so each one is held open at its
+ * real aspect ratio until it arrives. The ratio comes in as --ratio from BlogImage,
+ * sourced from src/data/blog-image-dims.json (see scripts/extract-image-dims.py); the
+ * 3/2 fallback only applies to an image missing from that manifest.
+ *
+ * Every selector here is .blog-scoped on purpose. `.blog *` above paints every
+ * descendant with the page background, and at equal specificity it would win on source
+ * order and flatten the skeleton to invisibility.
+ */
+.blog .blog-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--ratio, 3 / 2);
+  overflow: hidden;
+  background-color: color-mix(in srgb, var(--font-bg-light) 88%, black);
+}
+
+.blog.dark .blog-image {
+  background-color: color-mix(in srgb, var(--font-bg-dark) 82%, white);
+}
+
+/* The sweep. Stepped rather than a smooth gradient slide, so it sits with the pixel art
+   the rest of the site is built from. */
+.blog .blog-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.35) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: blog-image-sweep 1.4s steps(12, end) infinite;
+}
+
+.blog.dark .blog-image::after {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgb(255 255 255 / 0.08) 50%,
+    transparent 100%
+  );
+}
+
+.blog .blog-image.is-loaded {
+  background-color: transparent;
+}
+
+.blog .blog-image.is-loaded::after {
+  content: none;
+}
+
+.blog .blog-image img {
+  width: 100%;
+  height: 100%;
+  /* The box is the image's own ratio, so this crops nothing. It is here to keep a stale
+     manifest entry from stretching a photo. */
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.blog .blog-image.is-loaded img {
+  opacity: 1;
+}
+
+/* Full-bleed shots: capped at the viewport height, with the width capped to match so
+   the ratio survives the cap rather than the box going wide and short. */
+.blog .blog-image--full {
+  max-height: 100vh;
+  max-width: calc(100vh * var(--ratio, 1.5));
+  margin-inline: auto;
+}
+
+@keyframes blog-image-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog .blog-image::after {
+    animation: none;
+  }
+
+  .blog .blog-nav-header {
+    transition: none;
+  }
+
+  .blog .blog-image img {
+    transition: none;
+  }
 }

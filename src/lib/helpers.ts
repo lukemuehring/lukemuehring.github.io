@@ -1,7 +1,6 @@
-import RecordingWrapper from "../components/RecordingPopup/RecordingWrapper";
 import { Button } from "../types/Button";
 import type { Camera } from "../types/Camera";
-import type { Controller } from "../types/Controller";
+import { Controller } from "../types/Controller";
 import type { Floor } from "../types/Floor";
 import type { GameMap } from "../types/GameMap";
 import { ImageObject } from "../types/ImageObject";
@@ -19,6 +18,8 @@ import {
   FONT_COLOR_DARK_MODE,
   FONT_COLOR_LIGHT_MODE,
   FONT_HEADING,
+  NAV_TARGETS,
+  StoryBubbleMaxLineWidth,
 } from "./constants";
 import { CodingStory } from "./story";
 
@@ -40,25 +41,6 @@ export function checkIfObjectClicked(demos: Button[], Player: Player | null) {
   }
 
   return null;
-}
-
-// closes the hamburger menu
-export function closeMenu(
-  IsDemoModalOpenRef: React.RefObject<boolean>,
-  onRefChange: () => void,
-) {
-  const hamMenu = document.querySelector(".ham-menu");
-  if (hamMenu && hamMenu.classList.contains("active")) {
-    hamMenu.classList.remove("active");
-  }
-
-  const menuContainer = document.querySelector(".menu-container");
-  if (menuContainer && menuContainer.classList.contains("active")) {
-    menuContainer.classList.remove("active");
-  }
-
-  IsDemoModalOpenRef.current = false;
-  onRefChange();
 }
 
 // draws the image but flips it horizontally
@@ -163,15 +145,42 @@ function cutOffFloorEdgesInMap(Map: GameMap, maxX: number) {
   }
 }
 
-// todo make smooth
-// export function movePlayerToScreenCoords(Player: Player, x: number, y: number) {
-//   if (x < Player.x) {
-//     while (Player.x < x) {
-//       Player.x += 1;
-//     }
-//   }
-//   (Player.x = x), (Player.y = y);
-// }
+/**
+ * Steps the Player one frame along a nav-driven walk from startX to targetX (world space).
+ *
+ * Driven by `progress` (0..1 of the walk's fixed duration) rather than by acceleration,
+ * because the nav underline is paced by the character - a fixed duration is what keeps
+ * the bar's timing the same no matter how far the character has to travel. Gravity,
+ * friction and floor collision in Player.update are untouched; only horizontal motion is
+ * taken over.
+ *
+ * @returns true once the Player has landed on the target.
+ */
+export function stepPlayerTowards(
+  Player: Player,
+  startX: number,
+  targetX: number,
+  progress: number,
+): boolean {
+  if (progress >= 1) {
+    Player.x = targetX;
+    Player.xVelocity = 0;
+    return true;
+  }
+
+  // easeInOutCubic, which is close to the cubic-bezier(.4,0,.2,1) the nav underline
+  // used to transition with - the bar is paced by the character now, so this is what
+  // gives it back its original feel.
+  const eased =
+    progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+
+  const nextX = startX + (targetX - startX) * eased;
+  // Player.update runs straight after this and applies `x += xVelocity`, so handing it
+  // the exact delta lands the character on nextX while the walk sprite and facing
+  // direction still key off xVelocity as they do for a held arrow key.
+  Player.xVelocity = nextX - Player.x;
+  return false;
+}
 // #endregion
 
 // Multiplier for extra canvas height on mobile Safari
@@ -215,15 +224,21 @@ export function calculateHeadingFontSize(
   c: CanvasRenderingContext2D,
   text: string,
   initialFontSize: number,
+  /** Horizontal stretch the caller will draw with; see GameText's widthScale. */
+  widthScale: number = 1,
 ) {
   c.save();
 
   let currentFontSize = initialFontSize;
   c.font = getCanvasFontString(currentFontSize);
 
+  // Measured unstretched and budgeted against a narrowed screen, because the font has
+  // no idea the dot path is about to widen what it drew.
+  const maxWidth = (c.canvas.width - 50) / widthScale;
+
   // Scale down font size until it fits the screen.
   let currentFontWidthInPx = c.measureText(text).width;
-  while (currentFontWidthInPx > c.canvas.width - 50) {
+  while (currentFontWidthInPx > maxWidth) {
     currentFontSize -= 10;
     c.font = getCanvasFontString(currentFontSize);
     currentFontWidthInPx = c.measureText(text).width;
@@ -420,14 +435,14 @@ export function drawWhiteBoxWithText(
 
 /**
  * Gets the font string used for setting the CanvasRenderingContext2D.font property.
- * Checks if the web page has the font VT323 loaded.
+ * Checks if the web page has the font "Handjet Solid" loaded.
  * If not, we default to sans-serif.
  * @param {*} fontSize the font size
- * @returns the font string in the format "{fontSize}px VT323" or "{fontSize}px sans-serif"
+ * @returns the font string in the format "{fontSize}px Handjet Solid" or a monospace fallback
  */
 export function getCanvasFontString(fontSize: number) {
-  if (document.fonts.check("12px 'VT323'")) {
-    return fontSize + "px 'VT323'";
+  if (document.fonts.check("12px 'Handjet Solid'")) {
+    return fontSize + "px 'Handjet Solid'";
   } else {
     return fontSize - 8 + "px monospace";
   }
@@ -511,7 +526,10 @@ export function resizeText(
   TextBubbleArray: TextBubble[],
 ) {
   for (let i = 0; i < TextBubbleArray.length; i++) {
-    TextBubbleArray[i].maxLineWidth = context.canvas.width / 1.3;
+    TextBubbleArray[i].maxLineWidth = Math.min(
+      context.canvas.width / 1.3,
+      StoryBubbleMaxLineWidth,
+    );
   }
   for (let i = 0; i < Demos.length; i++) {
     Demos[i].maxLineWidth = context.canvas.width / 1.3;
@@ -522,11 +540,12 @@ export function resizeText(
   FONT_HEADING.P = context.canvas.width <= 500 ? 25 : 30;
 }
 
-// sets up the text bubbles for the story, the background objects and foreground objects
-export function setupTextBubblesObjectsAndDemos(
+// sets up the text bubbles for the story, and the grass marker images
+export function setupAboutMe(
   context: CanvasRenderingContext2D,
   _CANVAS_DOM_ELEMENT: HTMLElement,
   Floor: Floor,
+  Controller: Controller,
   Player: Player,
   Map: GameMap,
   grassMarkerImage: HTMLImageElement,
@@ -538,29 +557,80 @@ export function setupTextBubblesObjectsAndDemos(
   backgroundObjects: ImageObject[],
   websiteUiImage: HTMLImageElement,
   foregroundObjects: ImageObject[],
-  demos: Button[],
-  demosOpenHandler: (demo: any) => void,
 ) {
-  let startX: number =
-    context.canvas.width - Math.floor(context.canvas.width * 0.4);
-  let endX: number;
+  // #region My Story
+
+  function insertGrassMarkerAt(xCoordinate: number): void {
+    const grassMarkerImageHeight = 55;
+    foregroundObjects.push(
+      new ImageObject(
+        xCoordinate,
+        Floor.height - grassMarkerImageHeight,
+        grassMarkerImage,
+      ),
+    );
+  }
 
   // determines how much horizontal distance is given to each text bubble
   const ReadingSpeedPixelsPerCharacter = 7;
-  const TEXT_BUBBLE_MAX_LINE_WIDTH: number = Math.floor(
-    context.canvas.width / 1.5,
+  /**
+   * The closing bubble is given a flat slot instead of one scaled to its length, so the
+   * story does not end the instant the last word does. It only feeds the width solve
+   * below - the bubble itself is pinned to the floor's edge when it is placed.
+   */
+  const LAST_STORY_ENTRY_WIDTH = 500;
+  const TEXT_BUBBLE_MAX_LINE_WIDTH: number = Math.min(
+    Math.floor(context.canvas.width / 1.5),
+    StoryBubbleMaxLineWidth,
   );
 
-  for (let i = 0; i < 1; i++) {
-    endX = startX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
+  // The story runs from the ABOUT nav target to the end of the floor, and that target is
+  // a fraction of the floor's length - so there is exactly one floor length where both
+  // are true:
+  //
+  //     rightX = ABOUT * rightX + storyWidth   ->   rightX = storyWidth / (1 - ABOUT)
+  //
+  // Solving it in one step is what breaks the chicken-and-egg. The previous version
+  // picked a length, read the target off it, then widened the floor again to make room,
+  // which moved the target out from under the text that had just been placed against
+  // it - the story went in at 7200 while ABOUT walked to 12600.
+  //
+  // Everything downstream of this is positioned against targetForFraction, so nothing
+  // may write Floor.rightX after this point.
+  const storyWidth = CodingStory.reduce(
+    (total, entry, i) =>
+      total +
+      (i === CodingStory.length - 1
+        ? LAST_STORY_ENTRY_WIDTH
+        : entry.length * ReadingSpeedPixelsPerCharacter),
+    0,
+  );
+  const solvedRightX = Math.floor(storyWidth / (1 - NAV_TARGETS.ABOUT));
+  Floor.rightX = solvedRightX - (solvedRightX % Map.tsize);
 
+  // Read once, now that the floor is final and will not move again. The fraction point
+  // itself, not the nav's ABOUT destination - that stands a step inside the first bubble
+  // (see NAV_ITEMS), and anchoring the story there would just move the story with it.
+  const AboutMeWorldX = Controller.targetForFraction(NAV_TARGETS.ABOUT);
+
+  let currentX = AboutMeWorldX;
+  let endX = 0;
+
+  for (let i = 0; i < CodingStory.length; i++) {
+    // The last bubble is pinned to the floor's edge rather than measured like the
+    // others: rightX was rounded down to the tile grid, and absorbing that remainder
+    // here is what makes the story end exactly where the ground does.
+    endX =
+      i === CodingStory.length - 1
+        ? Floor.rightX
+        : currentX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
     textBubbleArray.push(
       new TextBubble(
         CodingStory[i],
         Player.x,
         Player.y,
         CanShowTextRef,
-        startX,
+        currentX,
         endX,
         TEXT_BUBBLE_MAX_LINE_WIDTH,
         Player,
@@ -569,149 +639,16 @@ export function setupTextBubblesObjectsAndDemos(
       ),
     );
 
-    // the grass image is 55 pixels tall
-    foregroundObjects.push(
-      new ImageObject(startX, Floor.height - 55, grassMarkerImage),
-    );
-    startX = endX;
-  }
-
-  // #region Demo setup
-  let imageURLS = [
-    "../../images/rr_images/rr1.webp",
-    "../../images/rr_images/rr2.webp",
-    "../../images/rr_images/rr3.webp",
-    "../../images/rr_images/rr4.webp",
-    "../../images/rr_images/rr5.webp",
-    "../../images/rr_images/rr6.webp",
-  ];
-
-  let images = new Array(imageURLS.length);
-  for (let i = 0; i < images.length; i++) {
-    images[i] = new Image();
-    images[i].src = imageURLS[i];
-  }
-
-  let websiteDemoHeader: string = "Rest and Relax Vacation .com";
-  let fontSize = calculateHeadingFontSize(
-    context,
-    websiteDemoHeader,
-    FONT_HEADING.H1,
-  );
-  const BTN_MAX_LINE_WIDTH = Math.min(1000, context.canvas.width - 50);
-
-  const websiteDemo = new Button(
-    textBubbleArray[0].maxX,
-    Math.floor(Floor.height / 2) - 100,
-    images,
-    websiteDemoHeader,
-    fontSize,
-    "A rental website for Rest & Relax Vacation in Gulf Shores, AL.\nBuilt with React 18 and Tailwind CSS.",
-    "https://restandrelaxvacation.com",
-    BTN_MAX_LINE_WIDTH,
-    CanShowTextRef,
-    cornerImage,
-    () => {
-      demosOpenHandler(websiteDemo);
-    },
-  );
-  websiteDemo.initializeDimensions(context);
-  websiteDemo.x += Math.floor(websiteDemo.width / 2);
-
-  demos.push(websiteDemo);
-
-  // waveform recording demo
-  let voiceDictHeader: string = "AI Powered Voice Dictation";
-  let fontSize2 = calculateHeadingFontSize(
-    context,
-    voiceDictHeader,
-    FONT_HEADING.H1,
-  );
-
-  let gap = 50;
-  const voiceDictDemo = new Button(
-    websiteDemo.x + websiteDemo.width / 2 + gap,
-    Math.floor(Floor.height / 2) - 100,
-    [], // todo images
-    voiceDictHeader,
-    fontSize2,
-    "",
-    "",
-    BTN_MAX_LINE_WIDTH,
-    CanShowTextRef,
-    cornerImage,
-    () => {
-      demosOpenHandler(voiceDictDemo);
-    },
-  );
-  voiceDictDemo.initializeDimensions(context);
-  voiceDictDemo.x += Math.floor(voiceDictDemo.width / 2);
-
-  voiceDictDemo.content = (props: { darkMode: boolean }) => (
-    <RecordingWrapper darkMode={props.darkMode} />
-  );
-
-  demos.push(voiceDictDemo);
-  // #endregion Demo setup
-
-  // #region Continue story from "Here are some of my projects"
-  // set endX to the last demo's X coordinate + 1/2 of its width
-  endX =
-    demos[demos.length - 1].x + Math.floor(demos[demos.length - 1].width / 2);
-
-  textBubbleArray.push(
-    new TextBubble(
-      CodingStory[1],
-      Player.x,
-      Player.y,
-      CanShowTextRef,
-      startX,
-      endX,
-      TEXT_BUBBLE_MAX_LINE_WIDTH,
-      Player,
-      cornerImage,
-      triangleImage,
-    ),
-  );
-
-  foregroundObjects.push(
-    new ImageObject(startX, Floor.height - 55, grassMarkerImage),
-  );
-  startX = endX;
-
-  for (let i = 2; i < CodingStory.length; i++) {
-    if (i == CodingStory.length - 1) {
-      endX = startX + 500 - ((startX + 500) % Map.tsize);
-      Floor.rightX = startX + 500 - ((startX + 500) % Map.tsize);
-    } else {
-      endX = startX + CodingStory[i].length * ReadingSpeedPixelsPerCharacter;
-    }
-    textBubbleArray.push(
-      new TextBubble(
-        CodingStory[i],
-        Player.x,
-        Player.y,
-        CanShowTextRef,
-        startX,
-        endX,
-        TEXT_BUBBLE_MAX_LINE_WIDTH,
-        Player,
-        cornerImage,
-        triangleImage,
-      ),
-    );
-
-    foregroundObjects.push(
-      new ImageObject(startX, Floor.height - 55, grassMarkerImage),
-    );
-    startX = endX;
+    insertGrassMarkerAt(currentX);
+    currentX = endX;
   }
   // #endregion
 
   // #region background objects
+  // Centered over the "I really enjoy attending to the details in my craft" entry.
   const websitePixelArt = new ImageObject(
-    textBubbleArray[3].minX +
-      Math.floor((textBubbleArray[3].maxX - textBubbleArray[3].minX) / 2),
+    textBubbleArray[5].minX +
+      Math.floor((textBubbleArray[5].maxX - textBubbleArray[5].minX) / 2),
     Math.floor(Floor.height / 2) - 100,
     websiteUiImage,
     undefined,
