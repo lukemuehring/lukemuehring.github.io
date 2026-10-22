@@ -35,8 +35,11 @@ import { Player } from "../types/Player";
 import type { TextBubble } from "../types/TextBubble";
 import DemoModal from "./DemoModal/DemoModal";
 
-/** grass1.png, the placeholder sprite standing at the blog spot. */
-const GRASS_MARKER_SIZE_PX = 55;
+/** computer_off.png and its on frames: Cave Story's PC, cut from the sheet at 6x. */
+const COMPUTER_MARKER_WIDTH_PX = 156;
+const COMPUTER_MARKER_HEIGHT_PX = 102;
+/** The chair, measured from the sprite's left edge - where the nav parks the character. */
+const COMPUTER_MARKER_CHAIR_X_PX = 45;
 
 /**
  * Horizontal stretch of the welcome word. Shared between the GameText that draws it and
@@ -177,6 +180,9 @@ export default function MyCanvas({
       "./images/grass1_dark.png",
       "./images/website_pixel.png",
       "./images/website_pixel_dark.png",
+      "./images/computer_off.png",
+      "./images/computer_on.png",
+      "./images/computer_on_2.png",
     ];
 
     let loadedImages = 0;
@@ -324,7 +330,7 @@ export default function MyCanvas({
       FONT_HEADING.H2 = 33;
       FONT_HEADING.P = 25;
     }
-    const welcomeStr = "SHAFWONG";
+    const welcomeStr = "luke muehring";
     const welcomeText = new GameText(
       welcomeStr,
       Math.floor(c.canvas.width / 2),
@@ -425,23 +431,20 @@ export default function MyCanvas({
     MapMaxX = FloorRef.current.rightX;
 
     // #region Blog marker
-    // Stands exactly where the nav's BLOG link walks to, so arriving on foot and
-    // arriving by nav put the character on the same spot. Placeholder art for now - it
-    // is the grass tuft the story markers use.
-    //
-    // Built after setupAboutMe, not next to the Controller: setupAboutMe moves
-    // Floor.rightX to fit the coding story, and every nav target is a fraction of that,
-    // so a marker placed before the move ends up ~1000px from the link meant to lead to
-    // it. Anything else positioned against a nav target has to come after this line too.
     BlogMarkerRef.current = new Marker({
       x: ControllerRef.current.targetForFraction(NAV_TARGETS.BLOG),
-      image: GrassMarkerImgRef.current,
-      width: GRASS_MARKER_SIZE_PX,
-      height: GRASS_MARKER_SIZE_PX,
+      image: imageCache["./images/computer_off.png"],
+      width: COMPUTER_MARKER_WIDTH_PX,
+      height: COMPUTER_MARKER_HEIGHT_PX,
+      anchorX: COMPUTER_MARKER_CHAIR_X_PX,
+      activeFrames: [
+        imageCache["./images/computer_on.png"],
+        imageCache["./images/computer_on_2.png"],
+      ],
       label: "BLOG",
       // The nav parks the character right on top of this, and they are drawn over it,
-      // so the label has to clear their head rather than sit just above the grass.
-      labelOffsetY: PlayerRef.current.height - GRASS_MARKER_SIZE_PX + 20,
+      // so the label has to clear their head rather than sit just above the monitor.
+      labelOffsetY: PlayerRef.current.height - COMPUTER_MARKER_HEIGHT_PX + 20,
       onClick: () => startRouteTransition("/blog"),
     });
     BlogMarkerRef.current.standOn(FloorRef.current.height);
@@ -482,7 +485,7 @@ export default function MyCanvas({
       // the world.
       const blogMarker = BlogMarkerRef.current;
       if (blogMarker?.hover && IsUserInputAllowedRef.current) {
-        blogMarker.onClick();
+        blogMarker.click();
         return;
       }
 
@@ -775,6 +778,7 @@ export default function MyCanvas({
         // Re-parked every frame so the sprite follows the floor if it ever moves; it is
         // a subtraction, and a marker floating in mid-air is a worse bug than the cost.
         BlogMarker.standOn(Floor.height);
+        BlogMarker.detectPlayerNear(Player.x);
         if (IsUserInputAllowedRef.current) {
           BlogMarker.detectMouseHover(Mouse.x, Mouse.y, Camera.x);
         } else {
@@ -865,7 +869,7 @@ export default function MyCanvas({
     <>
       <canvas id="canvas" ref={CanvasRef}>
         <header>
-          <h1>ＳＨＡＦＷＯＮＧ</h1>
+          <h1>ｌｕｋｅ　ｍｕｅｈｒｉｎｇ</h1>
         </header>
         <main>
           <p>climbing, coding & creating</p>

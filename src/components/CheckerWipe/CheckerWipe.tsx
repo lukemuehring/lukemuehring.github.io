@@ -4,18 +4,29 @@ import "./CheckerWipe.css";
 /** Edge length of one square, in px. */
 const CELL_PX = 56;
 /** How long a single square takes to fill in. Must match --cell-ms in the stylesheet. */
-const CELL_FILL_MS = 220;
+const CELL_FILL_MS = 160;
 /** Beat between the screen being covered and it starting to uncover. */
-const HOLD_MS = 140;
+const HOLD_MS = 100;
 /**
  * The uncover pass runs at this fraction of the cover pass - same delays, less time.
  * Coming back is the part nobody is waiting for, so it gets out of the way faster.
  */
 const OUT_SCALE = 0.7;
+/**
+ * Ease-in on the wave: how far it has spread goes with time to this power, so it creeps
+ * off the start and then accelerates. 1 is a constant speed; higher is a slower start
+ * and a faster finish, in the same total time.
+ */
+const EASE_IN_POWER = 2;
 
 type CheckerWipeProps = {
   /** Length of the cover pass; onCovered fires exactly at the end of it. */
   coverDuration?: number;
+  /**
+   * Run both passes from the edges in instead of the middle out - the way back undoing
+   * the way there.
+   */
+  reverse?: boolean;
   /** Screen is fully covered - swap whatever is underneath now. */
   onCovered: () => void;
   /** The uncover pass has finished and the overlay can be unmounted. */
@@ -23,13 +34,14 @@ type CheckerWipeProps = {
 };
 
 export default function CheckerWipe({
-  coverDuration = 1000,
+  coverDuration = 600,
+  reverse = false,
   onCovered,
   onDone,
 }: CheckerWipeProps) {
   const [covered, setCovered] = useState(false);
 
-  // Measured once: the wipe lives for about two seconds, and the cells are fr-sized, so
+  // Measured once: the wipe lives for about a second, and the cells are fr-sized, so
   // a resize mid-wipe stretches the grid rather than needing it rebuilt.
   const grid = useMemo(() => {
     const cols = Math.max(1, Math.ceil(window.innerWidth / CELL_PX));
@@ -42,9 +54,11 @@ export default function CheckerWipe({
     const lastRing = Math.max(centerCol, centerRow);
     // The +0.5 is the checker offset below: without it the half-step laggards in the
     // outermost ring would still be filling after coverDuration had elapsed.
-    const ringMs = Math.max(0, (coverDuration - CELL_FILL_MS) / (lastRing + 0.5));
+    const lastStep = lastRing + 0.5;
+    // The last square starts this long in, leaving it just enough time to fill.
+    const spreadMs = Math.max(0, coverDuration - CELL_FILL_MS);
 
-    const delays: number[] = [];
+    const steps: Array<number> = [];
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
         const ring = Math.max(
@@ -54,12 +68,24 @@ export default function CheckerWipe({
         // Every other square in a ring lags half a step, which is what makes the
         // leading edge read as a checkerboard instead of a solid expanding square.
         const checker = (col + row) % 2 === 0 ? 0 : 0.5;
-        delays.push((ring + checker) * ringMs);
+        steps.push((reverse ? lastRing - ring : ring) + checker);
       }
     }
 
+    // Measured from the first square to go rather than from 0: on an even grid the
+    // middle squares sit half a ring out, and the ease would stretch that into a beat of
+    // nothing right after the click.
+    const firstStep = Math.min(...steps);
+    // The ease run backwards: spread = time^power, so the time the wave reaches a square
+    // is its share of the distance to the 1/power.
+    const delays = steps.map(
+      (step) =>
+        ((step - firstStep) / (lastStep - firstStep)) ** (1 / EASE_IN_POWER) *
+        spreadMs,
+    );
+
     return { cols, rows, delays };
-  }, [coverDuration]);
+  }, [coverDuration, reverse]);
 
   useEffect(() => {
     const timers = [

@@ -29,3 +29,11 @@ copy over dist folder CONTENTS
 duplicate index.html -> 404.html
 
 push to remote to trigger deploy process
+
+
+### Notes
+https://www.spriters-resource.com/game_boy_advance/metfusion/asset/1671/
+https://www.spriters-resource.com/game_boy_advance/metfusion/asset/61915/
+https://www.spriters-resource.com/game_boy_advance/metfusion/asset/152436/
+https://www.spriters-resource.com/game_boy_advance/metfusion/asset/1640/
+https://www.spriters-resource.com/game_boy_advance/metfusion/asset/61882/

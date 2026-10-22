@@ -78,6 +78,48 @@ function hexToRgb(hex: string): [number, number, number] | null {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
+/**
+ * The sheen's highlight band `progress` (0..1) of the way through one sweep across a
+ * line of text, as a fillStyle: fully off the left edge at 0, fully off the right at 1.
+ * `textY` is the baseline. Exported so Marker's label sweeps exactly like this does.
+ */
+export function sheenGradient(
+  context: CanvasRenderingContext2D,
+  textX: number,
+  textY: number,
+  textWidth: number,
+  fontSize: number,
+  baseColor: string,
+  darkMode: boolean,
+  progress: number,
+): CanvasGradient {
+  const bandWidth = 0.15; // half the width of the highlight band
+  // Travel from fully off the left edge to fully off the right edge.
+  const pos = progress * (1 + bandWidth * 2) - bandWidth;
+
+  const gradient = context.createLinearGradient(
+    textX,
+    textY - fontSize,
+    textX + textWidth,
+    textY,
+  );
+  const highlightColor = darkMode ? "rgb(255, 255, 255)" : "rgb(100, 100, 100)";
+
+  const left = Math.max(0, Math.min(1, pos - bandWidth));
+  const center = Math.max(0, Math.min(1, pos));
+  const right = Math.max(0, Math.min(1, pos + bandWidth));
+
+  // When the centre sits on an edge, start/end on the highlight so the band
+  // does not pop as it enters or leaves.
+  gradient.addColorStop(0, center <= 0 ? highlightColor : baseColor);
+  if (left > 0 && left < 1) gradient.addColorStop(left, baseColor);
+  if (center > 0 && center < 1) gradient.addColorStop(center, highlightColor);
+  if (right > 0 && right < 1) gradient.addColorStop(right, baseColor);
+  gradient.addColorStop(1, center >= 1 ? highlightColor : baseColor);
+
+  return gradient;
+}
+
 /** Blend two hex colours. Falls back to the base if either will not parse. */
 function mixHex(base: string, highlight: string, t: number): string {
   const a = hexToRgb(base);
@@ -1271,34 +1313,16 @@ export class GameText {
     const elapsed = now - this.sheenStartTime;
     if (elapsed < 0 || elapsed > this.sheenDuration) return baseColor;
 
-    const progress = elapsed / this.sheenDuration;
-    const bandWidth = 0.15; // half the width of the highlight band
-    // Travel from fully off the left edge to fully off the right edge.
-    const pos = progress * (1 + bandWidth * 2) - bandWidth;
-
-    const gradient = context.createLinearGradient(
+    return sheenGradient(
+      context,
       textX,
-      textY - fontSize,
-      textX + textWidth,
       textY,
+      textWidth,
+      fontSize,
+      baseColor,
+      darkMode,
+      elapsed / this.sheenDuration,
     );
-    const highlightColor = darkMode
-      ? "rgb(255, 255, 255)"
-      : "rgb(100, 100, 100)";
-
-    const left = Math.max(0, Math.min(1, pos - bandWidth));
-    const center = Math.max(0, Math.min(1, pos));
-    const right = Math.max(0, Math.min(1, pos + bandWidth));
-
-    // When the centre sits on an edge, start/end on the highlight so the band
-    // does not pop as it enters or leaves.
-    gradient.addColorStop(0, center <= 0 ? highlightColor : baseColor);
-    if (left > 0 && left < 1) gradient.addColorStop(left, baseColor);
-    if (center > 0 && center < 1) gradient.addColorStop(center, highlightColor);
-    if (right > 0 && right < 1) gradient.addColorStop(right, baseColor);
-    gradient.addColorStop(1, center >= 1 ? highlightColor : baseColor);
-
-    return gradient;
   }
 
   /**

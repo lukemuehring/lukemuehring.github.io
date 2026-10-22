@@ -288,12 +288,12 @@ export default function Nav({
     // Close first: onClose flips IsNavMenuOpenRef, which lets App re-enable game input
     // before the next frame, so the walk survives the Controller's first gate check.
     onClose();
-    const targetNavItem = NAV_ITEMS.find((item) => item.label === label);
-    if (!targetNavItem) {
+    const world = worlds?.find((world) => world.label === label);
+    if (!world) {
       console.error("No target nav item to walk to.");
       return;
     }
-    ControllerRef?.current?.walkToFraction(targetNavItem.target);
+    ControllerRef?.current?.walkTo(world.target);
   };
 
   const handleToggleNightMode = () => {

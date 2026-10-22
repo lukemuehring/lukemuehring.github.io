@@ -84,11 +84,6 @@ export class Controller {
     this.autoWalkFrame = 0;
   }
 
-  /** Walks to a fraction of the walkable floor, so targets survive the floor being widened. */
-  walkToFraction(fraction: number): void {
-    this.walkTo(this.targetForFraction(fraction));
-  }
-
   cancelAutoWalk(): void {
     this.autoWalkTargetX = null;
     this.autoWalkFrame = 0;

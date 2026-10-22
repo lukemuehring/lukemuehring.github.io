@@ -100,11 +100,15 @@ export default function App() {
           }
         />
 
-        <Route path="/blog/*" element={<Blog />} />
+        <Route
+          path="/blog/*"
+          element={<Blog startRouteTransition={startRouteTransition} />}
+        />
       </Routes>
 
       {routeWipeTarget && (
         <CheckerWipe
+          reverse={routeWipeTarget === "/"}
           onCovered={() => navigate(routeWipeTarget)}
           onDone={() => {
             setRouteWipeTarget(null);

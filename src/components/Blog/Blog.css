@@ -18,10 +18,14 @@
 }
 
 /* Headings are the loud elements, so they get the display serif. Needs to be its
-   own rule because `.blog *` above outranks a bare `h1` selector. */
+   own rule because `.blog *` above outranks a bare `h1` selector. The post links on the
+   list page are titles too, set to match the h1 they open onto - and named down to the
+   span inside them, which `.blog *` would otherwise hand the UI font directly. */
 .blog h1,
 .blog h2,
-.blog h3 {
+.blog h3,
+.blog .blog-link,
+.blog .blog-link * {
   font-family: var(--font-display);
 }
 .blog.dark * {
@@ -79,6 +83,44 @@ figure {
   color: var(--font-color-dark-secondary);
 }
 
+/* Search box: underlined at rest, boxed while the field is hovered or the input focused.
+   The other three sides keep their width as transparent, so the box drawing in doesn't
+   nudge the text. The line is the text colour at a quarter strength, faint in both
+   themes without a .dark override of its own. Hover is taken on the whole field so the
+   box stays up over the icon and the clear button too. */
+.blog .blog-search {
+  border-color: transparent;
+  border-bottom-color: color-mix(in srgb, currentColor 25%, transparent);
+  padding-left: 2.5rem;
+  transition: border-color 150ms ease;
+}
+
+.blog .blog-search-field:hover .blog-search,
+.blog .blog-search:focus {
+  border-color: color-mix(in srgb, currentColor 25%, transparent);
+}
+
+/* Sits in the input's left padding, in the secondary text colour - about the grey of
+   the placeholder beside it. Named down to the svg's own shapes, which `.blog *` would
+   otherwise paint at full strength. Clicks fall through to the input. */
+.blog .blog-search-icon {
+  position: absolute;
+  left: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.blog .blog-search-icon,
+.blog .blog-search-icon * {
+  color: var(--font-color-light-secondary);
+}
+
+.blog.dark .blog-search-icon,
+.blog.dark .blog-search-icon * {
+  color: var(--font-color-dark-secondary);
+}
+
 
 .blog pre > code * {
   font-family:
@@ -91,6 +133,12 @@ figure {
     Menlo, ui-monospace, SFMono-Regular, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
   color: rgb(151, 0, 0);
+}
+
+/* Post body. The text-lg/xl on .blog bring their own line-heights - 1.4 at desktop
+   size - which is tight for paragraphs this long. */
+.blog .markdown {
+  line-height: 1.65;
 }
 
 /* Lists in markdown content */
@@ -113,6 +161,39 @@ figure {
 .menu-button {
   font-size: 2rem;
   cursor: pointer;
+}
+
+/* Back link and theme toggle, pinned to the top so they are one scroll up away from
+   anywhere in a long post. BlogNavHeader slides them off while reading down. The page
+   background `.blog *` paints on every element is what hides the post scrolling under
+   it, and the z-index keeps it over the image skeletons, which are positioned. */
+.blog .blog-nav-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-block: 1rem;
+  transition: transform 200ms ease;
+  /* The 80% column and a fractional scroll offset put the header between pixels. Its
+     background snaps to a whole pixel while a photo under it is drawn across the seam,
+     leaving a 1px sliver of photo along its top and left edges. This paints the
+     background a pixel further out on the top and sides; the -1px keeps the bottom
+     flush, so it still hides fully when scrolled away. */
+  box-shadow: 0 -1px 0 1px var(--font-bg-light);
+}
+
+.blog.dark .blog-nav-header {
+  box-shadow: 0 -1px 0 1px var(--font-bg-dark);
+}
+
+.blog .blog-nav-header.is-scrolled-away {
+  transform: translateY(-100%);
+}
+
+/* Tabbing onto a link that is off screen would hide the focus ring, so keyboard focus
+   brings it back. :focus-visible rather than :focus-within, so clicking the theme
+   toggle doesn't hold it open. */
+.blog .blog-nav-header:has(:focus-visible) {
+  transform: none;
 }
 /* --- Image skeletons -------------------------------------------------------------
  *
@@ -201,6 +282,10 @@ figure {
 @media (prefers-reduced-motion: reduce) {
   .blog .blog-image::after {
     animation: none;
+  }
+
+  .blog .blog-nav-header {
+    transition: none;
   }
 
   .blog .blog-image img {

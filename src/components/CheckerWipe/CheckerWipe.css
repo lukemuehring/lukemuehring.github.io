@@ -9,7 +9,7 @@
  */
 
 .checker-wipe {
-  --cell-ms: 220ms;
+  --cell-ms: 160ms;
   --checker-scale: 1;
   /* The sheet fills with the colour of the page being arrived at rather than a fixed
      white: routing to the blog in dark mode through a white flash is a worse transition

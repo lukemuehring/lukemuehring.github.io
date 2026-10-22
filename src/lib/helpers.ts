@@ -21,7 +21,6 @@ import {
   NAV_TARGETS,
   StoryBubbleMaxLineWidth,
 } from "./constants";
-import { getWorldTargets } from "./navTargets";
 import { CodingStory } from "./story";
 
 /**
@@ -572,15 +571,10 @@ export function setupAboutMe(
   const solvedRightX = Math.floor(storyWidth / (1 - NAV_TARGETS.ABOUT));
   Floor.rightX = solvedRightX - (solvedRightX % Map.tsize);
 
-  // Read once, now that the floor is final and will not move again.
-  const worldTargets = getWorldTargets(Controller);
-  const AboutMeWorldX = worldTargets?.find(
-    (wt) => wt.label === "ABOUT",
-  )?.target;
-  if (!worldTargets || !AboutMeWorldX) {
-    console.error("nav not set up. Can not setup About me section.");
-    return;
-  }
+  // Read once, now that the floor is final and will not move again. The fraction point
+  // itself, not the nav's ABOUT destination - that stands a step inside the first bubble
+  // (see NAV_ITEMS), and anchoring the story there would just move the story with it.
+  const AboutMeWorldX = Controller.targetForFraction(NAV_TARGETS.ABOUT);
 
   let currentX = AboutMeWorldX;
   let endX = 0;

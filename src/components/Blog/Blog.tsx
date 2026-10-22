@@ -4,12 +4,20 @@ import BlogList from "./BlogList";
 import BlogPost from "./BlogPost";
 import { useTheme } from "../../context/ThemeContext";
 
-export default function Blog() {
+interface BlogProps {
+  startRouteTransition: (to: string) => void;
+}
+
+export default function Blog(props: BlogProps) {
+  const { startRouteTransition } = props;
   const { darkMode } = useTheme();
   return (
     <div className={`blog ${darkMode ? "dark" : ""} w-[100%]`}>
       <Routes>
-        <Route path="/" element={<BlogList />} />
+        <Route
+          path="/"
+          element={<BlogList startRouteTransition={startRouteTransition} />}
+        />
         <Route path=":id" element={<BlogPost />} />
       </Routes>
     </div>

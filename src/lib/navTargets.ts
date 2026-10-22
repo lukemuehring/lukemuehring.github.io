@@ -8,14 +8,17 @@ import type { Controller } from "../types/Controller";
  *
  * Must stay in ascending target order - the nav underline interpolates across them.
  *
+ * `offsetX` is world px past the fraction point, for a spot whose content is anchored
+ * at the fraction but where the character should stand a step further in.
+ *
  * This lives in lib rather than in Nav.tsx because the world setup needs it too, and a
  * lib reaching back into a React component to find out where things go is backwards:
  * it drags the whole component tree in behind it.
  */
 export const NAV_ITEMS = [
-  { label: "BLOG", target: NAV_TARGETS.BLOG },
-  { label: "PROJECTS", target: NAV_TARGETS.PROJECTS },
-  { label: "ABOUT", target: NAV_TARGETS.ABOUT },
+  { label: "BLOG", target: NAV_TARGETS.BLOG, offsetX: 0 },
+  { label: "PROJECTS", target: NAV_TARGETS.PROJECTS, offsetX: 0 },
+  { label: "ABOUT", target: NAV_TARGETS.ABOUT, offsetX: 60 },
 ] as const;
 
 /** A nav destination resolved to an absolute world x. */
@@ -34,6 +37,6 @@ export function getWorldTargets(
   if (!controller) return null;
   return NAV_ITEMS.map((item) => ({
     label: item.label,
-    target: controller.targetForFraction(item.target),
+    target: controller.targetForFraction(item.target) + item.offsetX,
   }));
 }
