@@ -65,13 +65,71 @@ figure {
   @apply md:text-4xl text-3xl font-bold !text-inherit !no-underline;
 }
 
-.blog-link > span:hover {
-  @apply !underline;
+/* The post links get a box behind them to light up on hover, like a button. a. because
+   the post page's h1 borrows .blog-link for its type and is not a link. The negative
+   margin takes the padding back, so the text stays on the column edge. */
+.blog a.blog-link {
+  @apply inline-block px-3 py-1 -mx-3 rounded-xl transition-colors duration-100;
 }
 
 .blog .blog-link,
-.blog .blog-link * {
+.blog .blog-link *,
+.blog .menu-button * {
   background-color: transparent;
+}
+
+/* Same hover as .shaf-btn: a shade darker on the light page, a shade lighter on the dark
+   one. Scoped to .blog to outrank the page background `.blog *` paints on everything.
+   Only where there is a pointer to hover with, or a tapped theme toggle on a phone keeps
+   its box until the next tap somewhere else (the nav does the same, see Nav.css). */
+@media (hover: hover) {
+  .blog .shaf-btn-muted:hover,
+  .blog a.blog-link:hover,
+  .blog .menu-button:hover {
+    @apply bg-black/5;
+  }
+  .blog.dark .shaf-btn-muted:hover,
+  .blog.dark a.blog-link:hover,
+  .blog.dark .menu-button:hover {
+    background: color-mix(in srgb, var(--font-bg-dark) 90%, white);
+  }
+}
+
+/* Keyboard focus anywhere on the blog shows the hover box in place of the browser's
+   ring. focus-visible, so a mouse click, which focuses links too, does not leave it lit.
+   Text fields keep their own focus style (see .blog-search). */
+.blog :focus-visible:not(input, textarea) {
+  outline: none;
+  @apply bg-black/5;
+}
+.blog.dark :focus-visible:not(input, textarea) {
+  background: color-mix(in srgb, var(--font-bg-dark) 90%, white);
+}
+
+/* Links in a post's text have no padding of their own, so the box gets a little room
+   around the letters - taken back by the margin, so the line does not shift - and keeps
+   its rounded ends on every line a long link wraps onto. */
+.blog a:not(.shaf-btn-muted, .blog-link):focus-visible {
+  padding-inline: 0.2em;
+  margin-inline: -0.2em;
+  border-radius: 0.25em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Pressed: a shade darker than the hover in both themes. Outside the media query, so a
+   tap on a phone still flashes it. No transition going in, or a quick click is over
+   before it shows; letting go fades back on the hover's. */
+.blog .shaf-btn-muted:active,
+.blog a.blog-link:active,
+.blog .menu-button:active {
+  @apply bg-black/10;
+  transition-duration: 0s;
+}
+.blog.dark .shaf-btn-muted:active,
+.blog.dark a.blog-link:active,
+.blog.dark .menu-button:active {
+  background: color-mix(in srgb, var(--font-bg-dark) 95%, white);
 }
 .blog a {
   text-decoration: underline;
@@ -163,9 +221,13 @@ figure {
   letter-spacing: 0.25rem;
 }
 
+/* The theme toggle in the blog header. The padding is the hover box; the negative margin
+   takes it back so the icon keeps its place, and self-center stops the header stretching
+   the box taller than it is wide. */
 .menu-button {
   font-size: 2rem;
   cursor: pointer;
+  @apply flex items-center justify-center self-center p-1.5 -m-1.5 rounded-lg transition-colors duration-100;
 }
 
 /* Back link and theme toggle, pinned to the top so they are one scroll up away from

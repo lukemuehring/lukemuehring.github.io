@@ -95,12 +95,6 @@ export default function CheckerWipe({
       setTimeout(() => {
         setCovered(true);
       }, coverDuration + HOLD_MS),
-      setTimeout(
-        () => {
-          onDone();
-        },
-        coverDuration + HOLD_MS + coverDuration * OUT_SCALE,
-      ),
     ];
 
     return () => timers.forEach(clearTimeout);
@@ -108,6 +102,19 @@ export default function CheckerWipe({
     // with are the right ones for its whole life.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Timed from when the uncover pass actually starts rather than from mount. Building
+  // the page under the sheet can hold the main thread past the uncover's scheduled
+  // start - on a phone, mounting the canvas page does - and a finish fixed to mount
+  // then cut the pass short, so the squares still showing vanished all at once.
+  useEffect(() => {
+    if (!covered) return;
+    const timer = setTimeout(() => {
+      onDone();
+    }, coverDuration * OUT_SCALE);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [covered]);
 
   return (
     <div

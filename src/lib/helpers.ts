@@ -21,7 +21,7 @@ import {
   NAV_TARGETS,
   StoryBubbleMaxLineWidth,
 } from "./constants";
-import { CodingStory } from "./story";
+import { CodingStory, UiUxStoryEntry } from "./story";
 
 /**
  *  Checks if an object was clicked,
@@ -645,17 +645,20 @@ export function setupAboutMe(
   // #endregion
 
   // #region background objects
-  // Centered over the "I really enjoy attending to the details in my craft" entry.
-  const websitePixelArt = new ImageObject(
-    textBubbleArray[5].minX +
-      Math.floor((textBubbleArray[5].maxX - textBubbleArray[5].minX) / 2),
-    Math.floor(Floor.height / 2) - 100,
-    websiteUiImage,
-    undefined,
-    328,
-    198,
-  );
-  backgroundObjects.push(websitePixelArt);
+  // Centered over the UI/UX entry. Looked up rather than indexed, so it follows the entry
+  // when the story above it is edited. The bubbles were pushed in story order above.
+  const uiUxBubble = textBubbleArray[CodingStory.indexOf(UiUxStoryEntry)];
+  if (uiUxBubble) {
+    const websitePixelArt = new ImageObject(
+      uiUxBubble.minX + Math.floor((uiUxBubble.maxX - uiUxBubble.minX) / 2),
+      Math.floor(Floor.height / 2) - 100,
+      websiteUiImage,
+      undefined,
+      328,
+      198,
+    );
+    backgroundObjects.push(websitePixelArt);
+  }
   // #endregion
 }
 

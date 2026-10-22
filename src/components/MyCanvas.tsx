@@ -152,6 +152,8 @@ export default function MyCanvas({
   let PrevTimestamp = 0;
   let SpawnX = 0;
   let MapMaxX = 0;
+  /** Where a click on the computer sent the character; the blog opens when they land. */
+  let PendingBlogX: number | null = null;
 
   let oldDarkMode = darkModeRef.current;
   // #endregion
@@ -261,8 +263,10 @@ export default function MyCanvas({
     resizeCamera(c, CameraRef.current);
 
     SpawnX = c.canvas.width / 2;
+    // PlayerRef lives in App, so after a trip to the blog it still holds the character
+    // from before. Pick up where they left off; SpawnX stays the fall-respawn point.
     PlayerRef.current = new Player(
-      SpawnX,
+      PlayerRef.current?.x ?? SpawnX,
       imageCache,
       ANIMATION_TIME_BUFFER,
       IsUserInputAllowedRef,
@@ -473,8 +477,9 @@ export default function MyCanvas({
     // #endregion
 
     // #region Blog marker
+    const blogMarkerX = ControllerRef.current.targetForFraction(NAV_TARGETS.BLOG);
     BlogMarkerRef.current = new Marker({
-      x: ControllerRef.current.targetForFraction(NAV_TARGETS.BLOG),
+      x: blogMarkerX,
       image: imageCache["./images/computer_off.png"],
       width: COMPUTER_MARKER_WIDTH_PX,
       height: COMPUTER_MARKER_HEIGHT_PX,
@@ -487,7 +492,17 @@ export default function MyCanvas({
       // The nav parks the character right on top of this, and they are drawn over it,
       // so the label has to clear their head rather than sit just above the monitor.
       labelOffsetY: PlayerRef.current.height - COMPUTER_MARKER_HEIGHT_PX + 20,
-      onClick: () => startRouteTransition("/blog"),
+      // Walk over first, the same walk as the nav's BLOG link, and open the blog on
+      // arrival (see the check after Controller.update). Already there: open it now.
+      onClick: () => {
+        const player = PlayerRef.current;
+        if (player && Math.abs(player.x - blogMarkerX) < 1) {
+          startRouteTransition("/blog");
+          return;
+        }
+        ControllerRef.current?.walkTo(blogMarkerX);
+        PendingBlogX = blogMarkerX;
+      },
     });
     BlogMarkerRef.current.standOn(FloorRef.current.height);
     // #endregion
@@ -738,6 +753,17 @@ export default function MyCanvas({
 
       Controller.update();
       Player.update(Floor, Map, Mouse, Camera);
+
+      // The walk to the computer has ended. Landing on it opens the blog; ending anywhere
+      // else means something took the walk over (arrow keys, the nav), so drop the click.
+      if (PendingBlogX !== null && Controller.autoWalkTargetX === null) {
+        if (Math.abs(Player.x - PendingBlogX) < 1) {
+          startRouteTransition("/blog");
+        } else if (BlogMarker) {
+          BlogMarker.isClicked = false;
+        }
+        PendingBlogX = null;
+      }
     
       Camera.update();
       // #endregion Updating game state - Camera, Controller, Player
