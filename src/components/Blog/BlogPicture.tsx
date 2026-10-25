@@ -1,3 +1,4 @@
+import { COLUMN_SIZES, HALF_COLUMN_SIZES } from "../../lib/blogImages";
 import "./Blog.css";
 import BlogImage from "./BlogImage";
 
@@ -15,7 +16,7 @@ export default function BlogPicture({
       <BlogImage
         src={imageSrc}
         alt={caption}
-        fullSize={fullSize}
+        sizes={fullSize ? COLUMN_SIZES : HALF_COLUMN_SIZES}
         className={fullSize ? "" : "md:w-[50%]"}
       />
       <figcaption className="blog-caption text-center">{caption}</figcaption>

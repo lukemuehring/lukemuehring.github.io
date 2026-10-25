@@ -65,11 +65,15 @@ figure {
   @apply md:text-4xl text-3xl font-bold !text-inherit !no-underline;
 }
 
-/* The post links get a box behind them to light up on hover, like a button. a. because
-   the post page's h1 borrows .blog-link for its type and is not a link. The negative
-   margin takes the padding back, so the text stays on the column edge. */
+/* give blog header links a button-like hitbox*/
 .blog a.blog-link {
-  @apply inline-block px-3 py-1 -mx-3 rounded-xl transition-colors duration-100;
+  @apply block px-3 py-2 -mx-3 rounded-xl transition-colors duration-100;
+}
+
+/* blog dates have their own style */
+.blog a.blog-link .blog-date {
+  font-family: var(--font-ui);
+  font-weight: normal;
 }
 
 .blog .blog-link,
@@ -264,21 +268,19 @@ figure {
 }
 /* --- Image skeletons -------------------------------------------------------------
  *
- * These posts carry 3-6MB photos a dozen at a time, so each one is held open at its
- * real aspect ratio until it arrives. The ratio comes in as --ratio from BlogImage,
- * sourced from src/data/blog-image-dims.json (see scripts/extract-image-dims.py); the
- * 3/2 fallback only applies to an image missing from that manifest.
- *
- * Every selector here is .blog-scoped on purpose. `.blog *` above paints every
- * descendant with the page background, and at equal specificity it would win on source
- * order and flatten the skeleton to invisibility.
+ * Each skeleton is held open at its real aspect ratio until it arrives.
+ * The ratio comes in as --ratio from BlogImage,
+ * sourced from src/data/blog-image-dims.json (see scripts/build-blog-images.swift);
  */
 .blog .blog-image {
   position: relative;
-  width: 100%;
+  max-height: 80vh;
+  max-width: calc(80vh * var(--ratio, 1.5));
+  margin-inline: auto;
   aspect-ratio: var(--ratio, 3 / 2);
   overflow: hidden;
   background-color: color-mix(in srgb, var(--font-bg-light) 88%, black);
+  transition: box-shadow 150ms ease;
 }
 
 .blog.dark .blog-image {
@@ -332,18 +334,266 @@ figure {
   opacity: 1;
 }
 
-/* Full-bleed shots: capped at the viewport height, with the width capped to match so
-   the ratio survives the cap rather than the box going wide and short. */
-.blog .blog-image--full {
-  max-height: 100vh;
-  max-width: calc(100vh * var(--ratio, 1.5));
-  margin-inline: auto;
+/* The photo is a button that opens it in BlogImageViewer. */
+.blog .blog-image__open {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+/* Hovered, or focused from the keyboard, the photo's edge glows. */
+.blog .blog-image:has(.blog-image__open:focus-visible) {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--font-color-light) 20%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--font-color-light) 30%, transparent);
+}
+.blog.dark .blog-image:has(.blog-image__open:focus-visible) {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--font-color-dark) 25%, transparent),
+    0 0 18px 2px color-mix(in srgb, var(--font-color-dark) 30%, transparent);
+}
+@media (hover: hover) {
+  .blog .blog-image:hover {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--font-color-light) 20%, transparent),
+      0 0 18px 2px color-mix(in srgb, var(--font-color-light) 30%, transparent);
+  }
+  .blog.dark .blog-image:hover {
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--font-color-dark) 25%, transparent),
+      0 0 18px 2px color-mix(in srgb, var(--font-color-dark) 30%, transparent);
+  }
 }
 
 @keyframes blog-image-sweep {
   to {
     transform: translateX(100%);
   }
+}
+
+/* --- BlogImageViewer (Photo viewer) ----------------------------------------------------------------
+/* Holds the page still behind the viewer, until it starts closing. */
+html:has(.blog-viewer[open]:not(.is-closing)) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.blog .blog-viewer {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* .blog-viewer__backdrop paints the page colour behind the photo and fades it in and
+   out, so the browser's default backdrop would only tint the page mid-fade, then
+   vanish in one step as the viewer closes. */
+.blog .blog-viewer::backdrop {
+  background: transparent;
+}
+
+/* The page colour behind the photo, fading by opacity (see BlogImageViewer). Its colour
+   is the one `.blog *` paints on everything. */
+.blog .blog-viewer__backdrop {
+  position: fixed;
+  inset: 0;
+}
+
+/* Positioned so it stacks over the fixed backdrop rather than under it. */
+.blog .blog-viewer__scroller {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+/* `.blog *` paints the page background on every element, and the dialog, scroller and
+   stage fill the screen: left opaque, they would hide the post the moment the viewer
+   opens, while only the backdrop fades. Only the backdrop paints the page colour. */
+.blog .blog-viewer,
+.blog .blog-viewer__scroller,
+.blog .blog-viewer__stage,
+.blog .blog-viewer__frame,
+.blog.dark .blog-viewer,
+.blog.dark .blog-viewer__scroller,
+.blog.dark .blog-viewer__stage,
+.blog.dark .blog-viewer__frame {
+  background-color: transparent;
+}
+
+/* Centres the photo while it is smaller than the screen, and grows past the screen with
+   it when it covers, which is what gives the scroller something to scroll. */
+.blog .blog-viewer__stage {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 1rem;
+}
+
+/* The top-left transform-origin is what BlogImageViewer's open and close assume. */
+.blog .blog-viewer__frame {
+  display: grid;
+  width: min(100vw - 2rem, (100dvh - 2rem) * var(--ratio, 1.5));
+  aspect-ratio: var(--ratio, 1.5);
+  transform-origin: 0 0;
+  user-select: none;
+}
+
+/* The display copy and the full-resolution file, stacked in one cell. */
+.blog .blog-viewer__frame img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+}
+
+.blog .blog-viewer__full {
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.blog .blog-viewer.is-full-loaded .blog-viewer__full {
+  opacity: 1;
+}
+
+/* On a touch screen held the photo's way round, the photo covers the screen rather than
+   fitting it, so there is no border to spare and the thumb has something to pan. Held
+   the other way, it fits instead, whole, until the reader turns the phone - nothing is
+   rotated here. A photo wider than the screen opens centred (see BlogImageViewer). */
+@media (pointer: coarse) {
+  .blog .blog-viewer__stage {
+    padding: 0;
+  }
+
+  .blog .blog-viewer__frame {
+    width: max(100vw, 100dvh * var(--ratio, 1.5));
+  }
+}
+
+@media (pointer: coarse) and (orientation: portrait) {
+  .blog .blog-viewer.is-landscape .blog-viewer__frame {
+    width: min(100vw, 100dvh * var(--ratio, 1.5));
+  }
+}
+
+@media (pointer: coarse) and (orientation: landscape) {
+  .blog .blog-viewer.is-portrait .blog-viewer__frame {
+    width: min(100vw, 100dvh * var(--ratio, 1.5));
+  }
+}
+
+/* Floats over the photo. The page background `.blog *` paints on every element would
+   make a solid bar of it, so the bar is cleared and each control gets a see-through
+   chip of that background instead. */
+.blog .blog-viewer__toolbar,
+.blog.dark .blog-viewer__toolbar {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: transparent;
+}
+
+.blog .blog-viewer__button,
+.blog .blog-viewer__status {
+  border-radius: 0.75rem;
+  background-color: color-mix(in srgb, var(--font-bg-light) 55%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.blog.dark .blog-viewer__button,
+.blog.dark .blog-viewer__status {
+  background-color: color-mix(in srgb, var(--font-bg-dark) 55%, transparent);
+}
+
+/* Out-ranks the blue underline `.blog a` gives every link in a post. */
+.blog .blog-viewer__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  font-size: 1.75rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 100ms;
+}
+
+.blog .blog-viewer__button * {
+  background-color: transparent;
+}
+
+/* Hover and press follow .menu-button's: a shade darker on the light page, a shade
+   lighter on the dark one, here mixed into the chip so it stays see-through. */
+@media (hover: hover) {
+  .blog .blog-viewer__button:hover {
+    background-color: color-mix(
+      in srgb,
+      color-mix(in srgb, var(--font-bg-light) 92%, black) 65%,
+      transparent
+    );
+  }
+  .blog.dark .blog-viewer__button:hover {
+    background-color: color-mix(
+      in srgb,
+      color-mix(in srgb, var(--font-bg-dark) 90%, white) 65%,
+      transparent
+    );
+  }
+}
+
+/* Keyboard focus takes the hover shade over the near-clear box `.blog :focus-visible`
+   would give it, which vanishes against a photo. */
+.blog .blog-viewer__button:focus-visible {
+  background-color: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--font-bg-light) 92%, black) 65%,
+    transparent
+  );
+}
+.blog.dark .blog-viewer__button:focus-visible {
+  background-color: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--font-bg-dark) 90%, white) 65%,
+    transparent
+  );
+}
+
+.blog .blog-viewer__button:active {
+  background-color: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--font-bg-light) 80%, black) 75%,
+    transparent
+  );
+  transition-duration: 0s;
+}
+
+.blog.dark .blog-viewer__button:active {
+  background-color: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--font-bg-dark) 75%, white) 75%,
+    transparent
+  );
+}
+
+.blog .blog-viewer__status {
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  color: var(--font-color-light-secondary);
+}
+
+.blog.dark .blog-viewer__status {
+  color: var(--font-color-dark-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -355,7 +605,8 @@ figure {
     transition: none;
   }
 
-  .blog .blog-image img {
+  .blog .blog-image img,
+  .blog .blog-viewer__full {
     transition: none;
   }
 }

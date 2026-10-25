@@ -14,6 +14,10 @@ cp -r dist/* "$TEMP_DIR/"
 [ -d images ] && cp -r images "$TEMP_DIR/"
 [ -d assets ] && cp -r assets "$TEMP_DIR/"
 
+# Blog photos are imported by the posts, so the build already put them in dist/assets.
+# Copying the folder too would publish every photo twice.
+rm -rf "$TEMP_DIR/images/blog"
+
 # Copy public folder contents (Resume.pdf, etc.)
 [ -d public ] && cp -r public/* "$TEMP_DIR/"
 

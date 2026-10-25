@@ -27,3 +27,6 @@ dist-ssr
 
 
 todo.md
+
+# Full-size photo exports; scripts/build-blog-images.swift makes the published copies
+/blog-originals

@@ -2,7 +2,7 @@ import { FONT_COLOR_DARK_MODE, FONT_COLOR_LIGHT_MODE } from "../lib/constants";
 import { getCanvasFontString } from "../lib/helpers";
 import { sheenGradient } from "./GameText";
 
-const LABEL_FONT_SIZE = 34;
+const LABEL_FONT_SIZE = 96;
 /** Slack around the label's text, which is otherwise a small thing to land a click on. */
 const LABEL_HIT_PADDING = 8;
 /** One sweep of the label's sheen - the welcome word's sheenDuration. */

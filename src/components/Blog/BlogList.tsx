@@ -38,10 +38,10 @@ export default function BlogList(props: BlogListProps) {
           <ul className="flex flex-col gap-10 no-dot mt-8">
             {filteredPosts.map((post) => (
               <li key={post.id}>
-                <Link to={`/blog/${post.id}`} className={"blog-link"}>
-                  <span>{post.title}</span>
+                <Link to={`/blog/${post.id}`} className="blog-link">
+                  <div>{post.title}</div>
+                  <div className="blog-date">{post.date}</div>
                 </Link>
-                <div className="blog-date">{post.date}</div>
               </li>
             ))}
           </ul>
