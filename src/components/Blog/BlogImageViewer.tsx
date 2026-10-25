@@ -42,10 +42,10 @@ const BUTTON_FADE_OUT_MS = 350;
 const EASING = "cubic-bezier(0.2, 0, 0, 1)";
 
 /**
- * The share of the travel, at the post end, over which the photo fades in or out. The
- * viewer sits over everything, the blog's sticky header included, so a photo landing
- * on a spot the header covers would sit on top of it until the dialog closed. Fading
- * hands over to the post's own photo, identical underneath, with the header in place.
+ * The share of the close, at its end, over which the photo fades out. The viewer sits
+ * over everything, the blog's sticky header included, so a photo landing on a spot the
+ * header covers would sit on top of it until the dialog closed. Fading hands over to
+ * the post's own photo, identical underneath, with the header in place.
  */
 const HANDOFF_FRACTION = 0.35;
 
@@ -120,11 +120,15 @@ function playTransition(
     frame.animate(keyframesFor(postPhoto, viewerPhoto), optionsFor(duration)),
     toolbar.animate(keyframesFor(hiddenFade, shownFade), optionsFor(buttonDuration))
   ];
-  // Without travel the photo already fades, through photoKeyframes' opacity.
-  if (origin && !isMotionReduced) {
-    const handoffKeyframes: Array<Keyframe> = isOpening
-      ? [hiddenFade, { ...shownFade, offset: HANDOFF_FRACTION }, shownFade]
-      : [shownFade, { ...shownFade, offset: 1 - HANDOFF_FRACTION }, hiddenFade];
+  // Close only. Opening, the backdrop fades in between the post and the photo, so a
+  // photo still fading in would show the backdrop through it and flash dark. Without
+  // travel the photo already fades, through photoKeyframes' opacity.
+  if (!isOpening && origin && !isMotionReduced) {
+    const handoffKeyframes: Array<Keyframe> = [
+      shownFade,
+      { ...shownFade, offset: 1 - HANDOFF_FRACTION },
+      hiddenFade
+    ];
     const handoffOptions = { ...optionsFor(duration), easing: "linear" };
     animations.push(frame.animate(handoffKeyframes, handoffOptions));
   }
@@ -230,6 +234,19 @@ export default function BlogImageViewer(props: BlogImageViewerProps) {
   };
 
   /**
+   * Fades the full-resolution file in once it can be drawn. load fires when the file
+   * has arrived, which for a cached one is at once, but a 24MP photo can take a moment
+   * longer to decode, and until it does the img has nothing to show.
+   * @param event - The full-resolution img's load event.
+   */
+  const handleFullLoad = (event: React.SyntheticEvent<HTMLImageElement>) => {
+    event.currentTarget
+      .decode()
+      .then(() => setLoadState("loaded"))
+      .catch(() => setLoadState("failed"));
+  };
+
+  /**
    * Closes on a click or tap around the photo, not on it.
    * @param event - The click, anywhere in the scroller.
    */
@@ -268,7 +285,7 @@ export default function BlogImageViewer(props: BlogImageViewerProps) {
               alt={alt}
               draggable={false}
               decoding="async"
-              onLoad={() => setLoadState("loaded")}
+              onLoad={handleFullLoad}
               onError={() => setLoadState("failed")}
             />
           </div>

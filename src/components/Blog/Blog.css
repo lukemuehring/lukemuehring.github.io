@@ -448,11 +448,15 @@ html:has(.blog-viewer[open]:not(.is-closing)) {
   user-select: none;
 }
 
-/* The display copy and the full-resolution file, stacked in one cell. */
-.blog .blog-viewer__frame img {
+/* The display copy and the full-resolution file, stacked in one cell. Transparent, not
+   the page colour `.blog *` paints: an img still decoding shows only its background,
+   which would flash a dark box over the photo underneath. */
+.blog .blog-viewer__frame img,
+.blog.dark .blog-viewer__frame img {
   grid-area: 1 / 1;
   width: 100%;
   height: 100%;
+  background-color: transparent;
 }
 
 .blog .blog-viewer__full {
