@@ -23,6 +23,15 @@ interface TransitionElements {
   toolbar: HTMLElement;
 }
 
+/** Where a mouse drag across a zoomed photo began, in the pointer and the scroller. */
+interface DragStart {
+  pointerId: number;
+  clientX: number;
+  clientY: number;
+  scrollLeft: number;
+  scrollTop: number;
+}
+
 /** The photo growing out of the post, and the background fading in. */
 const OPEN_DURATION_MS = 280;
 
@@ -34,6 +43,12 @@ const BUTTON_FADE_IN_MS = 800;
 
 /** The close button fading out. The viewer stays open until this finishes too. */
 const BUTTON_FADE_OUT_MS = 350;
+
+/** The photo growing to its zoomed size, or shrinking back to fit. */
+const ZOOM_DURATION_MS = 250;
+
+/** How far a press on the photo can move and still be a click rather than a drag. */
+const DRAG_THRESHOLD_PX = 4;
 
 /**
  * Quick off the mark and easing into place, both ways: the photo arrives rather than
@@ -142,8 +157,12 @@ function playTransition(
  * in over it once that arrives. The photo grows out of its spot in the post on the way
  * in and shrinks back into it on the way out. On a touch screen held the photo's way
  * round, it covers the screen edge to edge, to pan under the thumb; held the other way,
- * the whole photo shows until the phone is turned. It has no zoom of its own; the
- * browser's pinch-zoom works on it, on a phone as on a trackpad.
+ * the whole photo shows until the phone is turned.
+ *
+ * A click or tap on the photo zooms in on that spot, and another zooms back out. Zoomed,
+ * it pans by dragging with the mouse, or by scrolling as any overflow does, as far as
+ * bringing its edges to the middle of the screen. The zoom is the viewer's own, so
+ * closing it leaves the page at its own size, as the browser's pinch-zoom would not.
  */
 export default function BlogImageViewer(props: BlogImageViewerProps) {
   const { src, previewSrc, alt, getOriginRect, onClose } = props;
@@ -153,6 +172,8 @@ export default function BlogImageViewer(props: BlogImageViewerProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const isClosingRef = useRef(false);
+  const dragStartRef = useRef<DragStart | null>(null);
+  const hasDraggedRef = useRef(false);
   const [loadState, setLoadState] = useState<"loading" | "loaded" | "failed">("loading");
   const [isClosing, setIsClosing] = useState(false);
   const ratio = aspectRatioFor(src) ?? 1.5;
@@ -247,12 +268,94 @@ export default function BlogImageViewer(props: BlogImageViewerProps) {
   };
 
   /**
-   * Closes on a click or tap around the photo, not on it.
+   * Handles a click or tap anywhere in the viewer but its toolbar. One that ends a drag
+   * does nothing. Zoomed, any other zooms back out; at fit, one on the photo zooms in
+   * and one around it closes the viewer. A zoom keeps the spot clicked under the
+   * pointer.
    * @param event - The click, anywhere in the scroller.
    */
-  const handleBackgroundClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (frameRef.current?.contains(event.target as Node)) return;
-    close();
+  const handleScrollerClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const scroller = event.currentTarget;
+    const frame = frameRef.current;
+    if (hasDraggedRef.current || isClosingRef.current || !frame) return;
+    const isZoomed = scroller.classList.contains("is-zoomed");
+    if (!isZoomed && !frame.contains(event.target as Node)) {
+      close();
+      return;
+    }
+    // A zoom during the opening or another zoom measures the photo at rest.
+    for (const animation of frame.getAnimations()) animation.cancel();
+
+    const before = frame.getBoundingClientRect();
+    const spotX = (event.clientX - before.left) / before.width;
+    const spotY = (event.clientY - before.top) / before.height;
+    /**
+     * is-zoomed is toggled on the element rather than through state,
+     * as the new size has to be laid out and measured here, before the next paint.
+     * React leaves it alone, since the scroller's className never changes.
+     */
+    scroller.classList.toggle("is-zoomed");
+    const resized = frame.getBoundingClientRect();
+    scroller.scrollLeft += resized.left + spotX * resized.width - event.clientX;
+    scroller.scrollTop += resized.top + spotY * resized.height - event.clientY;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const settled = frame.getBoundingClientRect();
+    frame.animate([{ transform: transformOnto(before, settled) }, { transform: "none" }], {
+      duration: ZOOM_DURATION_MS,
+      easing: EASING
+    });
+  };
+
+  /**
+   * Starts a mouse drag across a zoomed photo, from the photo or the room around it.
+   * Touch pans by scrolling the scroller, which the browser does on its own.
+   * @param event - The press, anywhere in the scroller.
+   */
+  const handleScrollerPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    hasDraggedRef.current = false;
+    const scroller = event.currentTarget;
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+    // A press on the scroller itself, rather than the stage filling it, is its scrollbar.
+    if (!scroller.classList.contains("is-zoomed") || event.target === scroller) return;
+
+    // Keeps the drag's moves and release coming here when the mouse leaves the window.
+    scroller.setPointerCapture(event.pointerId);
+    dragStartRef.current = {
+      pointerId: event.pointerId,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      scrollLeft: scroller.scrollLeft,
+      scrollTop: scroller.scrollTop
+    };
+  };
+
+  /**
+   * Pans the zoomed photo along with the mouse, once it has moved far enough to be a
+   * drag.
+   * @param event - The mouse moving while held down in the scroller.
+   */
+  const handleScrollerPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const dragStart = dragStartRef.current;
+    const scroller = event.currentTarget;
+    if (!dragStart || event.pointerId !== dragStart.pointerId) return;
+
+    const deltaX = event.clientX - dragStart.clientX;
+    const deltaY = event.clientY - dragStart.clientY;
+    if (!hasDraggedRef.current && Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD_PX) return;
+    hasDraggedRef.current = true;
+    scroller.classList.add("is-panning");
+    scroller.scrollLeft = dragStart.scrollLeft - deltaX;
+    scroller.scrollTop = dragStart.scrollTop - deltaY;
+  };
+
+  /**
+   * Ends a mouse drag across the photo, on release or when the browser takes it over.
+   * @param event - The release or cancel of the pointer that started the drag.
+   */
+  const handleScrollerPointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    dragStartRef.current = null;
+    event.currentTarget.classList.remove("is-panning");
   };
 
   return (
@@ -269,7 +372,11 @@ export default function BlogImageViewer(props: BlogImageViewerProps) {
       <div
         ref={scrollerRef}
         className="blog-viewer__scroller"
-        onClick={handleBackgroundClick}
+        onClick={handleScrollerClick}
+        onPointerDown={handleScrollerPointerDown}
+        onPointerMove={handleScrollerPointerMove}
+        onPointerUp={handleScrollerPointerEnd}
+        onPointerCancel={handleScrollerPointerEnd}
       >
         <div className="blog-viewer__stage">
           <div

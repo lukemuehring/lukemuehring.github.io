@@ -49,113 +49,120 @@ import thunder_48 from '../../../../images/blog/thunder/thunder_48.avif';
 import thunder_49 from '../../../../images/blog/thunder/thunder_49.avif';
 import thunder_50 from '../../../../images/blog/thunder/thunder_50.avif';
 import thunder_51 from '../../../../images/blog/thunder/thunder_51.avif';
+import hogum_1 from '../../../../images/blog/thunder/hogum_1.avif';
 import BlogPicture from "../BlogPicture";
 import BlogDoublePicture from "../BlogDoublePicture";
+import TripStats from "../TripStats";
 
+<BlogPicture imageSrc={thunder_37} fullSize={true}/>
 
 
 export const date = "2026-09-30";
 export const title =
   "Thunderbolt Ridge - Solo";
 
-  Stats: 
-  Distance - 15.13 mi
-  Elevation - 8,342 ft
-  Total Time - 9 hours
+<TripStats
+  stats={[
+    { value: "15.13", unit: "mi", label: "Distance" },
+    { value: "8,342", unit: "ft", label: "Elevation gain" },
+    { value: "9", unit: "hr", label: "Total time" },
+    { value: "5.6", unit: "", label: "Crux" }
+  ]}
+  splits={[
+    { label: "To the base of Thunderbolt", time: "3 hr 20 min" },
+    { label: "Base to summit", time: "20 min" },
+    { label: "Back to the car", time: "2 hr 50 min" }
+  ]}
+/>
 
-  3 hours 20 minutes to base of Thunderbolt
-  Ridge summit - 20 minutes later.
-  Returning back to car - 2 hours 50 minutes.
+This was the most challenging ridgeline I have done to date.
+\
+\
+The lack of information, long approach, and remote location all contributed to the difficulty. The technical cruxes were both harder and more exposed than what I experienced on the North Ridge of the Pfeifferhorn, Geurt's Ridge and the West Slabs of Mt. Olympus, and South Ridge of Superior.
+\
+\
+I first tried it in 2025. I made it all the way to the base when I heard the first booms of thunder. I chose to bail down Hogum fork, since I wanted to lose elevation rather than get back on the LCC ridgeline. It was quite the bushwhack to get back down.
 
-  My hardest ridgeline to date.
+<BlogPicture imageSrc={hogum_1} caption="Escaping down Hogum Fork" fullSize={true}/>
 
-  https://www.mountainproject.com/route/106198245/thunderbolt-ridge
+This year, I gave it another try, and I made a video documenting the experience [here](https://youtu.be/u_9g0kFQmEs).
 
-  Wow! Amazing ridge scrambling, and the approach sure warms you up. Also pleasantly surprised that most of the rock doesn't budge much with awesome texture and movement. I found the ridge to get more technical and exposed the further you get, until the final 100-200 ft. of 3rd class. Interestingly, there are some airplane parts scattered around 100 yards south of the ridge's base (maybe this link explains some? zettasaprons.blogspot.com/p…)
+## The Approach
+I did the normal Pfeifferhorn hike to get to the ridgeline, then traversed across the south side of the Pfeiff and Upwop to get to the Hogum Bowl. 
+<BlogPicture imageSrc={thunder_01} fullSize={true} caption={"Looking at the Pfeifferhorn after dropping south from the ridge."}/>
 
-The FA must have been quite committing - as a scramble, it's just barely there in places. Kind of magical. But I agree on the crux grading in the MP description - definitely a step up from the other classic scrambles of the Wasatch (Pfeiff North Ridge, Geurt's Ridge, West Slabs, South Ridge of Superior).
+After traversing past Upwop, I went back up and over the ridge to enter a notch I had spotted on google earth beforehand, which allowed me to drop into the Hogum bowl.
 
-Some beta/spray:
-Approached via red pine -> going around the south side of Pfeiff + Upwop -> dropping into Hogum via the gulley at 40.52914034635002, -111.71603054251484
+<BlogPicture imageSrc={thunder_02} fullSize={true} caption={"First view of Thunderbolt ridge, going down and right in the photo."}/>
+<BlogPicture imageSrc={thunder_04} fullSize={true} caption={"Looking down the notch at 40.52914034635002, -111.71603054251484."}/>
 
-Before attempting I was terribly curious on what the climbing looked like on the ridge, so I made a video for others here:
-youtu.be/u_9g0kFQmEs
+The top entrance of the notch was in a forest, and going down was a little bit loose and scrambly. I hugged the skier's right when descending. Both sides of the notch had many interesting rock formations.
+<BlogPicture imageSrc={thunder_03} fullSize={true}/>
+<BlogPicture imageSrc={thunder_05} fullSize={true}/>
+<BlogPicture imageSrc={thunder_06} fullSize={true}/>
+<BlogPicture imageSrc={thunder_07} fullSize={true}/>
+<BlogPicture imageSrc={thunder_08} fullSize={true} caption={"Looking back up the notch."}/>
 
-https://www.mountainproject.com/forum/topic/108267028/lightning-ridge-in-hogum
+Once through the notch, the hike ramped up in technical difficulty. The talus field guarding the base of the ridge is unpredicatably loose, and contains many large boulders that shouldn't seem to move, but still do. I had a little scare with some large talus shifting on me.
+<BlogPicture imageSrc={thunder_09} fullSize={true}/>
 
-https://www.mountainproject.com/forum/topic/114971213/thunderbolt-ridge-beta
+<BlogPicture imageSrc={thunder_10} fullSize={true} caption={"Two boulders waiting for the FA."}/>
 
-https://www.strava.com/activities/1768326790
+<BlogPicture imageSrc={thunder_11} fullSize={true} caption={"Luke for reference."}/>
 
-https://zettasaprons.blogspot.com/p/lost-plane.html
+<BlogDoublePicture imageSrc1={thunder_12} imageSrc2={thunder_13} caption={"This roof would be the harder of the two boulders. Some type of spanned out toehook business..."}/>
 
-<BlogPicture imageSrc={thunder_01} fullSize={true} caption={"The approach."}/>
+<BlogPicture imageSrc={thunder_14} fullSize={true} caption={"Looking back on the roof."}/>
 
-<BlogPicture imageSrc={thunder_02} fullSize={true} caption={"Pines and cliffs."}/>
+<BlogPicture imageSrc={thunder_15} fullSize={true} caption={"Another promising hunk of choss."}/>
 
-<BlogPicture imageSrc={thunder_03} fullSize={true} caption={"Slab."}/>
+<BlogPicture imageSrc={thunder_16} fullSize={true} caption={"Looking east in Hogum Bowl, back towards the Pfeiff."}/>
 
-<BlogPicture imageSrc={thunder_04} fullSize={true} caption={"Up the valley."}/>
-
-<BlogPicture imageSrc={thunder_05} fullSize={true} caption={"Overhanging block."}/>
-
-<BlogPicture imageSrc={thunder_06} fullSize={true} caption={"Granite wall."}/>
-
-<BlogPicture imageSrc={thunder_07} fullSize={true} caption={"More slab."}/>
-
-<BlogPicture imageSrc={thunder_08} fullSize={true} caption={"Granite spires."}/>
-
-<BlogPicture imageSrc={thunder_09} fullSize={true} caption={"The cirque."}/>
-
-<BlogPicture imageSrc={thunder_10} fullSize={true} caption={"Talus below the face."}/>
-
-<BlogPicture imageSrc={thunder_11} fullSize={true} caption={"Sizing up a boulder."}/>
-
-<BlogPicture imageSrc={thunder_12} fullSize={true} caption={"Lichen-streaked roof."}/>
-
-<BlogPicture imageSrc={thunder_13} fullSize={true} caption={"Into the sun."}/>
-
-<BlogDoublePicture imageSrc1={thunder_14} imageSrc2={thunder_15} caption={"Boulder fields."}/>
-
-<BlogPicture imageSrc={thunder_16} fullSize={true} caption={"Cliffs and trees below."}/>
+100 yards south from the base of the ridge, I found a bunch of metal scrap. I have read that this is actually from a plane crash back in 1936. The plane clipped the LCC ridgeline and ended up in Hogum bowl. There's a link at the bottom of this page that goes into the story.
 
 <BlogDoublePicture imageSrc1={thunder_17} imageSrc2={thunder_18} caption={"Airplane parts."}/>
 
 <BlogDoublePicture imageSrc1={thunder_19} imageSrc2={thunder_20} caption={"More wreckage."}/>
 
-<BlogPicture imageSrc={thunder_21} fullSize={true} caption={"Talus."}/>
+<BlogPicture imageSrc={thunder_21} fullSize={true} caption={"Some engine part in the middle?"}/>
 
-<BlogDoublePicture imageSrc1={thunder_22} imageSrc2={thunder_23} caption={"Down into the basin."}/>
+From here I gained the ridge proper. It started off easy, and got progressively more technical and exposed. I had it to myself, so I wasn't worried about rockfall.
 
-<BlogPicture imageSrc={thunder_24} fullSize={true} caption={"Up the gully."}/>
+<BlogDoublePicture imageSrc1={thunder_22} imageSrc2={thunder_23} caption={"Looking back at the start."}/>
 
-<BlogPicture imageSrc={thunder_25} fullSize={true} caption={"Talus up to the ridge."}/>
+<BlogPicture imageSrc={thunder_24} fullSize={true} />
 
-<BlogDoublePicture imageSrc1={thunder_26} imageSrc2={thunder_27} caption={"Talus."}/>
+As I was making my way up, I kept glancing to the bowl on climbers' right. It's a slice of wilderness that rarely gets seen and there are plenty of interesting things to spot.
+<BlogPicture imageSrc={thunder_25} fullSize={true} caption={"Big talus size."}/>
 
-<BlogPicture imageSrc={thunder_28} fullSize={true} caption={"Still talus."}/>
+<BlogDoublePicture imageSrc1={thunder_26} imageSrc2={thunder_27} caption={"House sized boulders."}/>
 
-<BlogDoublePicture imageSrc1={thunder_29} imageSrc2={thunder_30} caption={"The ridge above."}/>
+<BlogPicture imageSrc={thunder_28} fullSize={true} />
 
-<BlogPicture imageSrc={thunder_31} fullSize={true} caption={"Fins."}/>
+<BlogDoublePicture imageSrc1={thunder_29} imageSrc2={thunder_30} caption={"Continuing up."}/>
 
-<BlogPicture imageSrc={thunder_32} fullSize={true} caption={"Feet over the edge."}/>
+<BlogPicture imageSrc={thunder_31} fullSize={true}/>
 
-<BlogDoublePicture imageSrc1={thunder_33} imageSrc2={thunder_34} caption={"Shadow on the ridge."}/>
+<BlogPicture imageSrc={thunder_32} fullSize={true}/>
 
-<BlogDoublePicture imageSrc1={thunder_35} imageSrc2={thunder_36} caption={"Down the valley."}/>
+<BlogDoublePicture imageSrc1={thunder_33} imageSrc2={thunder_34}/>
+
+<BlogDoublePicture imageSrc1={thunder_35} imageSrc2={thunder_36}/>
 
 <BlogDoublePicture imageSrc1={thunder_37} imageSrc2={thunder_38} caption={"Up the ridge."}/>
 
-<BlogPicture imageSrc={thunder_39} fullSize={true} caption={"Straddling a crack."}/>
+Around 75% of the way up I started encountering 5.5 and 5.6 cruxes. I remember sometimes going climber's left to go around impassible sections on the proper ridge, with scary exposure below.
+<BlogPicture imageSrc={thunder_39} fullSize={true} caption={"An exposed notch between spires."}/>
 
-<BlogPicture imageSrc={thunder_40} fullSize={true} caption={"Looking down."}/>
+<BlogPicture imageSrc={thunder_40} fullSize={true}/>
 
-<BlogPicture imageSrc={thunder_41} fullSize={true} caption={"Leaning blocks."}/>
+<BlogPicture imageSrc={thunder_41} fullSize={true} caption={"#bomber"}/>
 
-<BlogPicture imageSrc={thunder_42} fullSize={true} caption={"Into the sun again."}/>
+Then I got to the final crux, which was either 4 moves of 5.6 ledges (left) or a chimney (right). I opted for the ledges as the rock seemed solid, but the chimney looked more secure. I just don't have much experience chimneying, and I didn't want to start learning in that moment. 
 
-<BlogPicture imageSrc={thunder_43} fullSize={true} caption={"Exposure."}/>
+<BlogPicture imageSrc={thunder_42} fullSize={true} caption={"Looking up at the final crux, with the chimney sticking out on the right."} />
+
+<BlogPicture imageSrc={thunder_43} fullSize={true} caption={"Looking back down at the crux."}/>
 
 <BlogPicture imageSrc={thunder_44} fullSize={true} caption={"The chimney."}/>
 
@@ -163,8 +170,19 @@ https://zettasaprons.blogspot.com/p/lost-plane.html
 
 <BlogDoublePicture imageSrc1={thunder_46} imageSrc2={thunder_47} caption={"Looking back down."}/>
 
+After that, it wasn't too bad. The terrain for the last 100ft. was 3rd class and surprisingly better than the minefield of loose choss at the top of the North Ridge of the Pfeifferhorn. In fact, most of the climb on Thunderbolt ridge had solid rock, and I only felt a loose block once.
+
 <BlogPicture imageSrc={thunder_48} fullSize={true} caption={"Summit blocks."}/>
 
-<BlogDoublePicture imageSrc1={thunder_49} imageSrc2={thunder_50} caption={"Summit views."}/>
+Then, I had a lovely time making it back to the car, hitting the summits of Upwop and the Pfeifferhorn on the way back.
 
-<BlogPicture imageSrc={thunder_51} fullSize={true} caption={"Back down to the canyon."}/>
+<BlogDoublePicture imageSrc1={thunder_49} imageSrc2={thunder_50}/>
+
+<BlogPicture imageSrc={thunder_51} fullSize={true} caption={"Just another day in LCC!"}/>
+
+## Sources
+- [Mountain Project - Thunderbolt Ridge](https://www.mountainproject.com/route/106198245/thunderbolt-ridge)
+- [Mountain Project forum - Lightning Ridge in Hogum](https://www.mountainproject.com/forum/topic/108267028/lightning-ridge-in-hogum)
+- [Mountain Project forum - Thunderbolt Ridge Beta](https://www.mountainproject.com/forum/topic/114971213/thunderbolt-ridge-beta)
+- [A Strava activity showing another approach](https://www.strava.com/activities/1768326790)
+- [Zetta's Aprons - Lost Plane](https://zettasaprons.blogspot.com/p/lost-plane.html)

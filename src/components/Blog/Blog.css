@@ -256,6 +256,21 @@ figure {
   box-shadow: 0 -1px 0 1px var(--font-bg-dark);
 }
 
+/* The back link and theme toggle */
+.blog .blog-nav-header .shaf-btn-muted {
+  margin-block: -1rem;
+  padding-block: calc(0.25rem + 1rem);
+}
+
+/* Makes the toggle theme button square. */
+.blog .blog-nav-header .menu-button {
+  align-self: stretch;
+  width: 4.25rem;
+  margin-block: -1rem;
+  margin-inline: -1.125rem;
+  padding: 1rem 0;
+}
+
 .blog .blog-nav-header.is-scrolled-away {
   transform: translateY(-100%);
 }
@@ -280,7 +295,9 @@ figure {
   aspect-ratio: var(--ratio, 3 / 2);
   overflow: hidden;
   background-color: color-mix(in srgb, var(--font-bg-light) 88%, black);
-  transition: box-shadow 150ms ease;
+  /* The hover glow's fade in and out. Long enough to read as a fade: at 150ms it
+     looked like it switched on and off. */
+  transition: box-shadow 300ms ease;
 }
 
 .blog.dark .blog-image {
@@ -335,6 +352,11 @@ figure {
 }
 
 /* The photo is a button that opens it in BlogImageViewer. */
+.blog .blog-image__open,
+.blog.dark .blog-image__open {
+  background-color: transparent;
+}
+
 .blog .blog-image__open {
   display: block;
   width: 100%;
@@ -427,6 +449,14 @@ html:has(.blog-viewer[open]:not(.is-closing)) {
   background-color: transparent;
 }
 
+/* A click on the photo focuses the dialog itself, and the Escape that closes it then
+   makes that focus visible, so the box `.blog :focus-visible` paints tinted the whole
+   screen grey as the photo went back into the post. */
+.blog .blog-viewer:focus-visible,
+.blog.dark .blog-viewer:focus-visible {
+  background-color: transparent;
+}
+
 /* Centres the photo while it is smaller than the screen, and grows past the screen with
    it when it covers, which is what gives the scroller something to scroll. */
 .blog .blog-viewer__stage {
@@ -439,13 +469,38 @@ html:has(.blog-viewer[open]:not(.is-closing)) {
   padding: 1rem;
 }
 
-/* The top-left transform-origin is what BlogImageViewer's open and close assume. */
+/* The top-left transform-origin is what BlogImageViewer's open, close and zoom assume.
+   Every width here is multiplied by --zoom, so a zoomed photo is that many times the
+   size it fits at, on every screen. */
 .blog .blog-viewer__frame {
   display: grid;
-  width: min(100vw - 2rem, (100dvh - 2rem) * var(--ratio, 1.5));
+  width: calc(min(100vw - 2rem, (100dvh - 2rem) * var(--ratio, 1.5)) * var(--zoom, 1));
   aspect-ratio: var(--ratio, 1.5);
   transform-origin: 0 0;
   user-select: none;
+  cursor: zoom-in;
+}
+
+/* Zoomed in, the photo has half a screen of room on every side, so panning can bring
+   even its edges and corners to the middle. It is there to be dragged about, from the
+   room as well as the photo, and a click anywhere zooms back out. BlogImageViewer sets
+   is-zoomed and is-panning on the scroller. */
+.blog .blog-viewer__scroller.is-zoomed {
+  --zoom: 2.5;
+}
+
+.blog .blog-viewer__scroller.is-zoomed .blog-viewer__stage {
+  padding: 50dvh 50vw;
+}
+
+.blog .blog-viewer__scroller.is-zoomed,
+.blog .blog-viewer__scroller.is-zoomed .blog-viewer__frame {
+  cursor: grab;
+}
+
+.blog .blog-viewer__scroller.is-panning,
+.blog .blog-viewer__scroller.is-panning .blog-viewer__frame {
+  cursor: grabbing;
 }
 
 /* The display copy and the full-resolution file, stacked in one cell. Transparent, not
@@ -478,19 +533,19 @@ html:has(.blog-viewer[open]:not(.is-closing)) {
   }
 
   .blog .blog-viewer__frame {
-    width: max(100vw, 100dvh * var(--ratio, 1.5));
+    width: calc(max(100vw, 100dvh * var(--ratio, 1.5)) * var(--zoom, 1));
   }
 }
 
 @media (pointer: coarse) and (orientation: portrait) {
   .blog .blog-viewer.is-landscape .blog-viewer__frame {
-    width: min(100vw, 100dvh * var(--ratio, 1.5));
+    width: calc(min(100vw, 100dvh * var(--ratio, 1.5)) * var(--zoom, 1));
   }
 }
 
 @media (pointer: coarse) and (orientation: landscape) {
   .blog .blog-viewer.is-portrait .blog-viewer__frame {
-    width: min(100vw, 100dvh * var(--ratio, 1.5));
+    width: calc(min(100vw, 100dvh * var(--ratio, 1.5)) * var(--zoom, 1));
   }
 }
 
@@ -600,6 +655,451 @@ html:has(.blog-viewer[open]:not(.is-closing)) {
   color: var(--font-color-dark-secondary);
 }
 
+/* --- Adventure sections (AdventureList, AdventureSection, PanelPhoto, PanelText) ---
+ *
+ * One section after another down the page. Each is a container holding a card; opened,
+ * the card shrinks to a header bar and the container grows a strip of photos and text
+ * that scrolls sideways, on the page's own background.
+ */
+.blog .adventure-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  margin-block: 2rem;
+}
+
+/* Expand all: small and quiet, at the right above the first card. */
+.blog .adventure-list__controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.blog .adventure-list__controls + .adventure-list {
+  margin-top: 0.75rem;
+}
+
+.blog .adventure-list__toggle,
+.blog.dark .adventure-list__toggle {
+  margin-right: -0.75rem;
+  padding: 0.375rem 0.75rem;
+  border: 0;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--font-color-light-secondary);
+  background-color: transparent;
+  transition: background-color 100ms;
+}
+
+.blog.dark .adventure-list__toggle {
+  color: var(--font-color-dark-secondary);
+}
+
+/* Both labels share one grid cell, so the button is as wide as the wider of them and
+   doesn't change width when it flips; the hidden one only holds the space. */
+.blog .adventure-list__labels,
+.blog.dark .adventure-list__labels {
+  display: inline-grid;
+  color: inherit;
+  background-color: transparent;
+}
+
+.blog .adventure-list__labels > *,
+.blog.dark .adventure-list__labels > * {
+  grid-area: 1 / 1;
+  color: inherit;
+  background-color: transparent;
+}
+
+.blog .adventure-list__labels > .is-hidden {
+  visibility: hidden;
+}
+
+/* Hover and pressed follow .menu-button's. */
+@media (hover: hover) {
+  .blog .adventure-list__toggle:hover {
+    @apply bg-black/5;
+  }
+  .blog.dark .adventure-list__toggle:hover {
+    background: color-mix(in srgb, var(--font-bg-dark) 90%, white);
+  }
+}
+
+.blog .adventure-list__toggle:active {
+  @apply bg-black/10;
+  transition-duration: 0s;
+}
+
+.blog.dark .adventure-list__toggle:active {
+  background: color-mix(in srgb, var(--font-bg-dark) 95%, white);
+}
+
+/* A bordered card with a soft shadow, which is what says it opens. The negative margin
+   takes back the trigger's padding, so the card's photo and text sit on the column's
+   edges. */
+.blog .adventure,
+.blog.dark .adventure {
+  margin-inline: -1.25rem;
+  border: 1px solid color-mix(in srgb, var(--font-color-light) 12%, transparent);
+  border-radius: 1.5rem;
+  background-color: transparent;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, black 4%, transparent),
+    0 4px 12px color-mix(in srgb, black 6%, transparent);
+  transition:
+    background-color 150ms,
+    box-shadow 150ms,
+    margin 220ms ease,
+    border-radius 220ms ease;
+}
+
+.blog.dark .adventure {
+  border-color: color-mix(in srgb, var(--font-color-dark) 14%, transparent);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, black 30%, transparent),
+    0 4px 14px color-mix(in srgb, black 35%, transparent);
+}
+
+/* Hovering the card, not the strip under it, lifts it a little further. */
+@media (hover: hover) {
+  .blog .adventure:has(.adventure__trigger:hover) {
+    box-shadow:
+      0 2px 4px color-mix(in srgb, black 6%, transparent),
+      0 8px 20px color-mix(in srgb, black 10%, transparent);
+  }
+
+  .blog.dark .adventure:has(.adventure__trigger:hover) {
+    box-shadow:
+      0 2px 4px color-mix(in srgb, black 35%, transparent),
+      0 8px 24px color-mix(in srgb, black 45%, transparent);
+  }
+}
+
+/* `.blog *` paints the page colour on every element, which would cover the header's
+   hover shade wherever these sit on it. */
+.blog .adventure__trigger,
+.blog .adventure__trigger *,
+.blog .adventure__collapse,
+.blog .adventure__collapse-inner,
+.blog .adventure__panel,
+.blog .adventure__strip,
+.blog .adventure__photo,
+.blog .adventure__photo .blog-caption {
+  background-color: transparent;
+}
+
+/* The card is one big button. Below md a photo sits on top; from md up it sits beside
+   the text, a listing on its side. A card without a photo is just its text. */
+.blog .adventure__trigger {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1.25rem;
+  border: 0;
+  border-radius: calc(1.5rem - 1px);
+  text-align: left;
+  transition: background-color 100ms;
+}
+
+@media (min-width: 768px) {
+  .blog .adventure.has-image .adventure__trigger {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: center;
+    gap: 1.5rem;
+  }
+}
+
+/* Open, the card shrinks to a header bar: its photo to a thumbnail beside the title.
+   The bar closes the section again. */
+.blog .adventure.is-open.has-image .adventure__trigger {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Hover and pressed follow .menu-button's: a shade darker on the light page, a shade
+   lighter on the dark one. An open section keeps the page's background, so its header
+   bar shades exactly as the closed card does. */
+@media (hover: hover) {
+  .blog .adventure__trigger:hover {
+    @apply bg-black/5;
+  }
+  .blog.dark .adventure__trigger:hover {
+    background: color-mix(in srgb, white 8%, transparent);
+  }
+}
+
+.blog .adventure__trigger:active {
+  @apply bg-black/10;
+  transition-duration: 0s;
+}
+
+.blog.dark .adventure__trigger:active {
+  background: color-mix(in srgb, white 12%, transparent);
+}
+
+/* The showcase photo, cropped to one shape. The tint is the image skeleton's, and
+   shows while the photo loads. */
+.blog .adventure__image,
+.blog.dark .adventure__image {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 1rem;
+  background-color: color-mix(in srgb, var(--font-bg-light) 88%, black);
+}
+
+.blog.dark .adventure__image {
+  background-color: color-mix(in srgb, var(--font-bg-dark) 82%, white);
+}
+
+.blog .adventure.is-open .adventure__image {
+  aspect-ratio: 1;
+  border-radius: 0.75rem;
+}
+
+.blog .adventure__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.blog .adventure__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.blog .adventure__title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.blog .adventure__logline {
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--font-color-light-secondary);
+}
+
+.blog.dark .adventure__logline {
+  color: var(--font-color-dark-secondary);
+}
+
+/* The panel stays in the page, open or not. Its row grows from nothing to its height
+   and back (0fr to 1fr, which, unlike height: auto, can be transitioned), and the
+   inner box clips the panel while the row is shorter than it. */
+.blog .adventure__collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms ease;
+}
+
+.blog .adventure.is-open .adventure__collapse {
+  grid-template-rows: 1fr;
+}
+
+.blog .adventure__collapse-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The strip's frame, as tall as its tallest card. --adventure-gutter is the room kept
+   at each side for the arrows, which is what says the strip goes on sideways. */
+.blog .adventure__panel {
+  --adventure-arrow: 3rem;
+  --adventure-gutter: calc(var(--adventure-arrow) + 0.5rem);
+  position: relative;
+  container-type: inline-size;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.blog .adventure.is-open .adventure__panel {
+  opacity: 1;
+  transform: none;
+}
+
+/* Cards stretch to the tallest one. The strip stops at the gutters, so the next card
+   stays hidden behind the arrow's gutter rather than peeking into it. The top padding
+   leaves room for each photo's hover glow, which the overflow would clip. Positioned,
+   so each card's offsetLeft - which the arrows step by - is measured from the strip. */
+.blog .adventure__strip {
+  position: relative;
+  display: flex;
+  gap: 1.5rem;
+  box-sizing: border-box;
+  margin-inline: var(--adventure-gutter);
+  padding: 0.75rem 0 1.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  /* The arrows are the strip's way across; its own scrollbar only showed up looking
+     unlike the page's. Swipes and trackpad scrolling still move it. */
+  scrollbar-width: none;
+}
+
+/* No scroll snapping: with cards of such different widths, the nearest card edge was
+   often behind the reader, and the strip slid back there after every swipe. */
+.blog .adventure__strip > * {
+  flex: none;
+}
+
+/* Below md the post column is 80% of the screen, too narrow to swipe through, so an
+   open section runs edge to edge. The bar's side padding is BlogPost's p-2 plus a tenth
+   of what is left (its w-[80%] centred), which keeps it on the column. */
+@media (max-width: 767px) {
+  .blog .adventure.is-open {
+    margin-inline: calc(50% - 50vw);
+    border-inline-width: 0;
+    border-radius: 0;
+  }
+
+  .blog .adventure.is-open .adventure__trigger {
+    padding-inline: calc(0.5rem + (100vw - 1rem) * 0.1);
+    border-radius: 0;
+  }
+
+  .blog .adventure__panel {
+    --adventure-arrow: 2.5rem;
+  }
+}
+
+/* A photo is as tall as 80vh leaves room for under its caption, and as wide as that
+   makes it - capped at the width between the arrows, so a tall photo on a phone fits
+   whole. The caption takes the photo's width rather than setting the figure's. */
+.blog .adventure__photo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 0;
+}
+
+.blog .adventure__photo .blog-image {
+  flex: none;
+  width: auto;
+  height: min(
+    80vh - 5rem,
+    (100cqw - 2 * var(--adventure-gutter)) / var(--ratio, 1.5)
+  );
+  max-width: none;
+  max-height: none;
+  margin: 0;
+}
+
+.blog .adventure__photo .blog-caption {
+  width: 0;
+  min-width: 100%;
+  text-align: center;
+}
+
+/* A card of text, the width between the arrows and as tall as its text, which never
+   scrolls inside the card; longer writing goes on in the next card. It sits a shade
+   off the page, so each card reads as its own page of the strip. */
+.blog .adventure__text-card,
+.blog.dark .adventure__text-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  box-sizing: border-box;
+  width: calc(100cqw - 2 * var(--adventure-gutter));
+  padding: 1.75rem;
+  border-radius: 1rem;
+  background-color: color-mix(in srgb, var(--font-bg-light) 96%, black);
+}
+
+.blog.dark .adventure__text-card {
+  background-color: color-mix(in srgb, var(--font-bg-dark) 95%, white);
+}
+
+.blog .adventure__text-card * {
+  background-color: transparent;
+}
+
+/* On a phone the card is narrower, so its type steps down a size. After the rules
+   above, to outrank them. */
+@media (max-width: 767px) {
+  .blog .adventure__text-card,
+  .blog.dark .adventure__text-card {
+    padding: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+}
+
+/* Back and on, sitting in the strip's gutters on every screen. */
+.blog .adventure__arrow,
+.blog.dark .adventure__arrow {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--adventure-arrow);
+  height: var(--adventure-arrow);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  font-size: 1.5rem;
+  color: inherit;
+  background-color: color-mix(in srgb, var(--font-bg-light) 70%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transform: translateY(-50%);
+  transition:
+    opacity 150ms ease,
+    background-color 100ms;
+}
+
+.blog.dark .adventure__arrow {
+  background-color: color-mix(in srgb, var(--font-bg-dark) 70%, transparent);
+}
+
+.blog .adventure__arrow * {
+  background-color: transparent;
+}
+
+@media (hover: hover) {
+  .blog .adventure__arrow:hover {
+    background-color: color-mix(
+      in srgb,
+      color-mix(in srgb, var(--font-bg-light) 92%, black) 80%,
+      transparent
+    );
+  }
+
+  .blog.dark .adventure__arrow:hover {
+    background-color: color-mix(
+      in srgb,
+      color-mix(in srgb, var(--font-bg-dark) 90%, white) 80%,
+      transparent
+    );
+  }
+}
+
+.blog .adventure__arrow--back {
+  left: calc((var(--adventure-gutter) - var(--adventure-arrow)) / 2);
+}
+
+.blog .adventure__arrow--on {
+  right: calc((var(--adventure-gutter) - var(--adventure-arrow)) / 2);
+}
+
+.blog .adventure__arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+
 @media (prefers-reduced-motion: reduce) {
   .blog .blog-image::after {
     animation: none;
@@ -611,6 +1111,12 @@ html:has(.blog-viewer[open]:not(.is-closing)) {
 
   .blog .blog-image img,
   .blog .blog-viewer__full {
+    transition: none;
+  }
+
+  .blog .adventure,
+  .blog .adventure__collapse,
+  .blog .adventure__panel {
     transition: none;
   }
 }

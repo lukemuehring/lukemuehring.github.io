@@ -50,7 +50,17 @@ export default function BlogImage(props: BlogImageProps) {
     []
   );
 
-  const handleOpenViewer = () => {
+  /**
+   * Opens the photo in BlogImageViewer.
+   * @param event - The click on the photo, from a pointer or the keyboard.
+   */
+  const handleOpenViewer = (event: React.MouseEvent<HTMLButtonElement>) => {
+    /**
+     * event.detail is 0 only when Enter or Space pressed the button.
+     * A click focuses it too, which the dialog restores on closing,
+     * so closing with Escape left the photo outlined as keyboard focus.
+     */
+    if (event.detail > 0) event.currentTarget.blur();
     // currentSrc is whichever display copy the browser chose, already decoded.
     setViewerPreviewSrc(imgRef.current?.currentSrc || src);
   };

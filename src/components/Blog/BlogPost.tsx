@@ -37,7 +37,7 @@ export default function BlogPost() {
         <BlogNavHeader text={"Back to Blog"} route={"/blog"} />
         <div className="mt-8 mb-8">
           <h1 className="blog-link">{post.title}</h1>
-          <div className="blog-date mb-8">{post.date}</div>
+          <div className="blog-date mb-8">{post.displayDate}</div>
           <PostContent />
         </div>
       </div>

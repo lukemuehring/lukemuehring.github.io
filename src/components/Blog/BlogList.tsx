@@ -40,7 +40,7 @@ export default function BlogList(props: BlogListProps) {
               <li key={post.id}>
                 <Link to={`/blog/${post.id}`} className="blog-link">
                   <div>{post.title}</div>
-                  <div className="blog-date">{post.date}</div>
+                  <div className="blog-date">{post.displayDate}</div>
                 </Link>
               </li>
             ))}
